@@ -1,22 +1,23 @@
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "linkedlist.h"
 
 bool LList_Init(LINK_NODE * listhead)
 {
 	
-	bool success = False;
+	listhead->prev = NULL;
+	listhead->next = NULL;
 	
-	listhead->prev = Null;
-	listhead->next = Null;
+	return true;
 }
 
 LINK_NODE * LList_Tail(LINK_NODE * node)
 {
 	
-	if (node != Null)
+	if (node != NULL)
 	{
-		while (node->next != Null)
+		while (node->next != NULL)
 		{
 			node = node->next;
 		}
@@ -28,25 +29,27 @@ LINK_NODE * LList_Tail(LINK_NODE * node)
 bool LList_Add(LINK_NODE * node, LINK_NODE * newNode)
 {
 	
-	LINK_NODE * oldTail = LL_Tail(node);
+	LINK_NODE * oldTail = LList_Tail(node);
 	
 	if (node != NULL)
 	{
 		newNode->prev = oldTail;
-		oldTail->Next = newNode;
-		newNode->Next = Null;
+		oldTail->next = newNode;
+		newNode->next = NULL;
 	}
 	
-	return True;
+	return true;
 }
 
 bool LList_Traverse(LINK_NODE * node, llink_cb callback)
 {
-	bool stop = False;
+	bool stop = false;
 	
 	while (node && !stop)
 	{
 		stop = callback(node);
 		node = node->next;
 	}
+
+	return true;
 }

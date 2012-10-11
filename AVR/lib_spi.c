@@ -1,6 +1,26 @@
+/*
+ * Standard Library Includes
+ */
 #include <stdbool.h>
+#include <stddef.h>
 
+#include <stdlib.h>
+#include <assert.h>
+
+/*
+ * AVR Includes (Defines and Primitives)
+ */
+#include <avr/io.h>
+#include <avr/interrupt.h>
+
+/*
+ * Common and Generic Includes
+ */
 #include "lib_spi_common.h"
+
+/*
+ * AVR Library Includes
+ */
 #include "lib_spi.h"
 
 // Create alias for the different SPI chip pins - code assumes all on port B
@@ -34,7 +54,7 @@ void SPI_SetSlave(void)
 	DDRB &= ~(1<<SPI_SCK_PIN);
 
 }
-void SPI_SetMaster(LIBSPI_MSTRCLK_ENUM eMstrFreq)
+void SPI_SetMaster(LIBSPI_MSTRFREQ_ENUM eMstrFreq)
 {
 	uint8_t spcr = SPCR;
 	uint8_t spsr = SPSR;
@@ -45,10 +65,10 @@ void SPI_SetMaster(LIBSPI_MSTRCLK_ENUM eMstrFreq)
 	if ((LIBSPI_MSTRFREQ_FOSC2 == eMstrFreq) ||
 		(LIBSPI_MSTRFREQ_FOSC8 == eMstrFreq) ||
 		(LIBSPI_MSTRFREQ_FOSC32 == eMstrFreq) ||
-		(LIBSPI_MSTRFREQ_FOSC64 == eMstrFreq))
+		(LIBSPI_MSTRFREQ_FOSC64X2 == eMstrFreq))
 	{
-		spsr |= (1 << SPI2X) : 0;
-		eMstrFreq = (LIBSPI_MSTRCLK_ENUM)((uint8_t)eMstrFreq >> 3); // Divide by 8 to get SPCR setting
+		spsr |= (1 << SPI2X);
+		eMstrFreq = (LIBSPI_MSTRFREQ_ENUM)((uint8_t)eMstrFreq >> 3); // Divide by 8 to get SPCR setting
 	}
 	
 	SPSR = spsr;
@@ -66,13 +86,13 @@ void SPI_SetMaster(LIBSPI_MSTRCLK_ENUM eMstrFreq)
 	DDRB |= (1<<SPI_SS_PIN);
 }
 
-void SPI_SetDataOrder(LIBSPI_DATAORDER_ENUM eOrder)
+void SPI_SetDataOrder(LIBSPI_DATADIRECTION_ENUM eOrder)
 {
 	uint8_t spcr = SPCR;
 	
 	// Clear and then set DORD bit
 	spcr &= ~(1 << DORD);
-	spcr |= (eOrder == LIBSPI_DATAORDER_LSBFIRST) ? (1 << DORD) : 0;
+	spcr |= (eOrder == LIBSPI_DATADIRECTION_LSBFIRST) ? (1 << DORD) : 0;
 	
 	SPCR = spcr;
 }
@@ -106,7 +126,7 @@ void SPI_AssertCS(bool assert)
 
 void SPI_SendByte(uint8_t byte, SPICALLBACK cb)
 {
-	assert(NULL == callback)
+	assert(NULL == cb);
 	
 	callback = cb;
 	
@@ -123,4 +143,5 @@ ISR(SPI_STC_vect)
 		callback(reply);
 	}
 	callback = NULL;
+
 }
