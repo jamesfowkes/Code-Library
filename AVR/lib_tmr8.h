@@ -37,6 +37,14 @@ enum tmr8_outputmode_enum
 };
 typedef enum tmr8_outputmode_enum TMR8_OUTPUTMODE_ENUM;
 
+enum tmr8_intmask_enum
+{
+	TMR8_INTMASK_OCMPB	= 0x04,
+	TMR8_INTMASK_OCMPA	= 0x02,
+	TMR8_INTMASK_OVF	= 0x01
+};
+typedef enum tmr8_intmask_enum TMR8_INTMASK_ENUM;
+
 typedef void (*tmr8_cb)(uint32_t seconds);
 
 struct tmr8_tick_config
@@ -45,6 +53,7 @@ struct tmr8_tick_config
 	TMR8_OCCHAN_ENUM eChannel;
 	tmr8_cb Callback;
 	uint32_t msTick;
+	uint32_t reload;
 };
 typedef struct tmr8_tick_config TMR8_TICK_CONFIG;
 
@@ -53,9 +62,8 @@ typedef struct tmr8_tick_config TMR8_TICK_CONFIG;
  */
 void TMR8_Init(void);
 
-bool TMR8_AddCallbackTick(TMR8_TICK_CONFIG * config);
-void TMR8_SetPWMDuty(uint8_t duty);
-void TMR8_SelectSource(TMR_SRC_ENUM eSource);
+void TMR8_SetSource(TMR_SRC_ENUM eSource);
+TMR_SRC_ENUM TMR8_GetSource(void);
 
 void 					TMR8_SetCountMode(const TMR8_COUNTMODE_ENUM eMode);
 TMR8_COUNTMODE_ENUM		TMR8_GetCountMode(void);
@@ -65,5 +73,7 @@ TMR8_OUTPUTMODE_ENUM	TMR8_GetOutputCompareMode(const TMR8_OCCHAN_ENUM eChannel);
 void					TMR8_SetOutputCompareValue(const uint8_t value, const TMR8_OCCHAN_ENUM eChannel);
 
 void					TMR8_ForceOutputCompare(const TMR8_OCCHAN_ENUM eChannel);
+
+void					TMR8_InterruptControl(TMR8_INTMASK_ENUM eMask, bool enable);
 
 #endif

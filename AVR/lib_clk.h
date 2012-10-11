@@ -8,9 +8,10 @@ enum lib_clk_src_enum
 };
 typedef enum lib_clk_src_enum LIB_CLK_SRC_ENUM;
 
-bool CLK_Init(const uint32_t fExtSet);
-void CLK_SourceSelect(LIB_CLK_SRC_ENUM eSourceSelect);
-void CLK_SetPrescaler(const clock_div_t eSetPrescaler);
-bool CLK_IsSourceRunning(LIB_CLK_SRC_ENUM eSource);
+bool		CLK_Init(const uint32_t fExtSet);
+void		CLK_SetSource(const LIB_CLK_SRC_ENUM eSetSource);
+void		CLK_SetPrescaler(const clock_div_t eSetPrescaler);
+clock_div_t	CLK_GetPrescaler(void);
+bool		CLK_IsSourceRunning(const LIB_CLK_SRC_ENUM eSource);
 
 #endif

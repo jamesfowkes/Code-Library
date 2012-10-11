@@ -22,6 +22,7 @@
  */
 #include "lib_clk.h"
 #include "lib_tmr8.h"
+#include "lib_tmr8_tick.h"
 
 /*
  * Application Includes
@@ -45,11 +46,10 @@ static void ButtonCheckTick(uint32_t seconds __attribute__ ((unused)) );
 /*
  * Private Variables
  */
-
 static minimus_button_cb buttonCallback = NULL;
 static BUTTON_STATE buttons[2];
 
-static TMR8_TICK_CONFIG tmr8_config;
+static TMR8_TICK_CONFIG tmr8_tick_config;
 
 /*
  * Public Functions
@@ -79,14 +79,15 @@ void Minimus_Init(minimus_button_cb cb)
 
 	CLK_Init(F_USB);
 	CLK_SetPrescaler(clock_div_1);
-	CLK_SourceSelect(LIB_CLK_SRC_EXT);
+	CLK_SetSource(LIB_CLK_SRC_EXT);
 
-	TMR8_SelectSource(TMR_SRC_FCLK);
+	TMR8_SetSource(TMR_SRC_FCLK);
 
-	tmr8_config.Callback = ButtonCheckTick;
-	tmr8_config.msTick = 50;
-	TMR8_AddCallbackTick(&tmr8_config);
+	TMR8_Tick_Init();
 
+	tmr8_tick_config.Callback = ButtonCheckTick;
+	tmr8_tick_config.reload = 50;
+	TMR8_Tick_AddCallback(&tmr8_tick_config);
 }
 
 /*

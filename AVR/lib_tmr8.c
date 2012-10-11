@@ -26,17 +26,18 @@
 /*
  * Private Variables
  */
-static uint32_t secondsSinceInit = 0;
-static LINK_NODE * Head;
 
 // Map mode number to mode enumeration
 static TMR8_COUNTMODE_ENUM countModeMap[] =
 {
 	TMR8_COUNTMODE_NORMAL,
-	TMR8_COUNTMODE_PCPWM1, 								// TOP = 0xFF
-	TMR8_COUNTMODE_CTC, TMR8_COUNTMODE_FASTPWM1, 		// TOP = 0xFF
-	TMR8_COUNTMODE_INVALID, TMR8_COUNTMODE_PCPWM2,		// TOP = OCR0A
-	TMR8_COUNTMODE_INVALID, TMR8_COUNTMODE_FASTPWM2,	// TOP = OCR0A
+	TMR8_COUNTMODE_PCPWM1, 		// TOP = 0xFF
+	TMR8_COUNTMODE_CTC,
+	TMR8_COUNTMODE_FASTPWM1, 	// TOP = 0xFF
+	TMR8_COUNTMODE_INVALID,
+	TMR8_COUNTMODE_PCPWM2,		// TOP = OCR0A
+	TMR8_COUNTMODE_INVALID,
+	TMR8_COUNTMODE_FASTPWM2,	// TOP = OCR0A
 };
 
 /*
@@ -51,27 +52,23 @@ static bool IsPWMMode(const TMR8_COUNTMODE_ENUM eCountMode);
 
 void TMR8_Init(void)
 {
-	Head = NULL;
-	secondsSinceInit = 0;
 
-	LList_Init(Head);
 }
 
-void TMR8_SelectSource(TMR_SRC_ENUM eSource)
+void TMR8_SetSource(TMR_SRC_ENUM eSource)
 {
 	uint8_t temp = 0;
 	temp = TCCR0B;
 	temp &= ~((1 << CS02) | (1 << CS01) | (1 << CS00));
-	temp |= (uint8_t) eSource;
+	temp |= (uint8_t)eSource;
 	TCCR0B = temp;
 }
 
-bool TMR8_AddCallbackTick(TMR8_TICK_CONFIG * config)
+TMR_SRC_ENUM TMR8_GetSource(void)
 {
-	bool success = false;
-	success = LList_Add(Head, &(config->Node));
-
-	return success;
+	uint8_t temp = TCCR0B;
+	temp &= ((1 << CS02) | (1 << CS01) | (1 << CS00));
+	return (TMR_SRC_ENUM)temp;
 }
 
 void TMR8_SetCountMode(const TMR8_COUNTMODE_ENUM eMode)
@@ -279,6 +276,22 @@ void TMR8_ForceOutputCompare(const TMR8_OCCHAN_ENUM eChannel)
 	TCCR0B = tccr0b;
 }
 
+void TMR8_InterruptControl(TMR8_INTMASK_ENUM eMask, bool enable)
+{
+
+	uint8_t timsk0 = TIMSK0;
+
+	if (enable)
+	{
+		timsk0 |= (uint8_t)eMask;
+	}
+	else
+	{
+		timsk0 &= ~((uint8_t)eMask);
+	}
+
+}
+
 /*
  * Private Functions
  */
@@ -288,5 +301,4 @@ static bool IsPWMMode(const TMR8_COUNTMODE_ENUM eCountMode)
 	assert(eCountMode < TMR8_COUNTMODE_INVALID);
 
     return !((TMR8_COUNTMODE_NORMAL == eCountMode) || (TMR8_COUNTMODE_CTC == eCountMode));
-
 }

@@ -36,11 +36,11 @@ bool CLK_Init(const uint32_t fExtSet)
 	return true;
 }
 
-void CLK_SourceSelect(const LIB_CLK_SRC_ENUM eSourceSelect)
+void CLK_SetSource(const LIB_CLK_SRC_ENUM eSetSource)
 {
-	if (eSourceSelect != eSource)
+	if (eSetSource != eSource)
 	{
-		switch(eSourceSelect)
+		switch(eSetSource)
 		{
 		case LIB_CLK_SRC_RC:
 			SelectRcOscillator();
@@ -57,9 +57,12 @@ void CLK_SourceSelect(const LIB_CLK_SRC_ENUM eSourceSelect)
 void CLK_SetPrescaler(const clock_div_t eSetPrescaler)
 {
 	ePrescaler = eSetPrescaler;
-
-	/* Disable clock division */
 	clock_prescale_set(ePrescaler);
+}
+
+clock_div_t CLK_GetPrescaler(void)
+{
+	return ePrescaler;
 }
 
 bool CLK_IsSourceRunning(LIB_CLK_SRC_ENUM eSource)
