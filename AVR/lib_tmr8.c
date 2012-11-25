@@ -14,11 +14,6 @@
 #include <avr/io.h>
 
 /*
- * Generic Library Includes
- */
-#include "linkedlist.h"
-
-/*
  * AVR Library Includes
  */
 #include "lib_tmr8.h"
@@ -49,11 +44,6 @@ static bool IsPWMMode(const TMR8_COUNTMODE_ENUM eCountMode);
 /*
  * Public Functions
  */
-
-void TMR8_Init(void)
-{
-
-}
 
 void TMR8_SetSource(TMR_SRC_ENUM eSource)
 {
@@ -116,7 +106,6 @@ void TMR8_SetCountMode(const TMR8_COUNTMODE_ENUM eMode)
 
 		TCCR0A = tccr0a;
 		TCCR0B = tccr0b;
-
 	}
 }
 
@@ -155,46 +144,6 @@ void TMR8_SetOutputCompareValue(const uint8_t value, const TMR8_OCCHAN_ENUM eCha
 	default:
 		break;
 	}
-}
-
-TMR8_OUTPUTMODE_ENUM TMR8_GetOutputCompareMode(const TMR8_OCCHAN_ENUM eChannel)
-{
-	assert(eChannel < TMR8_OCCHAN_INVALID);
-	uint8_t tccr0a = TCCR0A;
-
-	TMR8_OUTPUTMODE_ENUM eMode = TMR8_OUTPUTMODE_INVALID;
-	switch (eChannel) {
-	case TMR8_OCCHAN_A:
-		tccr0a &= COM0A0 | COM0A1;
-		break;
-	case TMR8_OCCHAN_B:
-		tccr0a &= COM0B0 | COM0B1;
-		break;
-	default:
-		break;
-	}
-
-	switch (tccr0a) {
-	case 0:
-		eMode = TMR8_OUTPUTMODE_NONE;
-		break;
-	case (1 << COM0A0):
-	case (1 << COM0B0):
-		eMode = TMR8_OUTPUTMODE_TOGGLE;
-		break;
-	case (1 << COM0A1):
-	case (1 << COM0B1):
-		eMode = TMR8_OUTPUTMODE_CLEAR;
-		break;
-	case ((1 << COM0A1) | (1 << COM0A0)):
-	case ((1 << COM0B1) | (1 << COM0B0)):
-		eMode = TMR8_OUTPUTMODE_SET;
-		break;
-	default:
-			break;
-	}
-
-	return eMode;
 }
 
 void TMR8_SetOutputCompareMode(const TMR8_OUTPUTMODE_ENUM eOutputMode, const TMR8_OCCHAN_ENUM eChannel)

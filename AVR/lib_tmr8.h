@@ -45,18 +45,6 @@ enum tmr8_intmask_enum
 };
 typedef enum tmr8_intmask_enum TMR8_INTMASK_ENUM;
 
-typedef void (*tmr8_cb)(uint32_t seconds);
-
-struct tmr8_tick_config
-{
-	LINK_NODE Node;
-	TMR8_OCCHAN_ENUM eChannel;
-	tmr8_cb Callback;
-	uint32_t msTick;
-	uint32_t reload;
-};
-typedef struct tmr8_tick_config TMR8_TICK_CONFIG;
-
 /*
  * Public Function Prototypes
  */

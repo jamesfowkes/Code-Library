@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #include "linkedlist.h"
 
@@ -41,15 +42,35 @@ bool LList_Add(LINK_NODE * node, LINK_NODE * newNode)
 	return true;
 }
 
-bool LList_Traverse(LINK_NODE * node, llink_cb callback)
+uint8_t LList_ItemCount(LINK_NODE * listhead)
+{
+
+	uint8_t count = 0;
+	LINK_NODE * node = listhead;
+	if (node != NULL)
+	{
+		while (node->next != NULL)
+		{
+			node = node->next;
+			count++;
+		}
+	}
+
+	return count;
+}
+
+LINK_NODE * LList_Traverse(LINK_NODE * node, llink_cb callback)
 {
 	bool stop = false;
 	
 	while (node && !stop)
 	{
 		stop = callback(node);
-		node = node->next;
+		if (!stop)
+		{
+			node = node->next;
+		}
 	}
 
-	return true;
+	return node;
 }

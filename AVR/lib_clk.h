@@ -1,6 +1,12 @@
 #ifndef _LIB_CLK_H_
 #define _LIB_CLK_H_
 
+/*
+ * Requirements for this module
+ */
+
+#include <avr/power.h>
+
 enum lib_clk_src_enum
 {
 	LIB_CLK_SRC_RC,

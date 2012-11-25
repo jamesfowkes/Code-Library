@@ -7,7 +7,6 @@
  * AVR Includes (Defines and Primitives)
  */
 #include "avr/io.h"
-#include "avr/power.h"
 
 /*
  * AVR Library Includes
@@ -67,6 +66,7 @@ clock_div_t CLK_GetPrescaler(void)
 
 bool CLK_IsSourceRunning(LIB_CLK_SRC_ENUM eSource)
 {
+	#ifdef CKSTA
 	uint8_t check = 0;
 
 	switch (eSource)
@@ -82,6 +82,9 @@ bool CLK_IsSourceRunning(LIB_CLK_SRC_ENUM eSource)
 	}
 
 	return (CKSTA & check) == check;
+	#else
+	return true;
+	#endif
 }
 
 uint32_t CLK_GetFcpu(void)
@@ -109,19 +112,24 @@ uint32_t CLK_GetFcpu(void)
  */
 void SelectRcOscillator(void)
 {
+	#ifdef PLLCSR
 	PLLCSR &= ~(1 << PLLE);							// Disable PLL
 	CKSEL0 |= (1 << RCE);							// Enable RC CLock
 	while ( (CKSTA & (1 << RCON)) != (1 << RCON));	// Wait for clock ready
 	CKSEL0 &= ~(1 << CLKS);							// Select the RC clock
 	CKSEL0 &= ~(1 << EXTE);							// Disable the external clock
+	#endif
 }
 
 void SelectExternalOscillator(void)
 {
+	#ifdef CKSEL0
 	CKSEL0 |= (1 << EXTE);								// Enable the external clock
 	while ( (CKSTA & (1 << EXTON)) != (1 << EXTON));	// Wait for external clock ready
 	CKSEL0 |= (1 << CLKS);								// Select the external clock
 	PLLCSR |= (1 << PLLE);								// Enable the PLL
 	CKSEL0 &= ~(1 << RCE);								// Disable the internal clock
 	while ( (PLLCSR & (1 << PLOCK)) != (1 << PLOCK));	// Wait for PLL to lock
+	#endif
 }
+

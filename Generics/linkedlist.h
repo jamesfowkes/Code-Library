@@ -17,8 +17,9 @@ typedef bool(*llink_cb)(LINK_NODE*);
  * Public Function Definitions
  */
 bool LList_Init(LINK_NODE * listhead);
+uint8_t LList_ItemCount(LINK_NODE * listhead);
 LINK_NODE * LList_Tail(LINK_NODE * node);
 bool LList_Add(LINK_NODE * node, LINK_NODE * newNode);
-bool LList_Traverse(LINK_NODE * node, llink_cb callback);
+LINK_NODE * LList_Traverse(LINK_NODE * node, llink_cb callback);
 
 #endif
