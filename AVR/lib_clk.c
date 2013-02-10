@@ -23,8 +23,8 @@ void SelectExternalOscillator(void);
  * Private Variables
  */
 static uint32_t fExt = 0UL;
+
 static clock_div_t ePrescaler = clock_div_1;
-static LIB_CLK_SRC_ENUM eSource = LIB_CLK_SRC_RC;
 
 /*
  * Public Functions
@@ -33,24 +33,6 @@ bool CLK_Init(const uint32_t fExtSet)
 {
 	fExt = fExtSet;
 	return true;
-}
-
-void CLK_SetSource(const LIB_CLK_SRC_ENUM eSetSource)
-{
-	if (eSetSource != eSource)
-	{
-		switch(eSetSource)
-		{
-		case LIB_CLK_SRC_RC:
-			SelectRcOscillator();
-			break;
-		case LIB_CLK_SRC_EXT:
-			SelectExternalOscillator();
-			break;
-		default:
-			break;
-		}
-	}
 }
 
 void CLK_SetPrescaler(const clock_div_t eSetPrescaler)
@@ -90,46 +72,17 @@ bool CLK_IsSourceRunning(LIB_CLK_SRC_ENUM eSource)
 uint32_t CLK_GetFcpu(void)
 {
 	uint32_t base = 0;
-	switch (eSource)
+
+	if ( CLK_IsSourceRunning(LIB_CLK_SRC_RC) )
 	{
-	case LIB_CLK_SRC_RC:
 		base = F_CPU;
-		break;
-	case LIB_CLK_SRC_EXT:
+	}
+	else if ( CLK_IsSourceRunning(LIB_CLK_SRC_EXT) )
+	{
 		base = fExt;
-		break;
-	default:
-		break;
 	}
 
 	base /= (1 << (uint8_t)ePrescaler);
 
 	return base;
 }
-
-/*
- * Private Functions
- */
-void SelectRcOscillator(void)
-{
-	#ifdef PLLCSR
-	PLLCSR &= ~(1 << PLLE);							// Disable PLL
-	CKSEL0 |= (1 << RCE);							// Enable RC CLock
-	while ( (CKSTA & (1 << RCON)) != (1 << RCON));	// Wait for clock ready
-	CKSEL0 &= ~(1 << CLKS);							// Select the RC clock
-	CKSEL0 &= ~(1 << EXTE);							// Disable the external clock
-	#endif
-}
-
-void SelectExternalOscillator(void)
-{
-	#ifdef CKSEL0
-	CKSEL0 |= (1 << EXTE);								// Enable the external clock
-	while ( (CKSTA & (1 << EXTON)) != (1 << EXTON));	// Wait for external clock ready
-	CKSEL0 |= (1 << CLKS);								// Select the external clock
-	PLLCSR |= (1 << PLLE);								// Enable the PLL
-	CKSEL0 &= ~(1 << RCE);								// Disable the internal clock
-	while ( (PLLCSR & (1 << PLOCK)) != (1 << PLOCK));	// Wait for PLL to lock
-	#endif
-}
-

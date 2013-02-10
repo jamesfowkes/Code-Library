@@ -44,7 +44,8 @@
 	void Minimus_Init(minimus_button_cb);
 	void Minimus_USB_MsTick(void);
 
-	void Minimus_IO_Control(MINIMUS_LED_ENUM eLED, MINIMUS_LEDCTRL_ENUM eControl);
+	void Minimus_LED_Control(MINIMUS_LED_ENUM eLED, MINIMUS_LEDCTRL_ENUM eControl);
+	MINIMUS_BUTTONSTATE_ENUM Minimus_Button_Read();
 
 #else
 	#error "Minimus does not support target MCU!"

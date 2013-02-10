@@ -18,6 +18,8 @@ bool		CLK_Init(const uint32_t fExtSet);
 void		CLK_SetSource(const LIB_CLK_SRC_ENUM eSetSource);
 void		CLK_SetPrescaler(const clock_div_t eSetPrescaler);
 clock_div_t	CLK_GetPrescaler(void);
+uint32_t	CLK_GetFcpu(void);
+
 bool		CLK_IsSourceRunning(const LIB_CLK_SRC_ENUM eSource);
 
 #endif
