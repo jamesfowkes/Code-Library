@@ -1,6 +1,7 @@
 #ifndef _LIB_8BITTMR_H_
 #define _LIB_8BITTMR_H_
 
+#include "lib_io.h"
 #include "lib_tmr_common.h"
 
 /*
@@ -61,6 +62,7 @@ TMR8_OUTPUTMODE_ENUM	TMR8_GetOutputCompareMode(const TMR8_OCCHAN_ENUM eChannel);
 void					TMR8_SetOutputCompareValue(const uint8_t value, const TMR8_OCCHAN_ENUM eChannel);
 
 void					TMR8_ForceOutputCompare(const TMR8_OCCHAN_ENUM eChannel);
+void					TMR8_PWMOff(const TMR8_OCCHAN_ENUM eChannel, const IO_STATE_ENUM eState);
 
 void					TMR8_InterruptControl(TMR8_INTMASK_ENUM eMask, bool enable);
 

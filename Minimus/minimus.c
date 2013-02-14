@@ -35,13 +35,15 @@
  */
 
 /* IO for Minumus AVR USB key */
-#define IO_PRT PORTD
-#define IO_DDR DDRD
-#define IO_PINS PIND
-
-#define BUTTON_PIN PIND7
+#define LED_PRT		PORTD
+#define LED_DDR		DDRD
+#define LED_PINS	PIND
 #define LED1_PIN	PIND5
 #define LED2_PIN	PIND6
+
+#define BUTTON_PINS	PIND
+#define BUTTON_PIN	PIND7
+
 
 #define MAX_DEBOUNCE_COUNT 20
 
@@ -78,17 +80,17 @@ void Minimus_Init(minimus_button_cb cb)
 	/* Button to pull-up input, LEDs to output */
 	uint8_t temp = 0;
 
-	temp = IO_DDR;
+	temp = LED_DDR;
 	temp &= ~(1 << BUTTON_PIN);
 	temp |= (1 << LED1_PIN);
 	temp |= (1 << LED2_PIN);
-	IO_DDR = temp;
+	LED_DDR = temp;
 
-	temp = IO_PRT;
+	temp = LED_PRT;
 	temp |= (1 << BUTTON_PIN);
 	temp &= ~(1 << LED1_PIN);
 	temp &= ~(1 << LED2_PIN);
-	IO_PRT = temp;
+	LED_PRT = temp;
 
 	Minimus_LED_Control(LED1, LED_OFF);
 	Minimus_LED_Control(LED2, LED_OFF);
@@ -108,26 +110,26 @@ void Minimus_LED_Control(MINIMUS_LED_ENUM eLED, MINIMUS_LEDCTRL_ENUM eControl)
 	{
 	/* Inverse logic - Minimus has LEDs from Vcc to pin, need to pull down to turn on. */
 	case LED_OFF:
-		IO_PRT |= (1 << ledPin);
+		LED_PRT |= (1 << ledPin);
 		break;
 	case LED_ON:
-		IO_PRT &= ~(1 << ledPin);
+		LED_PRT &= ~(1 << ledPin);
 		break;
 	case LED_TOGGLE:
-		IO_PINS = (1 << ledPin);
+		LED_PINS = (1 << ledPin);
 		break;
 	}
 }
 
 MINIMUS_BUTTONSTATE_ENUM Minimus_Button_Read()
 {
-	return (IO_PINS & (1 << BUTTON_PIN)) == (1 << BUTTON_PIN) ? BUTTONDN : BUTTONUP;
+	return (BUTTON_PINS & (1 << BUTTON_PIN)) == (1 << BUTTON_PIN) ? BUTTONDN : BUTTONUP;
 }
 
 void Minimus_USB_MsTick(void)
 {
 
-	bool countUp = (IO_PINS & (1 << BUTTON_PIN)) == (1 << BUTTON_PIN);
+	bool countUp = (BUTTON_PINS & (1 << BUTTON_PIN)) == (1 << BUTTON_PIN);
 
 	MINIMUS_BUTTONSTATE_ENUM eNewState = button.eState;
 

@@ -16,6 +16,7 @@
 /*
  * AVR Library Includes
  */
+#include "lib_io.h"
 #include "lib_tmr8.h"
 
 /*
@@ -223,6 +224,22 @@ void TMR8_ForceOutputCompare(const TMR8_OCCHAN_ENUM eChannel)
 	}
 
 	TCCR0B = tccr0b;
+}
+
+void TMR8_PWMOff(const TMR8_OCCHAN_ENUM eChannel, const IO_STATE_ENUM eState)
+{
+	/* Reset channel to requested state */
+	switch (eChannel)
+	{
+	case TMR8_OCCHAN_A:
+		IO_SetMode(IO_PORTB, 7, eState);
+		break;
+	case TMR8_OCCHAN_B:
+		IO_SetMode(IO_PORTD, 0, eState);
+		break;
+	default:
+		break;
+	}
 }
 
 void TMR8_InterruptControl(TMR8_INTMASK_ENUM eMask, bool enable)
