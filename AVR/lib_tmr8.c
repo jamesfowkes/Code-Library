@@ -62,6 +62,15 @@ TMR_SRC_ENUM TMR8_GetSource(void)
 	return (TMR_SRC_ENUM)temp;
 }
 
+uint16_t TMR8_GetDivisor(void)
+{
+	TMR_SRC_ENUM temp = TMR8_GetSource();
+	//TMR_SRC_FCLK,	TMR_SRC_FCLK_8,	TMR_SRC_FCLK_64, TMR_SRC_FCLK_256, TMR_SRC_FCLK_1024, TMR_SRC_FCLK_EXT_FALLING, TMR_SRC_FCLK_EXT_RISING,
+	uint16_t divisors[] = {1, 1, 8, 64, 256, 1024, 1, 1};
+
+	return divisors[temp];
+}
+
 void TMR8_SetCountMode(const TMR8_COUNTMODE_ENUM eMode)
 {
 
@@ -255,6 +264,8 @@ void TMR8_InterruptControl(TMR8_INTMASK_ENUM eMask, bool enable)
 	{
 		timsk0 &= ~((uint8_t)eMask);
 	}
+
+	TIMSK0 = timsk0;
 
 }
 

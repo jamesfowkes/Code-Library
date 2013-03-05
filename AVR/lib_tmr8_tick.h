@@ -17,10 +17,11 @@ struct tmr8_tick_config
 	#ifdef LIB_TMR8_USE_LL
 	LINK_NODE Node;
 	#endif
-	TMR8_OCCHAN_ENUM eChannel;
-	tmr8_cb Callback;
-	uint32_t msTick;
-	uint32_t reload;
+	TMR8_OCCHAN_ENUM	eChannel;
+	tmr8_cb				Callback;
+	uint32_t			msTick;
+	uint32_t			reload;
+	bool				active;
 };
 typedef struct tmr8_tick_config TMR8_TICK_CONFIG;
 

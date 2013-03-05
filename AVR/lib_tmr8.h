@@ -53,6 +53,7 @@ void TMR8_Init(void);
 
 void TMR8_SetSource(TMR_SRC_ENUM eSource);
 TMR_SRC_ENUM TMR8_GetSource(void);
+uint16_t TMR8_GetDivisor(void);
 
 void 					TMR8_SetCountMode(const TMR8_COUNTMODE_ENUM eMode);
 TMR8_COUNTMODE_ENUM		TMR8_GetCountMode(void);
