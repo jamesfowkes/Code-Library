@@ -29,7 +29,7 @@ typedef enum lib_adc_reference_enum LIB_ADC_REFERENCE_ENUM;
 
 enum lib_adc_prescaler_enum
 {
-	LIB_ADC_PRESCALER_DIV2,
+	LIB_ADC_PRESCALER_DIV2 = 1,
 	LIB_ADC_PRESCALER_DIV4,
 	LIB_ADC_PRESCALER_DIV8,
 	LIB_ADC_PRESCALER_DIV16,
