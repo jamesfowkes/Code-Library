@@ -44,7 +44,7 @@ static void SetChannel(LIB_ADC_CHANNEL_ENUM eChannel);
 
 void ADC_Enable(bool enableADC)
 {
-	/*uint8_t adcsra = ADCSRA;
+	uint8_t adcsra = ADCSRA;
 
 	if (enableADC)
 	{
@@ -55,12 +55,12 @@ void ADC_Enable(bool enableADC)
 		adcsra &= ~(1 << ADEN);
 	}
 
-	ADCSRA = adcsra;*/
+	ADCSRA = adcsra;
 }
 
 void ADC_EnableInterrupts(bool enableInterrupts)
 {
-	/*uint8_t adcsra = ADCSRA;
+	uint8_t adcsra = ADCSRA;
 
 	if (enableInterrupts)
 	{
@@ -71,7 +71,7 @@ void ADC_EnableInterrupts(bool enableInterrupts)
 		adcsra &= ~(1 << ADIE);
 	}
 
-	ADCSRA = adcsra;*/
+	ADCSRA = adcsra;
 }
 
 #ifdef LIB_ADC_USE_AUTOTRIGGER
@@ -96,40 +96,24 @@ uint16_t ADC_GetReading(LIB_ADC_CHANNEL_ENUM eChannel)
 {
 	validReading = false;
 
-	IO_Control(IO_PORTA, 1, IO_ON);
-
-	ADMUX |= (1 << REFS0); // Set ADC reference to AVCC
-	ADMUX |= (1 << ADLAR); // Left adjust ADC result to allow easy 8 bit reading
-
-	// Use ADC6
-	ADMUX &= ~0x1F;
-	ADMUX |= 0x06;
-
-	//ADCSRA |= (1 << ADFR);  // Set ADC to Free-Running Mode
-	ADCSRA |= (1 << ADEN);  // Enable ADC
-
-	ADCSRA |= (1 << ADIE);  // Enable ADC Interrupt
-
-	//SetChannel(eChannel);
+	SetChannel(eChannel);
 
 	ADCSRA |= (1 << ADSC); // Start conversion
 
-	while (!validReading)
-
-	IO_Control(IO_PORTA, 1, IO_OFF);
+	while (!validReading){ asm("nop"); }
 
 	return lastReading;
 }
 
 void ADC_SelectReference(LIB_ADC_REFERENCE_ENUM eRef)
 {
-	/*uint8_t admux = ADMUX;
+	uint8_t admux = ADMUX;
 
 	admux &= ~((1 << REFS1) | (1 << REFS0));
 
 	admux |= (uint8_t)eRef << REFS0;
 
-	ADMUX = admux;*/
+	ADMUX = admux;
 }
 
 void ADC_SelectPrescaler(LIB_ADC_PRESCALER_ENUM ePrescaler)

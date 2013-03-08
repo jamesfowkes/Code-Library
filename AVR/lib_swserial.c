@@ -13,17 +13,14 @@
  * AVR Includes (Defines and Primitives)
  */
  
-//#include "avr/io.h"
+#include <avr/io.h>
+#include <util/delay.h>
 
 /*
  * AVR Library Include
  */
 
-/* TODO: DELETE BEFORE RELEASE */
-typedef int IO_PORT_ENUM;
-/* TODO: DELETE BEFORE RELEASE */
-
-//TODO: #include "lib_io.h"
+#include "lib_io.h"
 #include "lib_swserial.h"
 
 /*
@@ -62,7 +59,7 @@ void SWS_Init(IO_PORT_ENUM ePort, uint8_t pin, LIB_SWS_BAUDRATE_ENUM eBaudrate)
 	
 	s_eBaudrate = eBaudrate;
 	
-	//TODO: IO_SetMode(s_ePort, s_pin, IO_MODE_OUTPUT);
+	IO_SetMode(s_ePort, s_pin, IO_MODE_OUTPUT);
 
 }
 
@@ -73,21 +70,22 @@ void SWS_SetBaudrate(LIB_SWS_BAUDRATE_ENUM eBaudrate)
 
 void SWS_Transmit(uint8_t const * const buffer, uint8_t size)
 {
-	(void)buffer;
 	uint8_t mask = 0x80;
 	
 	if (size)
 	{
-		do
+		while(size--)
 		{
 			mask = 0x80;
 			while (mask)
 			{
-				//TODO: IO_Control(s_ePort, s_pin, (buffer[size] & mask) ? IO_ON : IO_OFF);
-				mask >>= 2;
+				IO_Control(s_ePort, s_pin, (buffer[size] & mask) ? IO_ON : IO_OFF);
+				mask >>= 1;
 				txDelay();
 			}
-		} while(--size);
+		}
+
+		IO_Control(s_ePort, s_pin, IO_OFF);
 	}
 }
 
@@ -97,12 +95,13 @@ void SWS_Transmit(uint8_t const * const buffer, uint8_t size)
 static void txDelay(void)
 {
 	uint16_t usdelay = 0;
+
 	static uint32_t bitCount = 0;
 	bool bResetCount = false;
 	
 	/* Integer delays in microseconds are hardcoded.
-	 * In order to acheive greater precision, some bits
-	 * (depending on baud rate) are lengthened to acheive
+	 * In order to achieve greater precision, some bits
+	 * (depending on baud rate) are lengthened to achieve
 	 * a 0.33 or 0.66 extra microseconds delay on average.
 	 */
 	switch (s_eBaudrate)
@@ -132,8 +131,21 @@ static void txDelay(void)
 		bResetCount = true;
 		break;
 	}
-	//TODO: _delay_us(usdelay);
 	
+	while (usdelay)
+	{
+		if (usdelay > 700)
+		{
+			_delay_us(700);
+			usdelay -= 700;
+		}
+		else
+		{
+			_delay_us(usdelay);
+			usdelay = 0;
+		}
+	}
+
 	if (bResetCount)
 	{
 		bitCount = 0;
