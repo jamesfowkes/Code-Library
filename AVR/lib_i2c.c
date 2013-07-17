@@ -26,7 +26,7 @@ I2C_TRANSFER_DATA * activeTransfer = NULL;
 
 static I2C_SLAVE_HANDLER getSlaveTransferData = NULL;
 
-bool I2C_Init(I2C_SLAVE_HANDLER slaveHandler)
+bool I2C_Init(I2C_SLAVE_HANDLER slaveHandler, uint8_t slaveAddress)
 {
 	// Get pointers to the state machines for each mode
 	state_machines[I2CM_MT] = I2C_MT_GetSM();
@@ -36,7 +36,25 @@ bool I2C_Init(I2C_SLAVE_HANDLER slaveHandler)
 	
 	getSlaveTransferData = slaveHandler;
 	
+	I2C_SetSlaveAddress(slaveAddress);
 	return true;
+}
+
+void I2C_SetSlaveAddress(slaveAddress)
+{
+	TWAR = (slaveAddress << 1) & 0xFE;
+}
+
+bool I2C_AcceptGCALL(bool accept)
+{
+	if (accept)
+	{
+		TWAR |= 0x01;
+	}
+	else
+	{
+		TWAR &= 0xF8;
+	}
 }
 
 bool I2C_StartMaster(I2C_TRANSFER_DATA * newTransferData, bool read)
