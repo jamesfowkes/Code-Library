@@ -10,7 +10,7 @@
 #include "linkedlist.h"
 #endif
 
-typedef void (*tmr8_cb)(uint32_t secondsSinceInit);
+typedef void (*tmr8_cb)(uint16_t secondsSinceInit);
 
 struct tmr8_tick_config
 {
@@ -27,5 +27,6 @@ typedef struct tmr8_tick_config TMR8_TICK_CONFIG;
 
 void TMR8_Tick_Init(void);
 bool TMR8_Tick_AddCallback(TMR8_TICK_CONFIG * config);
+uint16_t TMR8_GetSecondsSinceInit(void);
 
 #endif

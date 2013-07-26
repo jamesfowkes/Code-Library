@@ -4,49 +4,61 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
+
+#ifdef PC_TEST_HARNESS
+#include <stdio.h>
+#include "avr_compatibility.h"
+#endif
 
 /*
  * Defines
  */
 
- /*
+/*
  * AVR Includes (Defines and Primitives)
  */
- 
+#ifndef PC_TEST_HARNESS
 #include <avr/io.h>
 #include <util/delay.h>
+#include <util/atomic.h>
+#include <avr/interrupt.h>
+#endif
 
 /*
  * AVR Library Include
  */
-
+#ifndef PC_TEST_HARNESS
 #include "lib_io.h"
+#else
+#include "lib_io_serial_test.h"
+#endif
+
 #include "lib_swserial.h"
 
 /*
  * Private Defines and Typedefs
  */
 
-enum BitDelayFraction
-{
-	POINT33,
-	POINT66
-};
-typedef enum BitDelayFraction BITDELAYFRACTION;
-
 /*
  * Private Variables
  */
- 
+
 static IO_PORT_ENUM s_ePort;
 static uint8_t s_pin;
 static LIB_SWS_BAUDRATE_ENUM s_eBaudrate;
+
+static char txBuffer[128];
+
 /*
  * Private Function Prototypes
  */
 
 static void txDelay(void);
-static bool getDelayForAverage(uint16_t *pUsDelay, BITDELAYFRACTION delayFraction, uint8_t bitCount);
+
+static void translateBuffer(char const * const buffer, uint8_t size, void * args[], uint8_t nargs);
+static uint8_t format(char * buf, const char spec, void * pArg);
+static uint8_t getPlaceCount(uint16_t value, uint16_t place);
 
 /*
  * Public Functions
@@ -60,7 +72,7 @@ void SWS_Init(IO_PORT_ENUM ePort, uint8_t pin, LIB_SWS_BAUDRATE_ENUM eBaudrate)
 	s_eBaudrate = eBaudrate;
 	
 	IO_SetMode(s_ePort, s_pin, IO_MODE_OUTPUT);
-
+	IO_Control(s_ePort, s_pin, IO_ON);
 }
 
 void SWS_SetBaudrate(LIB_SWS_BAUDRATE_ENUM eBaudrate)
@@ -68,25 +80,41 @@ void SWS_SetBaudrate(LIB_SWS_BAUDRATE_ENUM eBaudrate)
 	s_eBaudrate = eBaudrate;
 }
 
-void SWS_Transmit(uint8_t const * const buffer, uint8_t size)
+void SWS_Transmit(char const * const buffer, uint8_t size, void * args[], uint8_t nargs)
 {
-	uint8_t mask = 0x80;
-	
-	if (size)
+	if (nargs > 0 && args)
 	{
-		while(size--)
+		translateBuffer(buffer, size, args, nargs);
+	}
+	else
+	{
+		strcpy(txBuffer, buffer);
+	}
+
+
+	uint8_t mask = 0x00;
+	uint8_t i = 0;
+
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+	{
+		while (txBuffer[i])
 		{
-			mask = 0x80;
-			while (mask)
+			mask = 0x01;
+			IO_Control(s_ePort, s_pin, IO_OFF);
+			txDelay(); // Start bit
+
+			for (mask = 0x01; mask > 0; mask <<= 1)
 			{
-				IO_Control(s_ePort, s_pin, (buffer[size] & mask) ? IO_ON : IO_OFF);
-				mask >>= 1;
+				IO_Control(s_ePort, s_pin, (txBuffer[i] & mask) ? IO_ON : IO_OFF);
 				txDelay();
 			}
-		}
 
-		IO_Control(s_ePort, s_pin, IO_OFF);
+			IO_Control(s_ePort, s_pin, IO_ON);
+			txDelay(); // Stop bit
+			i++;
+		}
 	}
+
 }
 
 /*
@@ -96,42 +124,8 @@ static void txDelay(void)
 {
 	uint16_t usdelay = 0;
 
-	static uint32_t bitCount = 0;
-	bool bResetCount = false;
-	
-	/* Integer delays in microseconds are hardcoded.
-	 * In order to achieve greater precision, some bits
-	 * (depending on baud rate) are lengthened to achieve
-	 * a 0.33 or 0.66 extra microseconds delay on average.
-	 */
-	switch (s_eBaudrate)
-	{
-	case LIB_SWS_BAUD_300:
-		usdelay = 3333;
-		bResetCount = getDelayForAverage(&usdelay, POINT33, bitCount);
-		break;
-	case LIB_SWS_BAUD_600:
-		usdelay = 1666;
-		bResetCount = getDelayForAverage(&usdelay, POINT66, bitCount);
-		break;
-	case LIB_SWS_BAUD_1200:
-		usdelay = 833;
-		bResetCount = getDelayForAverage(&usdelay, POINT33, bitCount);
-		break;
-	case LIB_SWS_BAUD_2400:
-		usdelay = 416;
-		bResetCount = getDelayForAverage(&usdelay, POINT66, bitCount);
-		break;
-	case LIB_SWS_BAUD_4800:
-		usdelay = 208;
-		bResetCount = getDelayForAverage(&usdelay, POINT33, bitCount);
-		break;
-	case LIB_SWS_BAUD_9600:
-		usdelay = 104;
-		bResetCount = true;
-		break;
-	}
-	
+	usdelay = 3200;
+
 	while (usdelay)
 	{
 		if (usdelay > 700)
@@ -145,40 +139,102 @@ static void txDelay(void)
 			usdelay = 0;
 		}
 	}
+}
 
-	if (bResetCount)
+static void translateBuffer(char const * const buffer, uint8_t size, void * args[], uint8_t nargs)
+{
+	uint8_t i = 0;	//Index into user buffer
+	uint8_t tx = 0;	//Index into transmit buffer
+	uint8_t arg = 0;	//Index into argument array
+
+	if (size == 0)
 	{
-		bitCount = 0;
+		size = strlen((char*)buffer);
+	}
+
+	if (size)
+	{
+		do
+		{
+			if ((buffer[i] == '%') && (i+1 < size) && (nargs > 0))
+			{
+				tx += format(&txBuffer[tx], buffer[i+1], args[arg++]);
+				++i; // Skip formatting character
+			}
+			else
+			{
+				txBuffer[tx++] = buffer[i];
+			}
+		} while (++i < size);
+	}
+	txBuffer[tx++] = '\r';
+	txBuffer[tx++] = '\n';
+	txBuffer[tx] = '\0';
+}
+
+static uint8_t format(char * buf, const char spec, void * pArg)
+{
+	uint8_t bytesWritten = 0;
+
+	uint16_t uVal = 0;
+	int16_t sVal = 0;
+	uint8_t digitcount = 0;
+	bool foundSignificantDigit = false;
+
+	switch(spec)
+	{
+	case 'u':// Unsigned 8-bit int
+		uVal = *( (uint16_t *)pArg );
+		break;
+	case 'U':// Unsigned 16-bit int
+		uVal = (uint16_t)( *( (uint16_t *)pArg ) );
+		break;
+	case 's':// Signed 8-bit int
+		sVal = (int16_t)( *( (int8_t *)pArg ) );
+		uVal = abs(sVal);
+		break;
+	case 'S':// Signed 16-bit int
+		sVal = (int16_t)( *( (int16_t *)pArg ) );
+		uVal = abs(sVal);
+		break;
+	}
+
+	if (sVal < 0)
+	{
+		*buf++ = '-';
+		bytesWritten++;
+	}
+
+	uint16_t placevalue = 0;
+
+	for (placevalue = 10000; placevalue > 1; placevalue /= 10)
+	{
+		digitcount = getPlaceCount(uVal, placevalue);
+		if (digitcount || foundSignificantDigit)
+		{
+			foundSignificantDigit = true;
+			*buf++ = (char)(digitcount + '0');
+			uVal -= (digitcount * placevalue);
+			bytesWritten++;
+		}
+	}
+
+	digitcount = uVal;
+	*buf++ = (char)(digitcount + '0');
+	bytesWritten++;
+
+	return bytesWritten;
+}
+
+static uint8_t getPlaceCount(uint16_t value, uint16_t place)
+{
+
+	if (place > 1 && place > 0)
+	{
+		return (uint8_t)(value / place);
 	}
 	else
 	{
-		bitCount++;
+		return value - (10 * (value / 10));
 	}
-}
-
-static bool getDelayForAverage(uint16_t *pUsDelay, BITDELAYFRACTION delayFraction, uint8_t bitCount)
-{
-	bool bResetCount = false;
-	
-	switch (delayFraction)
-	{
-	case POINT33:
-		if (bitCount == 2)
-		{
-			// Third bit needs extending a little
-			*pUsDelay += 1;
-			bResetCount = true;
-		}
-		break;
-	case POINT66:
-		if (bitCount < 2)
-		{
-			// Bits 0 and 1 need extending a little
-			*pUsDelay += 1;
-			bResetCount = true;
-		}
-		break;
-	}
-	
-	return bResetCount;
 }
