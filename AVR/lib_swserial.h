@@ -16,8 +16,10 @@ enum lib_sws_baudrate
 };
 typedef enum lib_sws_baudrate LIB_SWS_BAUDRATE_ENUM;
 
+#ifndef PC_TEST_HARNESS
 void SWS_Init(IO_PORT_ENUM ePort, uint8_t pin, LIB_SWS_BAUDRATE_ENUM eBaudrate);
 void SWS_SetBaudrate(LIB_SWS_BAUDRATE_ENUM eBaudrate);
-void SWS_Transmit(uint8_t const * const buffer, uint8_t size);
+#endif
+void SWS_Transmit(char const * const buffer, uint8_t size, void * args[], uint8_t nargs);
 
 #endif

@@ -32,7 +32,7 @@ static LINK_NODE * Head;
 static volatile TMR8_TICK_CONFIG * TimerConfig = NULL;
 #endif
 
-static volatile uint32_t secondsSinceInit = 0;
+static volatile uint16_t secondsSinceInit = 0;
 static volatile uint16_t msCounter = 0;
 
 /*
@@ -122,6 +122,11 @@ bool TMR8_Tick_AddCallback(TMR8_TICK_CONFIG * config)
 	return success;
 }
 
+uint16_t TMR8_GetSecondsSinceInit(void)
+{
+	return secondsSinceInit;
+}
+
 #ifdef LIB_TMR8_USE_LL
 bool msListCallback(LINK_NODE * node)
 {
@@ -189,11 +194,11 @@ ISR(TIM0_COMPA_vect)
 			{
 				if (--TimerConfig->msTick == 0)
 				{
-					TimerConfig->msTick = TimerConfig->reload;
 					if (TimerConfig->Callback)
 					{
 						TimerConfig->Callback(secondsSinceInit);
 					}
+					TimerConfig->msTick = TimerConfig->reload;
 				}
 			}
 		}
