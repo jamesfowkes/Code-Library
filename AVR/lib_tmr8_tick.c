@@ -40,7 +40,7 @@ static volatile uint16_t msCounter = 0;
  */
 
 #ifdef LIB_TMR8_USE_LL
-bool msListCallback(LINK_NODE * node);
+bool msListHandler(LINK_NODE * node);
 #endif
 
 /*
@@ -93,7 +93,7 @@ void TMR8_Tick_Init(void)
 	secondsSinceInit = 0;
 }
 
-bool TMR8_Tick_AddCallback(TMR8_TICK_CONFIG * config)
+bool TMR8_Tick_AddTimerConfig(TMR8_TICK_CONFIG * config)
 {
 	bool success = false;
 
@@ -128,19 +128,19 @@ uint16_t TMR8_GetSecondsSinceInit(void)
 }
 
 #ifdef LIB_TMR8_USE_LL
-bool msListCallback(LINK_NODE * node)
+bool msListHandler(LINK_NODE * node)
 {
 	// Safe pointer conversion
 	TMR8_TICK_CONFIG * TimerConfig = (TMR8_TICK_CONFIG*)node;
 
-	if (TimerConfig->Callback && TimerConfig->active)
+	if (TimerConfig->active)
 	{
 		if (TimerConfig->msTick > 0)
 		{
 			if (--TimerConfig->msTick == 0)
 			{
 				TimerConfig->msTick = TimerConfig->reload;
-				TimerConfig->Callback(secondsSinceInit);
+				TimerConfig->triggered = true;
 			}
 		}
 	}
@@ -157,7 +157,7 @@ ISR(TIMER0_COMPB_vect)
 		msCounter = 0;
 	}
 	#ifdef LIB_TMR8_USE_LL
-	LList_Traverse(Head, msListCallback);
+	LList_Traverse(Head, msListHandler);
 	#else
 	if (TimerConfig->active)
 	{
@@ -166,7 +166,7 @@ ISR(TIMER0_COMPB_vect)
 			if (--TimerConfig->msTick == 0)
 			{
 				TimerConfig->msTick = TimerConfig->reload;
-				TimerConfig->Callback(secondsSinceInit);
+				TimerConfig->triggered = true;
 			}
 		}
 	}
@@ -184,7 +184,7 @@ ISR(TIM0_COMPA_vect)
 	}
 
 	#ifdef LIB_TMR8_USE_LL
-	LList_Traverse(Head, msListCallback);
+	LList_Traverse(Head, msListHandler);
 	#else
 	if (TimerConfig)
 	{
@@ -194,10 +194,7 @@ ISR(TIM0_COMPA_vect)
 			{
 				if (--TimerConfig->msTick == 0)
 				{
-					if (TimerConfig->Callback)
-					{
-						TimerConfig->Callback(secondsSinceInit);
-					}
+					TimerConfig->triggered = true;
 					TimerConfig->msTick = TimerConfig->reload;
 				}
 			}

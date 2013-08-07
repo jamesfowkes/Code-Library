@@ -4,7 +4,6 @@
 /*
  * Public Datatype Definitions
  */
-
 enum lib_adc_channel_enum
 {
 	LIB_ADC_CH_0,
@@ -39,11 +38,19 @@ enum lib_adc_prescaler_enum
 };
 typedef enum lib_adc_prescaler_enum LIB_ADC_PRESCALER_ENUM;
 
+struct adc_control_enum
+{
+	LIB_ADC_CHANNEL_ENUM channel;
+	uint16_t reading;
+	bool validReading;
+};
+typedef struct adc_control_enum ADC_CONTROL_ENUM;
+
 void ADC_Enable(bool enableADC);
 void ADC_EnableInterrupts(bool enableInterrupts);
 void ADC_AutoTriggerEnable(bool enableAutoTrigger);
 
-uint16_t ADC_GetReading(LIB_ADC_CHANNEL_ENUM eChannel);
+uint16_t ADC_GetReading(ADC_CONTROL_ENUM * control);
 
 void ADC_GetLastReading(uint16_t *reading, LIB_ADC_CHANNEL_ENUM *eChannel);
 

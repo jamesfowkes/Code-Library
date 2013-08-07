@@ -32,6 +32,8 @@ static volatile bool validReading = false;
 static LIB_ADC_CHANNEL_ENUM currentChannel;
 static volatile uint16_t lastReading;
 
+static volatile ADC_CONTROL_ENUM *pControl = NULL;
+
 /*
  * Private Function Prototypes
  */
@@ -92,17 +94,13 @@ void ADC_AutoTriggerEnable(bool enableAutoTrigger)
 }
 #endif
 
-uint16_t ADC_GetReading(LIB_ADC_CHANNEL_ENUM eChannel)
+uint16_t ADC_GetReading(ADC_CONTROL_ENUM * control)
 {
-	validReading = false;
-
-	SetChannel(eChannel);
-
+	control->validReading = false;
+	SetChannel(control->channel);
+	pControl = control;
+	
 	ADCSRA |= (1 << ADSC); // Start conversion
-
-	while (!validReading){ asm("nop"); }
-
-	return lastReading;
 }
 
 void ADC_SelectReference(LIB_ADC_REFERENCE_ENUM eRef)
@@ -139,7 +137,6 @@ void ADC_GetLastReading(uint16_t *reading, LIB_ADC_CHANNEL_ENUM *eChannel)
 
 static void SetChannel(LIB_ADC_CHANNEL_ENUM eChannel)
 {
-
 	uint8_t admux = ADMUX;
 
 	currentChannel = eChannel;
@@ -159,6 +156,6 @@ ISR(ADC_vect)
 	result |= ADCH << 8;
 
 	lastReading = result;
-
-	validReading = true;
+	pControl->reading = lastReading;
+	pControl->validReading = true;
 }
