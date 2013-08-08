@@ -122,6 +122,15 @@ bool TMR8_Tick_AddTimerConfig(TMR8_TICK_CONFIG * config)
 	return success;
 }
 
+bool TMR8_Tick_TestAndClear(TMR8_TICK_CONFIG * config)
+{
+	cli();
+	bool triggered = config->triggered;
+	config->triggered = false;
+	sei();
+	return triggered;
+}
+
 uint16_t TMR8_GetSecondsSinceInit(void)
 {
 	return secondsSinceInit;

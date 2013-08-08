@@ -53,20 +53,9 @@ void IO_SetMode(IO_PORT_ENUM ePort, uint8_t pin, IO_MODE_ENUM eMode)
 	}
 }
 
-void IO_Control(IO_PORT_ENUM ePort, uint8_t pin, IO_STATE_ENUM eState)
+void IO_Toggle(IO_PORT_ENUM ePort, uint8_t pin)
 {
-	switch(eState)
-	{
-	case IO_OFF:
-		ClearPORT(ePort, pin);
-		break;
-	case IO_ON:
-		SetPORT(ePort, pin);
-		break;
-	case IO_TOGGLE:
-		SetPINS(ePort, pin);
-		break;
-	}
+	SetPINS(ePort, pin);
 }
 
 /*

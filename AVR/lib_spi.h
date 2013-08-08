@@ -16,7 +16,6 @@ enum libspi_mstrfreq_enum
 };
 typedef enum libspi_mstrfreq_enum LIBSPI_MSTRFREQ_ENUM;
 
-void SPI_SetSlave(void);
 void SPI_SetMaster(LIBSPI_MSTRFREQ_ENUM eMstrFreq);
 
 #endif

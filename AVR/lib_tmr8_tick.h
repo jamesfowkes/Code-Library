@@ -27,4 +27,6 @@ void TMR8_Tick_Init(void);
 bool TMR8_Tick_AddTimerConfig(TMR8_TICK_CONFIG * config);
 uint16_t TMR8_GetSecondsSinceInit(void);
 
+bool TMR8_Tick_TestAndClear(TMR8_TICK_CONFIG * config);
+
 #endif

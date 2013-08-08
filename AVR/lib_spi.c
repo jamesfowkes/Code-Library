@@ -34,11 +34,18 @@
 	#define SPI_SCK_PIN PORTB5
 	#define SPI_MOSI_PIN PORTB3
 	#define SPI_MISO_PIN PORTB4
+#elif (defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__) \
+	|| defined(__AVR_ATtiny24A__) || defined(__AVR_ATtiny44A__) || defined(__AVR_ATtiny84A__))
+	#include "lib_usi.h" // Need to use USI module
+	#define SPI_SCK_PIN PORTA4
+	#define SPI_MOSI_PIN PORTA6
+	#define SPI_MISO_PIN PORTA5
+	#define DDR	DDRA
 #else
  #error unknown processor - add to spi.h
 #endif
 
-static SPICALLBACK callback = NULL;
+#if (defined(SPCR) && defined(SPSR) && defined(DORD) && defined (CPOL))
 
 void SPI_SetSlave(void)
 {
@@ -144,4 +151,66 @@ ISR(SPI_STC_vect)
 	}
 	callback = NULL;
 
+}
+
+#else
+
+void SPI_SetMaster(LIBSPI_MSTRFREQ_ENUM eMstrFreq)
+{
+	USI_SetMode(USI_MODE_THREE_WIRE);
+	USI_CounterInterruptEnable(true);
+	USI_SetSources(USI_CLK_SRC_EXT_POS, USI_COUNT_SRC_EXT);
+
+	// Setup IO for master
+	DDR |= (1<<SPI_MOSI_PIN);
+	DDR &= ~(1<<SPI_MISO_PIN);
+	DDR |= (1<<SPI_SCK_PIN);
+}
+
+void SPI_SetSlave(uint8_t firstByte, SPI_DATA * data)
+{
+	USI_SetMode(USI_MODE_THREE_WIRE);
+	USI_CounterInterruptEnable(true);
+	USI_SetSources(USI_CLK_SRC_EXT_POS, USI_COUNT_SRC_EXT);
+
+	// Setup IO for slave
+	DDR &= ~(1<<SPI_MOSI_PIN);
+	DDR |= (1<<SPI_MISO_PIN);
+	DDR &= ~(1<<SPI_SCK_PIN);
+
+	USI_SetReply(firstByte, data);
+}
+
+uint8_t SPI_SendByte(uint8_t byte)
+{
+	return USI_SendByte(byte);
+}
+
+void SPI_SetReply(uint8_t byte, SPI_DATA * data)
+{
+	USI_SetReply(byte, data);
+}
+
+void SPI_SetClockPhase(LIBSPI_CPHA_ENUM eCPha)
+{
+	switch (eCPha)
+	{
+	case LIBSPI_CPHA_0:
+		USI_SetSources(USI_CLK_SRC_EXT_NEG, USI_COUNT_SRC_EXT);
+		break;
+	case LIBSPI_CPHA_1:
+		USI_SetSources(USI_CLK_SRC_EXT_POS, USI_COUNT_SRC_EXT);
+		break;
+	}
+}
+
+#endif
+
+bool SPI_TestAndClear(SPI_DATA * data)
+{
+	cli();
+	bool complete = data->transferComplete;
+	data->transferComplete = false;
+	sei();
+	return complete;
 }

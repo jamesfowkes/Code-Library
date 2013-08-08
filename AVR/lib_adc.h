@@ -42,7 +42,8 @@ struct adc_control_enum
 {
 	LIB_ADC_CHANNEL_ENUM channel;
 	uint16_t reading;
-	bool validReading;
+	bool conversionComplete;
+	bool busy;
 };
 typedef struct adc_control_enum ADC_CONTROL_ENUM;
 
@@ -50,10 +51,13 @@ void ADC_Enable(bool enableADC);
 void ADC_EnableInterrupts(bool enableInterrupts);
 void ADC_AutoTriggerEnable(bool enableAutoTrigger);
 
-uint16_t ADC_GetReading(ADC_CONTROL_ENUM * control);
+void ADC_GetReading(ADC_CONTROL_ENUM * control);
 
 void ADC_GetLastReading(uint16_t *reading, LIB_ADC_CHANNEL_ENUM *eChannel);
 
 void ADC_SelectReference(LIB_ADC_REFERENCE_ENUM eRef);
 void ADC_SelectPrescaler(LIB_ADC_PRESCALER_ENUM ePrescaler);
+
+bool ADC_TestAndClear(ADC_CONTROL_ENUM * control);
+
 #endif

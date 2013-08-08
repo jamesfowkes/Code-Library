@@ -22,11 +22,23 @@ enum libspi_datadirection_enum
 };
 typedef enum libspi_datadirection_enum LIBSPI_DATADIRECTION_ENUM;
 
-typedef void (*SPICALLBACK)(uint8_t reply);
+struct spi_data_struct
+{
+	bool transferComplete;
+	uint8_t byte;
+};
+typedef struct spi_data_struct SPI_DATA;
 
 void SPI_SetDataOrder(LIBSPI_DATADIRECTION_ENUM eOrder);
 void SPI_SetClockPolarity(LIBSPI_CPOL_ENUM eCpol);
 void SPI_SetClockPhase(LIBSPI_CPHA_ENUM eCPha);
 void SPI_AssertCS(bool assert);
-void SPI_SendByte(uint8_t byte, SPICALLBACK cb);
+
+uint8_t SPI_SendByte(uint8_t byte);
+void SPI_SetReply(uint8_t byte, SPI_DATA * data);
+
+void SPI_SetSlave(uint8_t firstByte, SPI_DATA * data);
+
+bool SPI_TestAndClear(SPI_DATA * data);
+
 #endif

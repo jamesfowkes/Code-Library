@@ -27,11 +27,8 @@
  * Private Variables
  */
 
-static volatile bool validReading = false;
-
 static LIB_ADC_CHANNEL_ENUM currentChannel;
 static volatile uint16_t lastReading;
-
 static volatile ADC_CONTROL_ENUM *pControl = NULL;
 
 /*
@@ -94,13 +91,23 @@ void ADC_AutoTriggerEnable(bool enableAutoTrigger)
 }
 #endif
 
-uint16_t ADC_GetReading(ADC_CONTROL_ENUM * control)
+void ADC_GetReading(ADC_CONTROL_ENUM * control)
 {
-	control->validReading = false;
+	control->conversionComplete = false;
 	SetChannel(control->channel);
 	pControl = control;
 	
+	pControl->busy = true;
 	ADCSRA |= (1 << ADSC); // Start conversion
+}
+
+bool ADC_TestAndClear(ADC_CONTROL_ENUM * control)
+{
+	cli();
+	bool complete = control->conversionComplete;
+	control->conversionComplete = false;
+	sei();
+	return complete;
 }
 
 void ADC_SelectReference(LIB_ADC_REFERENCE_ENUM eRef)
@@ -157,5 +164,6 @@ ISR(ADC_vect)
 
 	lastReading = result;
 	pControl->reading = lastReading;
-	pControl->validReading = true;
+	pControl->conversionComplete = true;
+	pControl->busy = false;
 }
