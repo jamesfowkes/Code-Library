@@ -34,7 +34,7 @@ void SPI_SetClockPolarity(LIBSPI_CPOL_ENUM eCpol);
 void SPI_SetClockPhase(LIBSPI_CPHA_ENUM eCPha);
 void SPI_AssertCS(bool assert);
 
-uint8_t SPI_SendByte(uint8_t byte);
+void SPI_SendByte(uint8_t byte, SPI_DATA * data);
 void SPI_SetReply(uint8_t byte, SPI_DATA * data);
 
 void SPI_SetSlave(uint8_t firstByte, SPI_DATA * data);

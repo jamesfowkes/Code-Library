@@ -47,7 +47,9 @@
 
 #if (defined(SPCR) && defined(SPSR) && defined(DORD) && defined (CPOL))
 
-void SPI_SetSlave(void)
+SPI_DATA * pData = NULL;
+
+void SPI_SetSlave(uint8_t firstByte, SPI_DATA * data)
 {
 	// Clear frequency selection bits from register
 	uint8_t spcr = SPCR;
@@ -59,6 +61,8 @@ void SPI_SetSlave(void)
 	DDRB |= (1<<SPI_MISO_PIN);
 	DDRB &= ~(1<<SPI_SS_PIN);
 	DDRB &= ~(1<<SPI_SCK_PIN);
+
+	SPI_SetReply(firstByte, data);
 
 }
 void SPI_SetMaster(LIBSPI_MSTRFREQ_ENUM eMstrFreq)
@@ -131,26 +135,27 @@ void SPI_AssertCS(bool assert)
 
 }
 
-void SPI_SendByte(uint8_t byte, SPICALLBACK cb)
+void SPI_SendByte(uint8_t byte, SPI_DATA * data)
 {
-	assert(NULL == cb);
-	
-	callback = cb;
-	
+	pData = data;
+	pData->transferComplete = false;
+	SPDR = byte;
+}
+
+void SPI_SetReply(uint8_t byte, SPI_DATA * data)
+{
+	pData = data;
+	pData->transferComplete = false;
 	SPDR = byte;
 }
 
 ISR(SPI_STC_vect)
 {
-	// Read byte from recieve register and post to callback
-	uint8_t reply = SPDR;
-	
-	if (callback)
+	if (pData)
 	{
-		callback(reply);
+		pData->byte = SPDR;
+		pData->transferComplete = true;
 	}
-	callback = NULL;
-
 }
 
 #else
@@ -178,17 +183,19 @@ void SPI_SetSlave(uint8_t firstByte, SPI_DATA * data)
 	DDR |= (1<<SPI_MISO_PIN);
 	DDR &= ~(1<<SPI_SCK_PIN);
 
-	USI_SetReply(firstByte, data);
+	USI_SetReply(firstByte, (USI_DATA*)data);
 }
 
-uint8_t SPI_SendByte(uint8_t byte)
+void SPI_SendByte(uint8_t byte, SPI_DATA * data)
 {
-	return USI_SendByte(byte);
+	/* USI output is not interrupt based, so just set the reply now */
+	data->byte = USI_SendByte(byte);
+	data->transferComplete = true;
 }
 
 void SPI_SetReply(uint8_t byte, SPI_DATA * data)
 {
-	USI_SetReply(byte, data);
+	USI_SetReply(byte, (USI_DATA*)data);
 }
 
 void SPI_SetClockPhase(LIBSPI_CPHA_ENUM eCPha)
