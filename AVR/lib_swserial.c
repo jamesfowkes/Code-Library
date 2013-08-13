@@ -228,8 +228,7 @@ static uint8_t format(char * buf, const char spec, void * pArg)
 
 static uint8_t getPlaceCount(uint16_t value, uint16_t place)
 {
-
-	if (place > 1 && place > 0)
+	if (place > 1 && value > 0)
 	{
 		return (uint8_t)(value / place);
 	}
