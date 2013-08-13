@@ -39,7 +39,7 @@ bool CLK_Init(const uint32_t fExtSet)
 	pFuses = FUS_GetFuses();
 
 	// Is 1/8 clock divider on?
-	bool divideBy8 = ((pFuses->fuse_low && 0x80) == 0);
+	bool divideBy8 = ((pFuses->fuse_low & 0x80) == 0);
 
 	ePrescaler = divideBy8 ? clock_div_8 : clock_div_1;
 
