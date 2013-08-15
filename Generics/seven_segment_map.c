@@ -3,6 +3,7 @@
  */
 
 #include <stdint.h>
+#include <stdbool.h>
 
 /*
  * Generic Library Includes
@@ -13,13 +14,13 @@
 /*
  * Private Function Prototypes
  */
-void A(uint8_t digit, uint8_t bit);
-void B(uint8_t digit, uint8_t bit);
-void C(uint8_t digit, uint8_t bit);
-void D(uint8_t digit, uint8_t bit);
-void E(uint8_t digit, uint8_t bit);
-void F(uint8_t digit, uint8_t bit);
-void G(uint8_t digit, uint8_t bit);
+uint8_t A(uint8_t digit, uint8_t bit);
+uint8_t B(uint8_t digit, uint8_t bit);
+uint8_t C(uint8_t digit, uint8_t bit);
+uint8_t D(uint8_t digit, uint8_t bit);
+uint8_t E(uint8_t digit, uint8_t bit);
+uint8_t F(uint8_t digit, uint8_t bit);
+uint8_t G(uint8_t digit, uint8_t bit);
 
 uint8_t SSEG_CreateDigit(uint8_t digit, SEVEN_SEGMENT_MAP * map, bool tails)
 {
@@ -42,37 +43,37 @@ uint8_t SSEG_CreateDigit(uint8_t digit, SEVEN_SEGMENT_MAP * map, bool tails)
 	return display;
 }
 
-void SSEG_AddDecimal(uint8_t &pDisplay, SEVEN_SEGMENT_MAP * map)
+void SSEG_AddDecimal(uint8_t *pDisplay, SEVEN_SEGMENT_MAP * map)
 {
 	*pDisplay |= (1 << map->DP);
 }
 
-void A(uint8_t digit, uint8_t bit)
+uint8_t A(uint8_t digit, uint8_t bit)
 {
 	return ((digit != 1) && (digit != 4) && (digit != 6)) ? (1 << bit) : 0;
 }
 
-void B(uint8_t digit, uint8_t bit)
+uint8_t B(uint8_t digit, uint8_t bit)
 {
 	return ((digit != 5) && (digit != 6)) ? (1 << bit) : 0;
 }
 
-void C(uint8_t digit, uint8_t bit)
+uint8_t C(uint8_t digit, uint8_t bit)
 {
 	return (digit != 2) ? (1 << bit) : 0;
 }
 
-void D(uint8_t digit, uint8_t bit)
+uint8_t D(uint8_t digit, uint8_t bit)
 {
 	return ((digit != 1) && (digit != 4) && (digit != 7) && (digit != 9)) ? (1 << bit) : 0;
 }
 
-void E(uint8_t digit, uint8_t bit)
+uint8_t E(uint8_t digit, uint8_t bit)
 {
 	return ((digit == 0) || (digit == 2) || (digit == 6) || (digit == 8)) ? (1 << bit) : 0;
 }
 
-void F(uint8_t digit, uint8_t bit)
+uint8_t F(uint8_t digit, uint8_t bit)
 {
 	return ((digit != 1) && (digit != 2) && (digit != 3) && (digit != 7)) ? (1 << bit) : 0;
 }

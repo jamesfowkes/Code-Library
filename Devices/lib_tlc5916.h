@@ -4,8 +4,8 @@
 struct tlc5916_control_struct
 {
 	SR_CONTROL sr;
-	EXT_IO_FN latch;
-	EXT_IO_FN oe;
+	SR_IO_FN latch;
+	SR_IO_FN oe;
 };
 typedef struct tlc5916_control_struct TLC5916_CONTROL;
 

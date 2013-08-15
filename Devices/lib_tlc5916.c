@@ -15,10 +15,10 @@
 
 void TLC5916_ClockOut(uint8_t* data, uint8_t nBytes, TLC5916_CONTROL * tlc)
 {
-	ctrl->edge = SR_CLKEDGE_POS;
+	tlc->sr.edge = SR_CLKEDGE_POS;
 	
 	tlc->latch(false);
-	SR_ShiftOut(data, nBytes, ctrl);
+	SR_ShiftOut(data, nBytes, &(tlc->sr));
 	tlc->latch(true);
 }
 

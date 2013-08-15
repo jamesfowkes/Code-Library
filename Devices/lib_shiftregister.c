@@ -3,6 +3,7 @@
  */
 
 #include <stdint.h>
+#include <stdbool.h>
 
 /*
  * Device Includes
@@ -25,13 +26,13 @@ void SR_ShiftOut(uint8_t* data, uint8_t nBytes, SR_CONTROL * ctrl)
 		{
 		
 			// Clear the clock
-			ctrl->clkFn(control->edge != CLK_EDGE_POS);
+			ctrl->clkFn(ctrl->edge != SR_CLKEDGE_POS);
 			
 			// Setup data
-			ctrl->dataFn(data[b] & mask == mask);
+			ctrl->dataFn((data[b] & mask) == mask);
 			
 			// Assert the clock
-			ctrl->clkFn(control->edge == CLK_EDGE_POS);
+			ctrl->clkFn(ctrl->edge == SR_CLKEDGE_POS);
 		}
 	}
 }
