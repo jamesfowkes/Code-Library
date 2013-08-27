@@ -153,13 +153,6 @@ uint8_t control;
 uint8_t status;
 
 /*
- * Private Function Prototypes
- */
-
-static char to_bcd(int from);
-static int from_bcd(int bcd);
-
-/*
  * Public Functions
  */
 
