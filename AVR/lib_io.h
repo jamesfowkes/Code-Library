@@ -30,6 +30,8 @@ enum io_mode_enum
 };
 typedef enum io_mode_enum IO_MODE_ENUM;
 
+typedef void (*EXT_IO_FN)(bool);
+
 #define IO_On(port, pin) (port |= (1 <<  pin))
 #define IO_Off(port, pin) (port &= ~(1 <<  pin))
 
