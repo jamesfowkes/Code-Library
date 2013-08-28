@@ -15,7 +15,7 @@ struct tmr8_tick_config
 	#ifdef LIB_TMR8_USE_LL
 	LINK_NODE Node;
 	#endif
-	TMR8_OCCHAN_ENUM	eChannel;
+	TMR_OCCHAN_ENUM		eChannel;
 	uint32_t			msTick;
 	uint32_t			reload;
 	bool				active;

@@ -17,9 +17,30 @@ enum tmr_src_enum
 };
 typedef enum tmr_src_enum TMR_SRC_ENUM;
 
+enum tmr_occhan_enum
+{
+	TMR_OCCHAN_A,
+	TMR_OCCHAN_B,
+	TMR_OCCHAN_INVALID,
+};
+typedef enum tmr_occhan_enum TMR_OCCHAN_ENUM;
+
+enum tmr_outputmode_enum
+{
+	TMR_OUTPUTMODE_NONE,
+	TMR_OUTPUTMODE_TOGGLE,
+	TMR_OUTPUTMODE_CLEAR,
+	TMR_OUTPUTMODE_SET,
+	TMR_OUTPUTMODE_INVALID
+};
+typedef enum tmr_outputmode_enum TMR_OUTPUTMODE_ENUM;
+
 /*
  * Public Function Prototypes
  */
+
 void TMR_SyncModeControl(bool sync);
+void TMR_SetOutputPorts(TMR_OCCHAN_ENUM eChannel, IO_PORT_ENUM ePort, uint8_t pin);
+void TMR_PWMOff(const TMR_OCCHAN_ENUM eChannel, const IO_STATE_ENUM eState);
 
 #endif

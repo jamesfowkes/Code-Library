@@ -16,7 +16,7 @@
 /*
  * AVR Library Includes
  */
-#include "lib_io.h"
+
 #include "lib_tmr8.h"
 
 /*
@@ -138,17 +138,17 @@ TMR8_COUNTMODE_ENUM TMR8_GetCountMode(void)
 	return eMode;
 }
 
-void TMR8_SetOutputCompareValue(const uint8_t value, const TMR8_OCCHAN_ENUM eChannel)
+void TMR8_SetOutputCompareValue(const uint8_t value, const TMR_OCCHAN_ENUM eChannel)
 {
 
-	assert(eChannel < TMR8_OCCHAN_INVALID);
+	assert(eChannel < TMR_OCCHAN_INVALID);
 
 	switch (eChannel)
 	{
-	case TMR8_OCCHAN_A:
+	case TMR_OCCHAN_A:
 		OCR0A = value;
 		break;
-	case TMR8_OCCHAN_B:
+	case TMR_OCCHAN_B:
 		OCR0B = value;
 		break;
 	default:
@@ -156,10 +156,10 @@ void TMR8_SetOutputCompareValue(const uint8_t value, const TMR8_OCCHAN_ENUM eCha
 	}
 }
 
-void TMR8_SetOutputCompareMode(const TMR8_OUTPUTMODE_ENUM eOutputMode, const TMR8_OCCHAN_ENUM eChannel)
+void TMR8_SetOutputCompareMode(const TMR_OUTPUTMODE_ENUM eOutputMode, const TMR_OCCHAN_ENUM eChannel)
 {
-	assert(eChannel < TMR8_OCCHAN_INVALID);
-	assert(eOutputMode < TMR8_OUTPUTMODE_INVALID);
+	assert(eChannel < TMR_OCCHAN_INVALID);
+	assert(eOutputMode < TMR_OUTPUTMODE_INVALID);
 
 	TMR8_COUNTMODE_ENUM eCountMode = TMR8_GetCountMode();
 
@@ -172,7 +172,7 @@ void TMR8_SetOutputCompareMode(const TMR8_OUTPUTMODE_ENUM eOutputMode, const TMR
 	uint8_t newValuesB[] = { 0, (1 << COM0B0), (1 << COM0B1), (1 << COM0B0) | (1 << COM0B1) };
 
 	// Check for reserved register/mode combinations
-	if ((TMR8_OCCHAN_B == eChannel) && (eOutputMode == TMR8_OUTPUTMODE_TOGGLE))
+	if ((TMR_OCCHAN_B == eChannel) && (eOutputMode == TMR_OUTPUTMODE_TOGGLE))
 	{
 		// Toggle not allowed for PWM on channel B
 		if ((TMR8_COUNTMODE_PCPWM1 == eCountMode) ||
@@ -189,11 +189,11 @@ void TMR8_SetOutputCompareMode(const TMR8_OUTPUTMODE_ENUM eOutputMode, const TMR
 	{
 		switch (eChannel)
 		{
-		case TMR8_OCCHAN_A:
+		case TMR_OCCHAN_A:
 			tccr0a &= ~((1 << COM0A1) | (1 << COM0A0));
 			tccr0a |= newValuesA[eOutputMode];
 			break;
-		case TMR8_OCCHAN_B:
+		case TMR_OCCHAN_B:
 			tccr0a &= ~((1 << COM0B1) | (1 << COM0B0));
 			tccr0a |= newValuesB[eOutputMode];
 			break;
@@ -205,9 +205,9 @@ void TMR8_SetOutputCompareMode(const TMR8_OUTPUTMODE_ENUM eOutputMode, const TMR
 	TCCR0A = tccr0a;
 }
 
-void TMR8_ForceOutputCompare(const TMR8_OCCHAN_ENUM eChannel)
+void TMR8_ForceOutputCompare(const TMR_OCCHAN_ENUM eChannel)
 {
-	assert(eChannel <= TMR8_OCCHAN_B);
+	assert(eChannel <= TMR_OCCHAN_B);
 
 	uint8_t tccr0b = TCCR0B;
 
@@ -216,10 +216,10 @@ void TMR8_ForceOutputCompare(const TMR8_OCCHAN_ENUM eChannel)
 	{
 		switch(eChannel)
 		{
-		case TMR8_OCCHAN_A:
+		case TMR_OCCHAN_A:
 			tccr0b |= (1 << FOC0A);
 			break;
-		case TMR8_OCCHAN_B:
+		case TMR_OCCHAN_B:
 			tccr0b |= (1 << FOC0B);
 			break;
 		default:
@@ -233,22 +233,6 @@ void TMR8_ForceOutputCompare(const TMR8_OCCHAN_ENUM eChannel)
 	}
 
 	TCCR0B = tccr0b;
-}
-
-void TMR8_PWMOff(const TMR8_OCCHAN_ENUM eChannel, const IO_STATE_ENUM eState)
-{
-	/* Reset channel to requested state */
-	switch (eChannel)
-	{
-	case TMR8_OCCHAN_A:
-		IO_SetMode(IO_PORTB, 7, eState);
-		break;
-	case TMR8_OCCHAN_B:
-		IO_SetMode(IO_PORTD, 0, eState);
-		break;
-	default:
-		break;
-	}
 }
 
 void TMR8_InterruptControl(TMR8_INTMASK_ENUM eMask, bool enable)

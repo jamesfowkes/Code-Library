@@ -57,7 +57,7 @@ bool msListHandler(LINK_NODE * node);
 void TMR8_Tick_Init(void)
 {
 
-	TMR8_SetOutputCompareMode(TMR8_OUTPUTMODE_NONE, TMR8_OCCHAN_A);
+	TMR8_SetOutputCompareMode(TMR_OUTPUTMODE_NONE, TMR_OCCHAN_A);
 	TMR8_SetCountMode(TMR8_COUNTMODE_CTC);
 
 	/* Calculate value based on clock frequency and timer division */
@@ -86,7 +86,7 @@ void TMR8_Tick_Init(void)
 		oneMilli /= 1000;
 	}
 
-	TMR8_SetOutputCompareValue((uint8_t)oneMilli, TMR8_OCCHAN_A);
+	TMR8_SetOutputCompareValue((uint8_t)oneMilli, TMR_OCCHAN_A);
 
 	TMR8_InterruptControl(TMR8_INTMASK_OCMPA, true);
 
