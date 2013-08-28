@@ -72,7 +72,7 @@ void SWS_Init(IO_PORT_ENUM ePort, uint8_t pin, LIB_SWS_BAUDRATE_ENUM eBaudrate)
 	s_eBaudrate = eBaudrate;
 	
 	IO_SetMode(s_ePort, s_pin, IO_MODE_OUTPUT);
-	IO_Control(s_ePort, s_pin, IO_ON);
+	IO_On(s_ePort, s_pin);
 }
 
 void SWS_SetBaudrate(LIB_SWS_BAUDRATE_ENUM eBaudrate)
@@ -100,16 +100,17 @@ void SWS_Transmit(char const * const buffer, uint8_t size, void * args[], uint8_
 		while (txBuffer[i])
 		{
 			mask = 0x01;
-			IO_Control(s_ePort, s_pin, IO_OFF);
+			IO_Off(s_ePort, s_pin);
 			txDelay(); // Start bit
 
 			for (mask = 0x01; mask > 0; mask <<= 1)
 			{
-				IO_Control(s_ePort, s_pin, (txBuffer[i] & mask) ? IO_ON : IO_OFF);
+
+				(txBuffer[i] & mask) ? IO_On(s_ePort, s_pin) : IO_Off(s_ePort, s_pin);
 				txDelay();
 			}
 
-			IO_Control(s_ePort, s_pin, IO_ON);
+			IO_On(s_ePort, s_pin);
 			txDelay(); // Stop bit
 			i++;
 		}
