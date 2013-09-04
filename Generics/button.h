@@ -8,7 +8,7 @@
 enum btn_state_enum
 {
 	BTN_STATE_ACTIVE,
-	BTN_STATE_INACTIVE,
+	BTN_STATE_INACTIVE
 };
 typedef enum btn_state_enum BTN_STATE_ENUM;
 
