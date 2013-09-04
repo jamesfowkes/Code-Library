@@ -7,4 +7,6 @@
 
 #define inrange(n, lo, hi) ((lo <= n) && (hi >= n))
 
+#define lastinloop(i, loopmax) ((i == (loopmax - 1))
+
 #endif
