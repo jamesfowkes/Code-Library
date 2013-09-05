@@ -34,6 +34,12 @@ void ClearPINS(IO_PORT_ENUM ePort, uint8_t pin);
 /*
  * Public Functions
  */
+
+void IO_Control(IO_PORT_ENUM ePort, uint8_t pin, bool on)
+{
+	on ? SetPORT(ePort, pin) : ClearPORT(ePort, pin);
+}
+
 void IO_SetMode(IO_PORT_ENUM ePort, uint8_t pin, IO_MODE_ENUM eMode)
 {
 
@@ -181,22 +187,22 @@ void SetPINS(IO_PORT_ENUM ePort, uint8_t pin)
 	{
 	case IO_PORTA:
 		#ifdef PINA
-		PINA |= (1 << pin);
+		PINA = (1 << pin);
 		#endif
 		break;
 	case IO_PORTB:
 		#ifdef PINB
-		PINB |= (1 << pin);
+		PINB = (1 << pin);
 		#endif
 		break;
 	case IO_PORTC:
 		#ifdef PINC
-		PINC |= (1 << pin);
+		PINC = (1 << pin);
 		#endif
 		break;
 	case IO_PORTD:
 		#ifdef PIND
-		PIND |= (1 << pin);
+		PIND = (1 << pin);
 		#endif
 		break;
 	}

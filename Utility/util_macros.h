@@ -9,4 +9,6 @@
 
 #define lastinloop(i, loopmax) ((i == (loopmax - 1))
 
+#define incrementwithrollover(var, max) (var = (var < max) ? var + 1 : 0)
+
 #endif

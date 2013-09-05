@@ -37,6 +37,7 @@ typedef void (*EXT_IO_FN)(bool);
 
 #define IO_Read(port, pin) (bool)((port & (1 << pin)) == (1 << pin))
 
+void IO_Control(IO_PORT_ENUM ePort, uint8_t pin, bool on);
 void IO_SetMode(IO_PORT_ENUM ePort, uint8_t pin, IO_MODE_ENUM eMode);
 void IO_Toggle(IO_PORT_ENUM ePort, uint8_t pin);
 

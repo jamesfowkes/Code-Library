@@ -17,12 +17,6 @@
 #include "lib_io.h"
 
 /*
- * Private Function Prototypes
- */
-void SelectRcOscillator(void);
-void SelectExternalOscillator(void);
-
-/*
  * Private Variables
  */
 static uint32_t fExt = 0UL;

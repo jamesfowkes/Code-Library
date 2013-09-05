@@ -21,6 +21,7 @@
 /*
  * AVR Library Includes
  */
+#include "lib_io.h"
 #include "lib_spi.h"
 
 // Create alias for the different SPI chip pins - code assumes all on port B
@@ -54,7 +55,6 @@ void SPI_SetSlave(uint8_t firstByte, SPI_DATA * data)
 	// Clear frequency selection bits from register
 	uint8_t spcr = SPCR;
 	spcr &= ~(1 << (SPR0 | SPR1));
-	SPCR = spcr;
 	
 	// Setup IO for slave
 	DDRB &= ~(1<<SPI_MOSI_PIN);
@@ -63,6 +63,11 @@ void SPI_SetSlave(uint8_t firstByte, SPI_DATA * data)
 	DDRB &= ~(1<<SPI_SCK_PIN);
 
 	SPI_SetReply(firstByte, data);
+
+	// Enable the SPI peripheral
+	spcr |= (1 << SPE)| (1 << SPIE);
+
+	SPCR = spcr;
 
 }
 void SPI_SetMaster(LIBSPI_MSTRFREQ_ENUM eMstrFreq)
@@ -88,13 +93,17 @@ void SPI_SetMaster(LIBSPI_MSTRFREQ_ENUM eMstrFreq)
 	// Clear and then set frequency bits
 	spcr &= ~(1 << (SPR0 | SPR1));
 	spcr |= (uint8_t)(eMstrFreq);
-	SPCR = spcr;
 
 	// Setup IO for master
-	DDRB |= (1<<SPI_MOSI_PIN);
-	DDRB &= ~(1<<SPI_MISO_PIN);
-	DDRB |= (1<<SPI_SCK_PIN);
-	DDRB |= (1<<SPI_SS_PIN);
+	IO_SetMode(IO_PORTB, SPI_MOSI_PIN, IO_MODE_OUTPUT);
+	IO_SetMode(IO_PORTB, SPI_MISO_PIN, IO_MODE_INPUT);
+	IO_SetMode(IO_PORTB, SPI_SCK_PIN, IO_MODE_OUTPUT);
+	IO_SetMode(IO_PORTB, SPI_SS_PIN, IO_MODE_OUTPUT);
+
+	// Enable the SPI peripheral and interrupts
+	spcr |= (1 <<SPE) | (1 << MSTR) | (1 << SPIE);
+
+	SPCR = spcr;
 }
 
 void SPI_SetDataOrder(LIBSPI_DATADIRECTION_ENUM eOrder)

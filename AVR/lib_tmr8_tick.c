@@ -157,25 +157,29 @@ bool msListHandler(LINK_NODE * node)
 }
 #endif
 
-#ifdef TIMER0_COMPB_vect
-ISR(TIMER0_COMPB_vect)
+#ifdef TIMER0_COMPA_vect
+ISR(TIMER0_COMPA_vect)
 {
 	if (1000 == ++msCounter)
 	{
 		++secondsSinceInit;
 		msCounter = 0;
 	}
+
 	#ifdef LIB_TMR8_USE_LL
 	LList_Traverse(Head, msListHandler);
 	#else
-	if (TimerConfig->active)
+	if (TimerConfig)
 	{
-		if (TimerConfig->msTick > 0)
+		if (TimerConfig->active)
 		{
-			if (--TimerConfig->msTick == 0)
+			if (TimerConfig->msTick > 0)
 			{
-				TimerConfig->msTick = TimerConfig->reload;
-				TimerConfig->triggered = true;
+				if (--TimerConfig->msTick == 0)
+				{
+					TimerConfig->triggered = true;
+					TimerConfig->msTick = TimerConfig->reload;
+				}
 			}
 		}
 	}

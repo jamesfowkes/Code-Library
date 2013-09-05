@@ -41,7 +41,7 @@ void TMR16_SetSource(TMR_SRC_ENUM eSource)
 	temp = TCCR1B;
 	temp &= ~((1 << CS12) | (1 << CS11) | (1 << CS10));
 	temp |= (uint8_t)eSource;
-	TCCR0B = temp;
+	TCCR1B = temp;
 }
 
 TMR_SRC_ENUM TMR16_GetSource(void)
@@ -77,14 +77,14 @@ void TMR16_SetCountMode(const TMR16_COUNTMODE_ENUM eMode)
 
 		//Lower two bits of mode are WGM11:WGM10
 		tccr1a |= (((uint8_t)eMode & 0x03) << WGM10);
-		tccr1b |= (((uint8_t)eMode & 0x03) << WGM12);
+		tccr1b |= ((((uint8_t)eMode & 0x04) >> 2) << WGM12);
 
 		TCCR1A = tccr1a;
 		TCCR1B = tccr1b;
 	}
 }
 
-void TMR16_SetOutputCompareValue(const uint8_t value, const TMR_OCCHAN_ENUM eChannel)
+void TMR16_SetOutputCompareValue(const uint16_t value, const TMR_OCCHAN_ENUM eChannel)
 {
 
 	assert(eChannel < TMR_OCCHAN_INVALID);

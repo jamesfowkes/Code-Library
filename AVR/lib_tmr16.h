@@ -50,7 +50,7 @@ void 					TMR16_SetCountMode(const TMR16_COUNTMODE_ENUM eMode);
 
 void					TMR16_SetOutputCompareMode(const TMR_OUTPUTMODE_ENUM eOutputMode, const TMR_OCCHAN_ENUM eChannel);
 TMR_OUTPUTMODE_ENUM		TMR16_GetOutputCompareMode(const TMR_OCCHAN_ENUM eChannel);
-void					TMR16_SetOutputCompareValue(const uint8_t value, const TMR_OCCHAN_ENUM eChannel);
+void					TMR16_SetOutputCompareValue(const uint16_t value, const TMR_OCCHAN_ENUM eChannel);
 
 void					TMR16_ForceOutputCompare(const TMR_OCCHAN_ENUM eChannel);
 void					TMR16_PWMOff(const TMR_OCCHAN_ENUM eChannel, const IO_STATE_ENUM eState);
