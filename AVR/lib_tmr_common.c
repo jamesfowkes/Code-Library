@@ -44,3 +44,12 @@ void TMR_PWMOff(const TMR_OCCHAN_ENUM eChannel, const IO_STATE_ENUM eState)
 		break;
 	}
 }
+
+bool TMR_TestAndClear(TIMER_FLAG * flag)
+{
+	cli();
+	bool ovf = flag;
+	flag = false;
+	sei();
+	return ovf;
+}

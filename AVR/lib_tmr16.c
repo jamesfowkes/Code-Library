@@ -11,7 +11,9 @@
 /*
  * AVR Includes (Defines and Primitives)
  */
+ 
 #include <avr/io.h>
+#include <util/atomic.h>
 
 /*
  * AVR Library Includes
@@ -20,10 +22,27 @@
 #include "lib_tmr16.h"
 
 /*
+ * Private Defines and Datatypes
+ */
+ 
+/*
  * Private Variables
  */
 
-static TMR16_COUNTMODE_ENUM currentCountMode = TMR16_COUNTMODE_INVALID;
+static TMR16_COUNTMODE_ENUM s_currentCountMode = TMR16_COUNTMODE_INVALID;
+static TIMER * s_pTimers[2];
+
+static uint32_t s_usResolution = 0;
+static uint16_t s_divisor = 1;
+
+static uint16_t s_top = 0xFFFF;
+
+//Timer divisions for each TMR_SRC_ENUM selection
+static const uint16_t divisors[] = {1, 1, 8, 64, 256, 1024, 1, 1};
+
+// Counter TOP for each TMR16_COUNTMODE_ENUM, where applicable (0 if not)
+static const uint16_t tops[] = 
+	{0xFFFF, 0xFF, 0x1FF, 0x3FF, 0, 0xFF, 0x1FF, 0x3FF, 0, 0, 0, 0, 0, 0, 0};
 
 /*
  * Private Function Prototypes
@@ -42,6 +61,17 @@ void TMR16_SetSource(TMR_SRC_ENUM eSource)
 	temp &= ~((1 << CS12) | (1 << CS11) | (1 << CS10));
 	temp |= (uint8_t)eSource;
 	TCCR1B = temp;
+	
+	s_divisor = divisors[eSource];
+	
+	/* Pre-calculate the timer resolution */
+	uint16_t tmr16Div = s_divisor;
+	uint16_t cpuDiv = (1 << CLK_GetPrescaler());
+
+	uint32_t countsPerSecond = F_CPU / cpuDiv;
+	countsPerSecond /= tmr16Div;
+	
+	s_usResolution = 1000000 / countsPerSecond
 }
 
 TMR_SRC_ENUM TMR16_GetSource(void)
@@ -53,21 +83,17 @@ TMR_SRC_ENUM TMR16_GetSource(void)
 
 uint16_t TMR16_GetDivisor(void)
 {
-	TMR_SRC_ENUM temp = TMR16_GetSource();
-	//TMR_SRC_FCLK,	TMR_SRC_FCLK_8,	TMR_SRC_FCLK_64, TMR_SRC_FCLK_256, TMR_SRC_FCLK_1024, TMR_SRC_FCLK_EXT_FALLING, TMR_SRC_FCLK_EXT_RISING,
-	uint16_t divisors[] = {1, 1, 8, 64, 256, 1024, 1, 1};
-
-	return divisors[temp];
+	return s_divisor;
 }
 
 void TMR16_SetCountMode(const TMR16_COUNTMODE_ENUM eMode)
 {
-
-	assert(eMode < TMR16_COUNTMODE_INVALID);
-
+	assert(eMode != TMR16_COUNTMODE_INVALID);
+	assert(eMode < TMR16_COUNTMODE_MAX);
+	
 	// Mode is controlled by b1:0 in TCCR1A and b4:3 in TCCR1B
 
-	if (currentCountMode != eMode)
+	if (s_currentCountMode != eMode)
 	{
 		uint8_t tccr1a = TCCR1A;
 		uint8_t tccr1b = TCCR1B;
@@ -81,6 +107,9 @@ void TMR16_SetCountMode(const TMR16_COUNTMODE_ENUM eMode)
 
 		TCCR1A = tccr1a;
 		TCCR1B = tccr1b;
+		
+		s_currentCountMode = eMode;
+		s_top = tops[s_currentCountMode];
 	}
 }
 
@@ -89,16 +118,19 @@ void TMR16_SetOutputCompareValue(const uint16_t value, const TMR_OCCHAN_ENUM eCh
 
 	assert(eChannel < TMR_OCCHAN_INVALID);
 
-	switch (eChannel)
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
 	{
-	case TMR_OCCHAN_A:
-		OCR1A = value;
-		break;
-	case TMR_OCCHAN_B:
-		OCR1B = value;
-		break;
-	default:
-		break;
+		switch (eChannel)
+		{
+		case TMR_OCCHAN_A:
+			OCR1A = value;
+			break;
+		case TMR_OCCHAN_B:
+			OCR1B = value;
+			break;
+		default:
+			break;
+		}
 	}
 }
 
@@ -177,6 +209,38 @@ void TMR16_InterruptControl(TMR16_INTMASK_ENUM eMask, bool enable)
 
 }
 
+bool TMR16_StartTimer(uint16_t us, TIMER_FLAG * timerFlag, const TMR_OCCHAN_ENUM eChannel);
+{
+
+	if (s_pTimers[eChannel]) { return false; } // Already a timer in progress
+	s_pTimers[eChannel] = timerFlag;
+	
+	uint16_t currentTimerValue = 0;
+	uint32_t counts = us / s_usResolution;
+	
+	if ((counts == 0) || (counts > s_top)) { return false; } // Value out of range
+	
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+	{
+		currentTimerValue = TCNT1;
+	}
+	
+	counts += currentTimerValue;
+	if (counts > s_top) { counts -= s_top; }
+	
+	TMR16_SetOutputCompareValue(counts, eChannel);
+	
+	switch (eChannel)
+	{
+	case TMR_OCCHAN_A:
+		TMR16_InterruptControl(TMR16_INTMASK_OCMPA, true);
+		break;
+	case TMR_OCCHAN_B:
+		TMR16_InterruptControl(TMR16_INTMASK_OCMPA, true);
+	}
+	return true
+}
+
 /*
  * Private Functions
  */
@@ -186,4 +250,20 @@ static bool IsPWMMode(const TMR16_COUNTMODE_ENUM eCountMode)
 	assert(eCountMode < TMR16_COUNTMODE_INVALID);
 
     return !((TMR16_COUNTMODE_NORMAL == eCountMode) || (TMR16_COUNTMODE_CTC == eCountMode));
+}
+
+/*
+ * ISRs
+ */
+
+ISR(TIMER1_COMPA_vect)
+{
+	if (s_pTimers[TMR_OCCHAN_A]) {s_pTimers[TMR_OCCHAN_A] = true;}
+	s_pTimers[TMR_OCCHAN_A] = NULL;
+}
+
+ISR(TIMER1_COMPA_vect)
+{
+	if (s_pTimers[TMR_OCCHAN_B]) {s_pTimers[TMR_OCCHAN_B] = true;}
+	s_pTimers[TMR_OCCHAN_B] = NULL;
 }

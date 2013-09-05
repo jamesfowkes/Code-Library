@@ -35,6 +35,8 @@ enum tmr_outputmode_enum
 };
 typedef enum tmr_outputmode_enum TMR_OUTPUTMODE_ENUM;
 
+typedef bool TIMER_FLAG;
+
 /*
  * Public Function Prototypes
  */
