@@ -9,16 +9,15 @@
 /*
  * Device Includes
  */
- 
+
+#include "lib_shiftregister_common.h" 
 #include "lib_shiftregister.h"
 #include "lib_tlc5916.h"
 
 void TLC5916_ClockOut(uint8_t* data, uint8_t nBytes, TLC5916_CONTROL * tlc)
 {
-	tlc->sr.edge = SR_CLKEDGE_POS;
-	
 	tlc->latch(false);
-	SR_ShiftOut(data, nBytes, &(tlc->sr));
+	tlc->sr.shiftOutFn(data, nBytes, SR_CLKEDGE_POS);
 	tlc->latch(true);
 }
 
