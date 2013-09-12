@@ -7,10 +7,18 @@
 
 enum io_port_enum
 {
+	#ifdef PORTA
 	IO_PORTA,
+	#endif
+	#ifdef PORTB
 	IO_PORTB,
+	#endif
+	#ifdef PORTC
 	IO_PORTC,
+	#endif
+	#ifdef PORTD
 	IO_PORTD
+	#endif
 };
 typedef enum io_port_enum IO_PORT_ENUM;
 
@@ -34,11 +42,10 @@ typedef void (*EXT_IO_FN)(bool);
 
 #define IO_On(port, pin) (port |= (1 <<  pin))
 #define IO_Off(port, pin) (port &= ~(1 <<  pin))
-
+#define IO_Toggle(pins, pin) (pins |= (1 << pin))
 #define IO_Read(port, pin) (bool)((port & (1 << pin)) == (1 << pin))
 
-void IO_Control(IO_PORT_ENUM ePort, uint8_t pin, bool on);
+void IO_Control(IO_PORT_ENUM ePort, uint8_t pin, IO_STATE_ENUM state);
 void IO_SetMode(IO_PORT_ENUM ePort, uint8_t pin, IO_MODE_ENUM eMode);
-void IO_Toggle(IO_PORT_ENUM ePort, uint8_t pin);
 
 #endif

@@ -9,9 +9,7 @@
 /*
  * AVR Includes (Defines and Primitives)
  */
-#ifdef __AVR_ATtiny84A__
-#error "TINY"
-#endif
+
 #include "avr/io.h"
 
 /*
@@ -35,9 +33,20 @@ void ClearPINS(IO_PORT_ENUM ePort, uint8_t pin);
  * Public Functions
  */
 
-void IO_Control(IO_PORT_ENUM ePort, uint8_t pin, bool on)
+void IO_Control(IO_PORT_ENUM ePort, uint8_t pin, IO_STATE_ENUM state);
 {
-	on ? SetPORT(ePort, pin) : ClearPORT(ePort, pin);
+	switch(state)
+	{
+	case IO_OFF:
+		ClearPORT(ePort, pin);
+		break;
+	case IO_ON
+		SetPORT(ePort, pin);
+		break;
+	case IO_TOGGLE:
+		SetPINS(ePort, pin);
+		break;
+	}
 }
 
 void IO_SetMode(IO_PORT_ENUM ePort, uint8_t pin, IO_MODE_ENUM eMode)
@@ -57,11 +66,6 @@ void IO_SetMode(IO_PORT_ENUM ePort, uint8_t pin, IO_MODE_ENUM eMode)
 		SetDDR(ePort, pin);
 		break;
 	}
-}
-
-void IO_Toggle(IO_PORT_ENUM ePort, uint8_t pin)
-{
-	SetPINS(ePort, pin);
 }
 
 /*
@@ -154,7 +158,6 @@ void SetPORT(IO_PORT_ENUM ePort, uint8_t pin)
 
 void ClearPORT(IO_PORT_ENUM ePort, uint8_t pin)
 {
-
 	switch(ePort)
 	{
 	case IO_PORTA:
