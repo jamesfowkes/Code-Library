@@ -22,4 +22,12 @@ bool is_leap_year(uint16_t year);
 int get_year_days(const TM * tm);
 uint32_t years_to_seconds(uint16_t start_year, uint8_t years);
 
+#define MS_PER_S (1000)
+#define S_PER_MIN (60)
+#define MIN_PER_HOUR (60)
+
+#define S_PER_HOUR (S_PER_MIN * MIN_PER_HOUR)
+#define MS_PER_MIN (MS_PER_S * S_PER_MIN)
+#define MS_PER_HOUR (MS_PER_S * S_PER_HOUR)
+
 #endif
