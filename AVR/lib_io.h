@@ -1,6 +1,8 @@
 #ifndef _LIB_IO_H_
 #define _LIB_IO_H_
 
+#define SFRP(SFR) (uint8_t *)(&SFR)
+
 /*
  * Public Datatype Defintions
  */

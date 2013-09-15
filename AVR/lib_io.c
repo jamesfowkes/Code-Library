@@ -33,14 +33,14 @@ void ClearPINS(IO_PORT_ENUM ePort, uint8_t pin);
  * Public Functions
  */
 
-void IO_Control(IO_PORT_ENUM ePort, uint8_t pin, IO_STATE_ENUM state);
+void IO_Control(IO_PORT_ENUM ePort, uint8_t pin, IO_STATE_ENUM state)
 {
 	switch(state)
 	{
 	case IO_OFF:
 		ClearPORT(ePort, pin);
 		break;
-	case IO_ON
+	case IO_ON:
 		SetPORT(ePort, pin);
 		break;
 	case IO_TOGGLE:
@@ -87,16 +87,16 @@ void SetDDR(IO_PORT_ENUM ePort, uint8_t pin)
 		DDRB |= (1 << pin);
 		#endif
 		break;
+#ifdef DDRC
 	case IO_PORTC:
-		#ifdef DDRC
 		DDRC |= (1 << pin);
-		#endif
 		break;
+#endif
+#ifdef DDRD
 	case IO_PORTD:
-		#ifdef DDRD
 		DDRD |= (1 << pin);
-		#endif
-		break;
+	break;
+#endif
 	}
 }
 
@@ -115,16 +115,16 @@ void ClearDDR(IO_PORT_ENUM ePort, uint8_t pin)
 		DDRB &= ~(1 << pin);
 		#endif
 		break;
+#ifdef DDRC
 	case IO_PORTC:
-		#ifdef DDRC
 		DDRC &= ~(1 << pin);
-		#endif
 		break;
+#endif
+#ifdef DDRD
 	case IO_PORTD:
-		#ifdef DDRD
 		DDRD &= ~(1 << pin);
-		#endif
 		break;
+#endif
 	}
 }
 
@@ -143,16 +143,16 @@ void SetPORT(IO_PORT_ENUM ePort, uint8_t pin)
 		PORTB |= (1 << pin);
 		#endif
 		break;
+#ifdef DDRC
 	case IO_PORTC:
-		#ifdef PORTC
 		PORTC |= (1 << pin);
-		#endif
 		break;
+#endif
+#ifdef DDRD
 	case IO_PORTD:
-		#ifdef PORTD
 		PORTD |= (1 << pin);
-		#endif
-		break;
+	break;
+#endif
 	}
 }
 
@@ -170,16 +170,16 @@ void ClearPORT(IO_PORT_ENUM ePort, uint8_t pin)
 		PORTB &= ~(1 << pin);
 		#endif
 		break;
+#ifdef DDRC
 	case IO_PORTC:
-		#ifdef PORTC
 		PORTC &= ~(1 << pin);
-		#endif
 		break;
+#endif
+#ifdef DDRD
 	case IO_PORTD:
-		#ifdef PORTD
 		PORTD &= ~(1 << pin);
-		#endif
-		break;
+	break;
+#endif
 	}
 }
 
@@ -198,16 +198,16 @@ void SetPINS(IO_PORT_ENUM ePort, uint8_t pin)
 		PINB = (1 << pin);
 		#endif
 		break;
+#ifdef DDRC
 	case IO_PORTC:
-		#ifdef PINC
 		PINC = (1 << pin);
-		#endif
 		break;
+#endif
+#ifdef DDRD
 	case IO_PORTD:
-		#ifdef PIND
 		PIND = (1 << pin);
-		#endif
-		break;
+	break;
+#endif
 	}
 }
 
@@ -226,15 +226,15 @@ void ClearPINS(IO_PORT_ENUM ePort, uint8_t pin)
 		PINB &= ~(1 << pin);
 		#endif
 		break;
+#ifdef DDRC
 	case IO_PORTC:
-		#ifdef PINC
 		PINC &= ~(1 << pin);
-		#endif
 		break;
+#endif
+#ifdef DDRD
 	case IO_PORTD:
-		#ifdef PIND
 		PIND &= ~(1 << pin);
-		#endif
-		break;
+	break;
+#endif
 	}
 }

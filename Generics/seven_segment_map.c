@@ -77,3 +77,8 @@ uint8_t F(uint8_t digit, uint8_t bit)
 {
 	return ((digit != 1) && (digit != 2) && (digit != 3) && (digit != 7)) ? (1 << bit) : 0;
 }
+
+uint8_t G(uint8_t digit, uint8_t bit)
+{
+	return ((digit != 0) && (digit != 1) && (digit != 7)) ? (1 << bit) : 0;
+}

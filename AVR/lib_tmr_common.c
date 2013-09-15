@@ -6,12 +6,17 @@
 #include <stdint.h>
 
 /*
+ * AVR Includes (Defines and Primitives)
+ */
+
+#include "avr/interrupt.h"
+
+/*
  * AVR Library Includes
  */
 
 #include "lib_io.h"
 #include "lib_tmr_common.h"
-
 
 /*
  * Private Variables

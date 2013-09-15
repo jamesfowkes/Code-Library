@@ -4,11 +4,18 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 /*
  * Device Includes
  */
- 
+
+#include "lib_shiftregister_common.h"
+
+/*
+ * AVR Library Includes
+ */
+
 #include "lib_shiftregister.h"
 
 static volatile uint8_t * s_clockPort;
@@ -20,7 +27,7 @@ void SR_Init(uint8_t * clockPort, uint8_t clockPin, uint8_t * dataPort, uint8_t 
 {
 	s_clockPort = clockPort;
 	s_clockPin = clockPin;
-	s_dataport = dataPort;
+	s_dataPort = dataPort;
 	s_dataPin = dataPin;
 }
 
@@ -34,13 +41,13 @@ void SR_ShiftOut(uint8_t* data, uint8_t nBytes, SR_CLKEDGE_ENUM edge)
 		for (mask = 0x80; mask; mask >>= 1)
 		{
 			// Clear the clock
-			(edge != SR_CLKEDGE_POS) ? s_clockPort |= (1 << s_clockPin) : s_clockPort &= ~(1 << s_clockPin);
+			(edge != SR_CLKEDGE_POS) ? (*s_clockPort |= (1 << s_clockPin)) : (*s_clockPort &= ~(1 << s_clockPin));
 			
 			// Setup data
-			((data[b] & mask) == mask) ? s_dataPort |= (1 << s_dataPin) : s_dataPort &= ~(1 << s_dataPin);
+			((data[b] & mask) == mask) ? (*s_dataPort |= (1 << s_dataPin)) : (*s_dataPort &= ~(1 << s_dataPin));
 			
 			// Assert the clock
-			(edge == SR_CLKEDGE_POS) ? s_clockPort |= (1 << s_clockPin) : s_clockPort &= ~(1 << s_clockPin);
+			(edge == SR_CLKEDGE_POS) ? (*s_clockPort |= (1 << s_clockPin)) : (*s_clockPort &= ~(1 << s_clockPin));
 		}
 	}
 }

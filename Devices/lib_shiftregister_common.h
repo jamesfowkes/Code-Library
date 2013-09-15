@@ -5,9 +5,6 @@
  * Public Datatype Definitions
  */
 
-typedef void (*SR_SHIFT_FN)(uint8_t* data, uint8_t nBytes, SR_CLKEDGE_ENUM edge);
-typedef void (*SR_IO_FN)(bool);
-
 enum sr_clkedge_enum
 {
 	SR_CLKEDGE_POS,
@@ -15,10 +12,13 @@ enum sr_clkedge_enum
 };
 typedef enum sr_clkedge_enum SR_CLKEDGE_ENUM;
 
+typedef void (*SR_IO_FN)(bool);
+typedef void (*SR_SHIFT_FN)(uint8_t* data, uint8_t nBytes, SR_CLKEDGE_ENUM edge);
+
 struct sr_control_struct
 {
 	SR_SHIFT_FN shiftOutFn;
 };
--typedef struct sr_control_struct SR_CONTROL;
+typedef struct sr_control_struct SR_CONTROL;
 
 #endif
