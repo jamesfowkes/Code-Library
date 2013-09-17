@@ -2,6 +2,14 @@
 #define _LIB_ADC_H_
 
 /*
+ * Public Defines
+ */
+
+#define MAX_8BIT_ADC ((1 << 8) - 1)
+#define MAX_9BIT_ADC ((1 << 9) - 1)
+#define MAX_10BIT_ADC ((1 << 10) - 1)
+
+/*
  * Public Datatype Definitions
  */
 enum lib_adc_channel_enum
