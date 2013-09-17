@@ -30,4 +30,6 @@ uint32_t years_to_seconds(uint16_t start_year, uint8_t years);
 #define MS_PER_MIN (MS_PER_S * S_PER_MIN)
 #define MS_PER_HOUR (MS_PER_S * S_PER_HOUR)
 
+#define MINS_AND_SECS_TO_SECS(m, s) ((m*60) + s)
+
 #endif
