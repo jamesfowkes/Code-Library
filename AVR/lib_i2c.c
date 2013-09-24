@@ -9,11 +9,17 @@
 
 #include <stdint.h>
 
-#include "lib_i2c_test.h"
+/*
+ * AVR Includes (Defines and Primitives)
+ */
+ 
+#include "avr/io.h"
+#include "util/twi.h"
 
 /*
  * Common and Generic Includes
  */
+ 
 #include "lib_i2c_common.h"
 #include "lib_i2c_private.h"
 
@@ -40,7 +46,7 @@ bool I2C_Init(I2C_SLAVE_HANDLER slaveHandler, uint8_t slaveAddress)
 	return true;
 }
 
-void I2C_SetSlaveAddress(slaveAddress)
+void I2C_SetSlaveAddress(uint8_t slaveAddress)
 {
 	TWAR = (slaveAddress << 1) & 0xFE;
 }
