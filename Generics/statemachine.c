@@ -51,6 +51,12 @@ void SM_SetActive(uint8_t idx, bool active)
 	}
 }
 
+SM_STATE SM_GetState(uint8_t idx)
+{
+	STATE_MACHINE_INTERNAL * Internal = SM_GetMachineInternal(idx);
+	return Internal->CurrentState;
+}
+
 void SM_Kick(uint8_t idx)
 {
 	STATE_MACHINE_INTERNAL * Internal = SM_GetMachineInternal(idx);

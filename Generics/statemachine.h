@@ -18,5 +18,6 @@ uint8_t SM_Init(SM_STATE initialState, SM_EVENT maxEvent, SM_STATE maxState, con
 void SM_Event(uint8_t idx, SM_EVENT event);
 void SM_Kick(uint8_t idx);
 void SM_SetActive(uint8_t idx, bool active);
+SM_STATE SM_GetState(uint8_t idx);
 
 #endif
