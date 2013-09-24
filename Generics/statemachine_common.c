@@ -35,7 +35,7 @@ void SM_InternalInit(STATE_MACHINE_INTERNAL * Internal, SM_STATE initialState, S
 	Internal->Active = false;
 	Internal->Idle = true;
 
-	Ringbuf_Init(&Internal->eventQueueBuffer, (uint8_t*)Internal->eventQueueData, sizeof(SM_EVENT), MAX_EVENT_QUEUE);
+	Ringbuf_Init(&Internal->eventQueueBuffer, (uint8_t*)Internal->eventQueueData, sizeof(SM_EVENT), MAX_EVENT_QUEUE, false);
 
 	Internal->Initialised = true;
 }

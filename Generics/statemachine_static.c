@@ -25,18 +25,6 @@
 #define elemof(arr) (sizeof arr/sizeof *arr)
 #endif
 
-#ifndef NUM_STATE_MACHINES
-	#error "NUM_STATE_MACHINES must be defined for a static state machine implementation."
-#else
-
-	#ifndef MAX_EVENT_QUEUE
-		#error "MAX_EVENT_QUEUE must be defined for a state machine implementation."
-	#else
-		static SM_CONTROL StateMachines[NUM_STATE_MACHINES];
-		static SM_EVENT EventBuffers[NUM_STATE_MACHINES][MAX_EVENT_QUEUE];
-	#endif
-#endif
-
 /*
  * Private Datatype Definitions
  */
@@ -49,6 +37,18 @@ typedef struct state_machine_control SM_CONTROL;
 /*
  * Private Variables
  */
+ 
+#ifndef NUM_STATE_MACHINES
+	#error "NUM_STATE_MACHINES must be defined for a static state machine implementation."
+#else
+
+	#ifndef MAX_EVENT_QUEUE
+		#error "MAX_EVENT_QUEUE must be defined for a state machine implementation."
+	#else
+		static SM_CONTROL StateMachines[NUM_STATE_MACHINES];
+		static SM_EVENT EventBuffers[NUM_STATE_MACHINES][MAX_EVENT_QUEUE];
+	#endif
+#endif
 
 static uint8_t StateMachineCount;
 
