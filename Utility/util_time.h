@@ -18,9 +18,21 @@ struct tm
 };
 typedef struct tm TM;
 
+typedef uint32_t UNIX_TIMESTAMP;
+
 bool is_leap_year(uint16_t year);
-int get_year_days(const TM * tm);
-uint32_t years_to_seconds(uint16_t start_year, uint8_t years);
+uint16_t days_in_month(uint8_t month, bool is_leap_year);
+uint16_t get_year_days(const TM * tm);
+
+void unix_seconds_to_time(UNIX_TIMESTAMP sec, TM * tm);
+UNIX_TIMESTAMP time_to_unix_seconds(TM * tm);
+
+#define FIRST_UNIX_YEAR (1970)
+#define FIRST_DAY_OF_WEEK_1_JAN_1970 (4) // Thursday
+#define FEB_28 (58) // Feb 28th is 58th day of year
+#define FIRST_C_YEAR (1900)
+
+#define TWO_DIGIT_YEAR(year) (year % 100)
 
 #define MS_PER_S (1000)
 #define S_PER_MIN (60)
