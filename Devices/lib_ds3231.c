@@ -4,6 +4,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
 
 /*
  * Utility Library Includes
@@ -17,6 +18,12 @@
  */
 
 #include "lib_ds3231.h"
+
+/*
+ * Generic Library Includes
+ */
+
+#include "lib_i2c_common.h"
 
 /*
  * Private defines and typedefs
@@ -97,7 +104,7 @@ struct datetime_registers
 {
 	TIME_REGISTERS time;
 	DATE_REGISTERS date;
-}
+};
 typedef struct datetime_registers DATETIME_REGISTERS;
 
 struct alarm_registers
@@ -111,74 +118,32 @@ typedef struct alarm_registers ALARM_REGISTERS;
 
 struct control_registers
 {
-	uint8_t control;
-	uint8_t status;
+	uint8_t s_control;
+	uint8_t s_status;
 	uint8_t aging;
 	uint8_t temp_msb;
 	uint8_t temp_lsb;
 };
 typedef struct control_registers CONTROL_REGISTERS;
 
-enum ds3231_rate_enum
-{
-	DS3131_RATE_1HZ,
-	DS3131_RATE_1024HZ,
-	DS3131_RATE_4096HZ,
-	DS3131_RATE_8191HZ,
-};
-typedef enum ds3231_rate_enum DS3231_RATE_ENUM;
-
-enum ds3231_time_format_enum
-{
-	DS3231_TIME_FORMAT_AMPM,
-	DS3231_TIME_FORMAT_24HR,
-};
-typedef enum ds3231_time_format_enum DS3231_TIME_FORMAT_ENUM;
-
-enum ds3231_date_type_enum
-{
-	DS3232_DATE_TYPE_DAYOFMONTH,
-	DS3232_DATE_TYPE_DAYOFWEEK
-};
-typedef enum ds3231_date_type_enum DS3231_DATE_TYPE_ENUM;
-
-enum ds3231_alarm_rpt_enum
-{
-	DS3231_ALARM_RPT_EVERY_S,
-	DS3231_ALARM_RPT_EVERY_M,
-	DS3231_ALARM_RPT_MATCH_S,
-	DS3231_ALARM_RPT_MATCH_MS,
-	DS3231_ALARM_RPT_MATCH_HMS,
-	DS3231_ALARM_RPT_MATCH_DHMS
-
-};
-typedef enum ds3231_alarm_rpt_enum DS3231_ALARM_RPT_ENUM;
-
-enum ds3231_alarm_enum
-{
-	DS3231_ALARM_1,
-	DS3231_ALARM_2
-};
-typedef enum ds3231_alarm_enum DS3231_ALARM_ENUM;
-
 /*
  * Private Variables
  */
 
-static I2C_WR_FN wr_fn;
-static I2C_RD_FN rd_fn;
+static uint8_t s_control;
+static uint8_t s_status;
 
-static uint8_t control;
-static uint8_t status;
+static bool s_busy = false;
 
-static bool busy = false;
+static DS3231_ONIDLE_FN s_onidle_cb;
 
-static DS3231_REQUEST_ENUM lastRequest;
-static DS3231_ONIDLE_FN onidle_cb;
+static DATETIME_REGISTERS s_dt;
 
-static DATETIME_REGISTERS dt;
+static uint8_t s_temperature[2];
 
-static uint8_t temperature[2];
+static bool s_ampm_mode;
+
+static I2C_TRANSFER_DATA s_i2c_data;
 
 /*
  * Private Function Prototypes
@@ -190,30 +155,27 @@ static void read(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb);
 static void rd_callback(I2C_TRANSFER_DATA * transfer);
 static void wr_callback(I2C_TRANSFER_DATA * transfer);
 
-static bool setLocalDate(TM * tm);
-static bool setLocalTime(TM * tm);
+static bool setLocalDate(const TM * tm);
+static bool setLocalTime(const TM * tm);
 
 /*
  * Public Functions
  */
 
-bool DS3231_Init(I2C_WR_FN _wr_fn, I2C_WR_FN _rd_fn)
+bool DS3231_Init(void)
 {
-	wr_fn = _wr_fn;
-	rd_fn =_rd_fn;
-
-	return (wr_fn && rd_fn);
+	return true;
 }
 
 bool DS3231_SetTime(const TM * tm, bool ampm_mode, DS3231_ONIDLE_FN cb)
 {
 	bool success = true;
 	
-	if (!busy)
+	if (!s_busy)
 	{
 		if ( setLocalTime(tm) )
 		{
-			write(REG_TIME_START, (uint8_t*)&dt, REG_TIME_LENGTH, cb);
+			write(REG_TIME_START, (uint8_t*)&s_dt, REG_TIME_LENGTH, cb);
 		}
 	}
 	return success;
@@ -222,11 +184,11 @@ bool DS3231_SetTime(const TM * tm, bool ampm_mode, DS3231_ONIDLE_FN cb)
 bool DS3231_SetDate(const TM * tm, DS3231_ONIDLE_FN cb)
 {
 	bool success = true;
-	if (!busy)
+	if (!s_busy)
 	{
 		if ( setLocalDate(tm) )
 		{
-			write(REG_DATE_START, (uint8_t*)&dt, REG_DATE_LENGTH, cb);
+			write(REG_DATE_START, (uint8_t*)&s_dt, REG_DATE_LENGTH, cb);
 		}
 	}
 	
@@ -237,11 +199,12 @@ bool DS3231_SetDateTime(const TM * tm, bool ampm_mode, DS3231_ONIDLE_FN cb)
 {
 	bool success = true;
 
-	if (!busy)
+	if (!s_busy)
 	{
+		s_ampm_mode = ampm_mode;
 		success &= setLocalTime(tm);
 		success &= setLocalDate(tm);
-		write(REG_DATETIME_START, (uint8_t*)&dt, REG_DATETIME_LENGTH, cb);
+		write(REG_DATETIME_START, (uint8_t*)&s_dt, REG_DATETIME_LENGTH, cb);
 	}
 
 	return success;
@@ -249,40 +212,40 @@ bool DS3231_SetDateTime(const TM * tm, bool ampm_mode, DS3231_ONIDLE_FN cb)
 
 void DS3231_ReadDateTime(DS3231_ONIDLE_FN cb)
 {
-	if (!busy)
+	if (!s_busy)
 	{
-		read(REG_DATETIME_START, (uint8_t*)&dt, REG_DATETIME_LENGTH, cb);
+		read(REG_DATETIME_START, (uint8_t*)&s_dt, REG_DATETIME_LENGTH, cb);
 	}
 }
 
 void DS3231_GetTime(TM * tm)
 {
-	if (!busy)
+	if (!s_busy)
 	{
-		tm->tm_sec = from_bcd(dt.time.seconds);
-		tm->tm_min = from_bcd(dt.time.minutes);
+		tm->tm_sec = from_bcd(s_dt.time.seconds);
+		tm->tm_min = from_bcd(s_dt.time.minutes);
 
-		if (dt.time.hours & AMPM_SELECT)
+		if (s_dt.time.hours & AMPM_SELECT)
 		{
-			dt.time.hours = dt.time.hours > 11 ? dt.time.hours - 12 : dt.time.hours;
+			s_dt.time.hours = s_dt.time.hours > 11 ? s_dt.time.hours - 12 : s_dt.time.hours;
 		}
 
-		dt.time.hours &= 0x3F;
+		s_dt.time.hours &= 0x3F;
 
-		tm->tm_hour = from_bcd(dt.time.hours);
+		tm->tm_hour = from_bcd(s_dt.time.hours);
 	}
 }
 
-void DS3231_GetDate(TM * tm);
+void DS3231_GetDate(TM * tm)
 {
-	if (!busy)
+	if (!s_busy)
 	{
-		tm->tm_wday = from_bcd(dt.date.day);
-		tm->tm_mday = from_bcd(dt.date.date);
+		tm->tm_wday = from_bcd(s_dt.date.day);
+		tm->tm_mday = from_bcd(s_dt.date.date);
 
-		tm->tm_mon = from_bcd(dt.date.month & 0x1F);
+		tm->tm_mon = from_bcd(s_dt.date.month & 0x1F);
 
-		tm->tm_year = from_bcd(dt.date.year);
+		tm->tm_year = from_bcd(s_dt.date.year);
 		if (tm->tm_mon & CENTURY_SELECT)
 		{
 			tm->tm_year += 100;
@@ -294,7 +257,7 @@ void DS3231_GetDate(TM * tm);
 
 void DS3231_GetDateTime(TM * tm)
 {
-	if (!busy)
+	if (!s_busy)
 	{
 		DS3231_GetDate(tm);
 		DS3231_GetTime(tm);
@@ -330,7 +293,7 @@ bool DS3231_ConfigureAlarm(TM* tm, DS3231_ALARM_ENUM alarm, DS3231_DATE_TYPE_ENU
 	switch (dateType)
 	{
 	case DS3232_DATE_TYPE_DAYOFMONTH:
-		success &= (tm->tm_mday < days_in_month(tm->tm_mon));
+		success &= (tm->tm_mday < days_in_month(tm->tm_mon, is_leap_year(C_TO_GREGORIAN_YEAR(tm->tm_year))));
 		break;
 	case DS3232_DATE_TYPE_DAYOFWEEK:
 		success &= (tm->tm_mday < 7);
@@ -350,14 +313,14 @@ void DS3231_OscControl(bool on)
 {
 	if (on)
 	{
-		control &= ~EOSC;
+		s_control &= ~EOSC;
 	}
 	else
 	{
-		control |= EOSC;
+		s_control |= EOSC;
 	}
 
-	write(REG_CONTROL, &control, 1, NULL);
+	write(REG_CONTROL, &s_control, 1, NULL);
 }
 
 /*
@@ -370,34 +333,34 @@ void DS3231_SQWINTControl(bool sqw_on, bool int_on)
 
 	if (sqw_on)
 	{
-		control |= BBSWQ;
+		s_control |= BBSWQ;
 	}
 	else
 	{
-		control &= ~BBSWQ;
+		s_control &= ~BBSWQ;
 	}
 
 	if (int_on)
 	{
-		control |= INTCN;
+		s_control |= INTCN;
 	}
 	else
 	{
-		control &= ~INTCN;
+		s_control &= ~INTCN;
 	}
-	write(REG_CONTROL, &control, 1, NULL);
+	write(REG_CONTROL, &s_control, 1, NULL);
 }
 
 /*
  * Temperature conversions are normally every 64 seconds.
  * A conversion can be started manually if needed.
- * The BSY status should be checked for conversion complete
+ * The BSY s_status should be checked for conversion complete
  */
 void DS3231_StartTempConv(void)
 {
-	control |= CONV;
-	write(REG_CONTROL, &control, 1, NULL);
-	control &= ~CONV; // Conv bit is cleared when BSY is cleared (about 2ms)
+	s_control |= CONV;
+	write(REG_CONTROL, &s_control, 1, NULL);
+	s_control &= ~CONV; // Conv bit is cleared when BSY is cleared (about 2ms)
 }
 
 /*
@@ -405,9 +368,9 @@ void DS3231_StartTempConv(void)
  */
 void DS3231_SetRate(DS3231_RATE_ENUM rate)
 {
-	control &= ~(RS2 | RS1);
-	control |= ((uint8_t)rate) << RS1_BIT;
-	write(REG_CONTROL, &control, 1, NULL);
+	s_control &= ~(RS2 | RS1);
+	s_control |= ((uint8_t)rate) << RS1_BIT;
+	write(REG_CONTROL, &s_control, 1, NULL);
 }
 
 /*
@@ -417,44 +380,44 @@ void DS3231_AlarmControl(DS3231_ALARM_ENUM alarm, bool on)
 {
 	if (on)
 	{
-		control |= (DS3231_ALARM_1 == alarm) ? A1IE : A2IE;
+		s_control |= (DS3231_ALARM_1 == alarm) ? A1IE : A2IE;
 	}
 	else
 	{
-		control &= (DS3231_ALARM_1 == alarm) ? ~A1IE : ~A2IE;
+		s_control &= (DS3231_ALARM_1 == alarm) ? ~A1IE : ~A2IE;
 	}
-	write(REG_CONTROL, &control, 1, NULL);
+	write(REG_CONTROL, &s_control, 1, NULL);
 }
 
 /*
- * Update the local shadow of the status register
+ * Update the local shadow of the s_status register
  */
 void DS3231_ReadStatus(DS3231_ONIDLE_FN cb)
 {
-	if(!busy)
+	if(!s_busy)
 	{
-		read(REG_STATUS, &status, 1, cb);
+		read(REG_STATUS, &s_status, 1, cb);
 	}
 }
 
 /*
- * Read the status of the oscillator
+ * Read the s_status of the oscillator
  */
 bool DS3231_GetOscFlag(void)
 {
-	return (status & OSF) == OSF;
+	return (s_status & OSF) == OSF;
 }
 
 /*
  * If the oscillator flag has been set, must manually clear it
- * NOTE: this function does not read the status before clearing!
+ * NOTE: this function does not read the s_status before clearing!
  */
 void DS3231_ClearOscFlag(void)
 {
-	if (!busy)
+	if (!s_busy)
 	{
-		status &= ~OSF;
-		write(REG_STATUS, &status, 1, NULL);
+		s_status &= ~OSF;
+		write(REG_STATUS, &s_status, 1, NULL);
 	}
 }
 
@@ -463,36 +426,36 @@ void DS3231_ClearOscFlag(void)
  */
 void DS3231_32KhzControl(bool on)
 {
-	if (!busy)
+	if (!s_busy)
 	{
 		if (on)
 		{
-			status |= EN32kHz;
+			s_status |= EN32kHz;
 		}
 		else
 		{
-			status &= ~EN32kHz;
+			s_status &= ~EN32kHz;
 		}
 
-		write(REG_STATUS, &status, 1, NULL);
+		write(REG_STATUS, &s_status, 1, NULL);
 	}
 }
 
 /*
- * Read the status of the busy flag (for temperature conversions)
+ * Read the s_status of the s_busy flag (for s_temperature conversions)
  */
 bool DS3231_GetBusyFlag(void)
 {
-	return (status & BSY) == BSY;
+	return (s_status & BSY) == BSY;
 }
 
 /*
- * Read the status of an alarm flag
+ * Read the s_status of an alarm flag
  */
 bool DS3231_GetAlarmFlag(DS3231_ALARM_ENUM alarm)
 {
 	uint8_t mask = (DS3231_ALARM_1 == alarm) ? A1F : A2F;
-	return (status & mask) == mask;
+	return (s_status & mask) == mask;
 }
 
 /*
@@ -500,21 +463,21 @@ bool DS3231_GetAlarmFlag(DS3231_ALARM_ENUM alarm)
  */
 void DS3231_SetAgingOffset(uint8_t offset)
 {
-	if (!busy)
+	if (!s_busy)
 	{
 		write(REG_AGING, &offset, 1, NULL); // Can just write straight to the register
 	}
 }
 
 /*
- * The temperature from the DS3231 is in 0.25 degree increments.
- * Return the temperature as an int16_t representing # of increments
+ * The s_temperature from the DS3231 is in 0.25 degree increments.
+ * Return the s_temperature as an int16_t representing # of increments
  */
 void DS3231_UpdateTemperature(DS3231_ONIDLE_FN cb)
 {
-	if (!busy)
+	if (!s_busy)
 	{
-		read(REG_TEMPMSB, temperature, 2, cb);
+		read(REG_TEMPMSB, s_temperature, 2, cb);
 	}
 }
 
@@ -525,11 +488,11 @@ int16_t DS3231_GetTemperatureQuarterDegrees(void)
 	/* Read the sign bit and clear it,
 	as the shift operations will be easier
 	without it */
-	bool negative = temp[0] & 0x80;
-	temp[0] &= 0x7F;
+	bool negative = s_temperature[0] & 0x80;
+	s_temperature[0] &= 0x7F;
 
-	return_temperature = temp[0] << 2;
-	return_temperature += temp[1] >> 6;
+	return_temperature = s_temperature[0] << 2;
+	return_temperature += s_temperature[1] >> 6;
 
 	if (negative) {return_temperature = -return_temperature;}
 
@@ -538,14 +501,14 @@ int16_t DS3231_GetTemperatureQuarterDegrees(void)
 
 bool DS3231_IsIdle(void)
 {
-	return !busy;
+	return !s_busy;
 }
 
 /*
  * Private Functions
  */
 
-static bool setLocalDate(TM * tm)
+static bool setLocalDate(const TM * tm)
 {
 	bool success = true;
 	int year = tm->tm_year;
@@ -558,21 +521,21 @@ static bool setLocalDate(TM * tm)
 
 	if (success)
 	{
-		dt.date.day = to_bcd(tm->tm_wday + 1);
-		dt.date.date = to_bcd(tm->tm_mday);
-		dt.date.month = to_bcd(tm->tm_mon);
+		s_dt.date.day = to_bcd(tm->tm_wday + 1);
+		s_dt.date.date = to_bcd(tm->tm_mday);
+		s_dt.date.month = to_bcd(tm->tm_mon);
 		if (year > 99)
 		{
 			year -= 100;
-			dt.date.month = CENTURY_SELECT;
+			s_dt.date.month = CENTURY_SELECT;
 		}
-		dt.date.year = to_bcd(year);
+		s_dt.date.year = to_bcd(year);
 	}
 	
 	return success;
 }
 
-static bool setLocalTime(TM * tm)
+static bool setLocalTime(const TM * tm)
 {
 	bool success = true;
 	
@@ -584,11 +547,11 @@ static bool setLocalTime(TM * tm)
 
 	if (success)
 	{
-		dt.time.seconds = to_bcd(tm->tm_sec);
-		dt.time.minutes = to_bcd(tm->tm_min);
-		if (ampm_mode)
+		s_dt.time.seconds = to_bcd(tm->tm_sec);
+		s_dt.time.minutes = to_bcd(tm->tm_min);
+		if (s_ampm_mode)
 		{
-			dt.time.hours |= AMPM_SELECT;
+			s_dt.time.hours |= AMPM_SELECT;
 			if (hour > 11)
 			{
 				// Switch from 24-hour to 12-hour
@@ -600,11 +563,11 @@ static bool setLocalTime(TM * tm)
 				hour |= AMPM_SET;
 			}
 			hour = hour > 11 ? hour - 12 : hour;
-			dt.time.hours |= to_bcd(hour);
+			s_dt.time.hours |= to_bcd(hour);
 		}
 		else
 		{
-			dt.time.hours = to_bcd(hour);
+			s_dt.time.hours = to_bcd(hour);
 		}
 	}
 	
@@ -613,34 +576,40 @@ static bool setLocalTime(TM * tm)
 
 static void write(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb)
 {
-	busy = true;
-	onidle_cb = cb;
-	wr_fn(reg, array, n, wr_callback);
+	s_i2c_data.buffer = array;
+	s_i2c_data.totalBytes = n;
+	s_i2c_data.address = reg;
+	s_i2c_data.callback = wr_callback;
+	s_onidle_cb = cb;
+	I2C_Read(&s_i2c_data);
 }
 
 static void read(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb)
 {
-	busy = true;
-	onidle_cb = cb;
-	rd_fn(reg, array, n, rd_callback);
+	s_i2c_data.buffer = array;
+	s_i2c_data.totalBytes = n;
+	s_i2c_data.address = reg;
+	s_i2c_data.callback = wr_callback;
+	s_onidle_cb = cb;
+	I2C_Write(&s_i2c_data);
 }
 
 static void rd_callback(I2C_TRANSFER_DATA * transfer)
 {
 	(void)transfer;
-	busy = false;
-	if (onidle_cb)
+	s_busy = false;
+	if (s_onidle_cb)
 	{
-		onidle_cb(false);
+		s_onidle_cb(false);
 	}
 }
 
 static void wr_callback(I2C_TRANSFER_DATA * transfer)
 {
 	(void)transfer;
-	busy = false;
-	if (onidle_cb)
+	s_busy = false;
+	if (s_onidle_cb)
 	{
-		onidle_cb(true);
+		s_onidle_cb(true);
 	}
 }

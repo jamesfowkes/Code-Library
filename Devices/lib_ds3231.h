@@ -5,12 +5,55 @@
  * Defines and typedefs
  */
 
-typedef void (*I2C_WR_FN)(uint8_t reg, uint8_t* array, uint8_t n, I2C_CALLBACK cb);
-typedef void (*I2C_RD_FN)(uint8_t reg, uint8_t* array, uint8_t n, I2C_CALLBACK cb);
-
 typedef void (*DS3231_ONIDLE_FN)(bool write);
 
-bool DS3231_Init(I2C_WR_FN _wr_fn, I2C_WR_FN _rd_fn);
+enum ds3231_time_format_enum
+{
+	DS3231_TIME_FORMAT_AMPM,
+	DS3231_TIME_FORMAT_24HR,
+};
+typedef enum ds3231_time_format_enum DS3231_TIME_FORMAT_ENUM;
+
+enum ds3231_date_type_enum
+{
+	DS3232_DATE_TYPE_DAYOFMONTH,
+	DS3232_DATE_TYPE_DAYOFWEEK
+};
+typedef enum ds3231_date_type_enum DS3231_DATE_TYPE_ENUM;
+
+enum ds3231_rate_enum
+{
+	DS3131_RATE_1HZ,
+	DS3131_RATE_1024HZ,
+	DS3131_RATE_4096HZ,
+	DS3131_RATE_8191HZ,
+};
+typedef enum ds3231_rate_enum DS3231_RATE_ENUM;
+
+enum ds3231_alarm_rpt_enum
+{
+	DS3231_ALARM_RPT_EVERY_S,
+	DS3231_ALARM_RPT_EVERY_M,
+	DS3231_ALARM_RPT_MATCH_S,
+	DS3231_ALARM_RPT_MATCH_MS,
+	DS3231_ALARM_RPT_MATCH_HMS,
+	DS3231_ALARM_RPT_MATCH_DHMS
+
+};
+typedef enum ds3231_alarm_rpt_enum DS3231_ALARM_RPT_ENUM;
+
+enum ds3231_alarm_enum
+{
+	DS3231_ALARM_1,
+	DS3231_ALARM_2
+};
+typedef enum ds3231_alarm_enum DS3231_ALARM_ENUM;
+
+/*
+ * Public Function Prototypes
+ */
+
+bool DS3231_Init(void);
 
 bool DS3231_SetTime(const TM *, bool ampm_mode, DS3231_ONIDLE_FN cb);
 bool DS3231_SetDate(const TM *, DS3231_ONIDLE_FN cb);
