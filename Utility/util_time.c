@@ -9,16 +9,20 @@ static const uint16_t s_days_in_month[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 3
 // For non-leap years ONLY!
 static const uint16_t s_days_into_year[] = {0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
 
-bool is_leap_year(uint16_t year)
+bool is_leap_year(GREGORIAN_YEAR year)
 {
 	return ((year & 3) == 0 && ((year % 25) != 0 || (year & 15) == 0));
 }
 
 uint16_t days_in_month(uint8_t month, bool is_leap_year)
 {
-	if ((month == 1) && is_leap_year)
+	if ((month == FEB) && is_leap_year)
 	{
 		return 29;
+	}
+	else if (month > DEC)
+	{
+		return 0;
 	}
 	else
 	{
@@ -38,7 +42,7 @@ uint16_t get_year_days(const TM * tm)
 void unix_seconds_to_time(UNIX_TIMESTAMP sec, TM * tm)
 {
 	uint16_t day;
-	uint16_t year;
+	GREGORIAN_YEAR year;
 	uint16_t days_in_year;
 	uint8_t month;
 	
@@ -54,9 +58,8 @@ void unix_seconds_to_time(UNIX_TIMESTAMP sec, TM * tm)
 
 	tm->tm_wday = (day + FIRST_DAY_OF_WEEK_1_JAN_1970) % 7; // weekday
 
-	year = FIRST_UNIX_YEAR;
+	year = FIRST_UNIX_YEAR_GR;
 	
-	day--;
 	while (!bFoundYear)
 	{
 		bIsLeapYear = is_leap_year(year);
@@ -81,25 +84,25 @@ void unix_seconds_to_time(UNIX_TIMESTAMP sec, TM * tm)
 		day -= days_in_month(month, bIsLeapYear);
 	}
 	
-	tm->tm_mon = month + 1; // 1..12
+	tm->tm_mon = month; // 0..11
 	tm->tm_mday = day + 1; // 1..31
 }
 
-UNIX_TIMESTAMP time_to_unix_seconds(TM * tm)
+UNIX_TIMESTAMP time_to_unix_seconds(TM const * const tm)
 {
 	UNIX_TIMESTAMP secs = 0;
 	
-	if (tm->tm_year < 70) { return 0; }
+	if (tm->tm_year < FIRST_UNIX_YEAR_C) { return 0; }
 	
 	uint32_t days = tm->tm_yday;
-	uint16_t year = tm->tm_year + FIRST_C_YEAR - FIRST_UNIX_YEAR;
-
-	while (year--)
-	{
-		days += is_leap_year(year + FIRST_UNIX_YEAR) ? 366 : 365;
-	}
 	
-	days++;
+	// Convert number of years from the UNIX epoch to specified year
+	C_STRUCT_YEAR year = tm->tm_year;
+
+	while (year-- > FIRST_UNIX_YEAR_C)
+	{
+		days += is_leap_year(C_TO_GREGORIAN_YEAR(year)) ? 366 : 365;
+	}
 	
 	secs += (days * 86400);
 
