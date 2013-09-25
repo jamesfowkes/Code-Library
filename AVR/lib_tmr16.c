@@ -19,6 +19,7 @@
  * AVR Library Includes
  */
 
+#include "lib_clk.h"
 #include "lib_tmr16.h"
 
 /*
@@ -30,7 +31,7 @@
  */
 
 static TMR16_COUNTMODE_ENUM s_currentCountMode = TMR16_COUNTMODE_INVALID;
-static TIMER * s_pTimers[2];
+static TIMER_FLAG * s_pTimers[2];
 
 static uint32_t s_usResolution = 0;
 static uint16_t s_divisor = 1;
@@ -71,7 +72,7 @@ void TMR16_SetSource(TMR_SRC_ENUM eSource)
 	uint32_t countsPerSecond = F_CPU / cpuDiv;
 	countsPerSecond /= tmr16Div;
 	
-	s_usResolution = 1000000 / countsPerSecond
+	s_usResolution = 1000000 / countsPerSecond;
 }
 
 TMR_SRC_ENUM TMR16_GetSource(void)
@@ -168,7 +169,7 @@ void TMR16_ForceOutputCompare(const TMR_OCCHAN_ENUM eChannel)
 	uint8_t tccr1c = TCCR1C;
 
 	// Check that mode is non-PWM
-	if ( !IsPWMMode( currentCountMode ) )
+	if ( !IsPWMMode( s_currentCountMode ) )
 	{
 		switch(eChannel)
 		{
@@ -209,7 +210,7 @@ void TMR16_InterruptControl(TMR16_INTMASK_ENUM eMask, bool enable)
 
 }
 
-bool TMR16_StartTimer(uint16_t us, TIMER_FLAG * timerFlag, const TMR_OCCHAN_ENUM eChannel);
+bool TMR16_StartTimer(uint16_t us, TIMER_FLAG * timerFlag, const TMR_OCCHAN_ENUM eChannel)
 {
 
 	if (s_pTimers[eChannel]) { return false; } // Already a timer in progress
@@ -237,8 +238,12 @@ bool TMR16_StartTimer(uint16_t us, TIMER_FLAG * timerFlag, const TMR_OCCHAN_ENUM
 		break;
 	case TMR_OCCHAN_B:
 		TMR16_InterruptControl(TMR16_INTMASK_OCMPA, true);
+		break;
+	case TMR_OCCHAN_INVALID:
+		return false;
+		break;
 	}
-	return true
+	return true;
 }
 
 /*
@@ -258,12 +263,12 @@ static bool IsPWMMode(const TMR16_COUNTMODE_ENUM eCountMode)
 
 ISR(TIMER1_COMPA_vect)
 {
-	if (s_pTimers[TMR_OCCHAN_A]) {s_pTimers[TMR_OCCHAN_A] = true;}
+	if (s_pTimers[TMR_OCCHAN_A]) {*s_pTimers[TMR_OCCHAN_A] = true;}
 	s_pTimers[TMR_OCCHAN_A] = NULL;
 }
 
-ISR(TIMER1_COMPA_vect)
+ISR(TIMER1_COMPB_vect)
 {
-	if (s_pTimers[TMR_OCCHAN_B]) {s_pTimers[TMR_OCCHAN_B] = true;}
+	if (s_pTimers[TMR_OCCHAN_B]) {*s_pTimers[TMR_OCCHAN_B] = true;}
 	s_pTimers[TMR_OCCHAN_B] = NULL;
 }
