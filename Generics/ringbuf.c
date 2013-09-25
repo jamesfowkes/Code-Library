@@ -185,7 +185,7 @@ bool allow)
 *****************************************************************************/
 static unsigned valid_power_of_two(unsigned k)
 {
-	int i;
+	unsigned i;
 
 	if ( ((k-1) & k) != 0) {
 		k--;
