@@ -581,7 +581,7 @@ static void write(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb)
 	s_i2c_data.address = reg;
 	s_i2c_data.callback = wr_callback;
 	s_onidle_cb = cb;
-	I2C_Read(&s_i2c_data);
+	I2C_StartMaster(&s_i2c_data, false);
 }
 
 static void read(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb)
@@ -591,7 +591,7 @@ static void read(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb)
 	s_i2c_data.address = reg;
 	s_i2c_data.callback = rd_callback;
 	s_onidle_cb = cb;
-	I2C_Write(&s_i2c_data);
+	I2C_StartMaster(&s_i2c_data, true);
 }
 
 static void rd_callback(I2C_TRANSFER_DATA * transfer)
