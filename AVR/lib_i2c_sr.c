@@ -9,7 +9,12 @@
 
 #include <stdint.h>
 
-#include "lib_i2c_test.h"
+/*
+ * AVR Includes (Defines and Primitives)
+ */
+
+#include "avr/io.h"
+#include "util/twi.h"
 
 /*
  * Common and Generic Includes

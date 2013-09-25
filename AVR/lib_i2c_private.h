@@ -5,12 +5,6 @@
  * Private Defines
  */
 
-#define MAKE_SM_FUNCTION(mode) I2C_ ## mode ## _GetSM(void)
-#define MAKE_START_FUNCTION(mode) I2C_ ## mode ## _Start(void)
-#define NULL_I2C_DEFINES(mode) \
-	#define MAKE_SM_FUNCTION(mode) NULL \
-	#define MAKE_START_FUNCTION(mode) NULL
-
 /*
  * Private Typedefs
  */
@@ -52,13 +46,7 @@ struct i2c_statemachine_struct
 };
 typedef struct i2c_statemachine_struct I2C_STATEMACHINE;
 
-#ifdef I2C_MT
 I2C_STATEMACHINE * I2C_MT_GetSM(void);
-void I2C_MT_Start(void);
-#else
-NULL_I2C_DEFINES(MT);
-#endif
-
 I2C_STATEMACHINE * I2C_MR_GetSM(void);
 I2C_STATEMACHINE * I2C_ST_GetSM(void);
 I2C_STATEMACHINE * I2C_SR_GetSM(void);
@@ -72,6 +60,7 @@ bool I2C_BufferUsed(void);
 
 
 void I2C_MR_Start(void);
+void I2C_MT_Start(void);
 bool I2C_ST_Start(void);
 bool I2C_SR_Start(void);
 
