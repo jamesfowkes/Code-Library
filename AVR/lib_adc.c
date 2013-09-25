@@ -8,6 +8,14 @@
  * Defines
  */
 
+#ifndef MUX4
+#define MUX4 0
+#endif
+
+#ifndef MUX5
+#define MUX5 0
+#endif
+
 #define CHANNEL_MASK ((1 << MUX5) | (1 << MUX4) | (1 << MUX3) | (1 << MUX2) | (1 << MUX1)  | (1 << MUX0))
 
 /*
