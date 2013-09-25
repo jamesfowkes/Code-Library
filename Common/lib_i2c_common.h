@@ -23,7 +23,6 @@ void I2C_SetSlaveAddress(uint8_t slaveAddress);
 
 void I2C_AcceptGCALL(bool accept);
 
-bool I2C_Write(I2C_TRANSFER_DATA * transfer);
-bool I2C_Read(I2C_TRANSFER_DATA * transfer);
+bool I2C_StartMaster(I2C_TRANSFER_DATA * newTransferData, bool read);
 
 #endif
