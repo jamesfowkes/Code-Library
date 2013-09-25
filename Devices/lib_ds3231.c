@@ -64,7 +64,7 @@
 
 #define REG_TIME_START	REG_SECS
 #define REG_TIME_END	REG_HRS
-#define REG_TIME_LENGTH	(REG_TIME_END - REG_TIME_START+ 1)
+#define REG_TIME_LENGTH	(REG_TIME_END - REG_TIME_START + 1)
 
 #define REG_DATE_START	REG_DAY
 #define REG_DATE_END	REG_YEAR
@@ -74,14 +74,41 @@
 #define	REG_ALRM1_MINS	8
 #define	REG_ALRM1_HRS	9
 #define	REG_ALRM1_DATE	10
+
+#define REG_ALRM1_START		REG_ALRM1_SECS
+#define REG_ALRM1_END		REG_ALRM1_DATE
+#define REG_ALRM1_LENGTH	(REG_ALRM1_END - REG_ALRM1_START + 1)
+
 #define	REG_ALRM2_MINS	11
 #define	REG_ALRM2_HRS	12
 #define	REG_ALRM2_DATE	13
+
+#define REG_ALRM2_START		REG_ALRM2_MINS
+#define REG_ALRM2_END		REG_ALRM2_DATE
+#define REG_ALRM2_LENGTH	(REG_ALRM2_END - REG_ALRM2_START + 1)
+
 #define	REG_CONTROL		14
 #define	REG_STATUS		15
 #define	REG_AGING		16
 #define	REG_TEMPMSB		17
 #define	REG_TEMPLSB		18
+
+// Alarm hours register
+#define ALRM_REG_SET_MASK_BIT	(7)
+#define ALRM_REG_24_OR_12HR_BIT	(6)
+#define ALRM_REG_AM_OR_PM_BIT	(5)
+
+#define ALRM_REG_MASK_BIT		(1 << ALRM_REG_SET_MASK_BIT)
+#define ALRM_REG_12_HR_BIT		(1 << ALRM_REG_24_OR_12HR_BIT)
+#define ALRM_REG_24_HR_BIT		(0 << ALRM_REG_24_OR_12HR_BIT)
+
+#define ALRM_REG_PM_BIT			(1 << ALRM_REG_AM_OR_PM_BIT)
+#define ALRM_REG_AM_BIT			(0 << ALRM_REG_AM_OR_PM_BIT)
+
+// Alarm day/date register
+#define ALRM_REG_DYDT_BIT	(6)
+#define ALRM_REG_DY_BIT		(1 << ALRM_REG_DYDT_BIT)
+#define ALRM_REG_DT_BIT		(0 << ALRM_REG_DYDT_BIT)
 
 struct time_registers
 {
@@ -158,6 +185,9 @@ static void wr_callback(I2C_TRANSFER_DATA * transfer);
 static bool setLocalDate(const TM * tm);
 static bool setLocalTime(const TM * tm);
 
+static bool SetAlarm1Mask(ALARM_REGISTERS * alarm, DS3231_ALARM_RPT_ENUM repeat);
+static bool SetAlarm2Mask(ALARM_REGISTERS * alarm, DS3231_ALARM_RPT_ENUM repeat);
+
 /*
  * Public Functions
  */
@@ -173,6 +203,7 @@ bool DS3231_SetTime(const TM * tm, bool ampm_mode, DS3231_ONIDLE_FN cb)
 	
 	if (!s_busy)
 	{
+		s_ampm_mode = ampm_mode;
 		if ( setLocalTime(tm) )
 		{
 			write(REG_TIME_START, (uint8_t*)&s_dt, REG_TIME_LENGTH, cb);
@@ -269,40 +300,102 @@ void DS3231_GetDateTime(TM * tm)
  * The time is assumed to be in 24-hour format.
  * The alarm interrupt must be configured seperately.
  */
-bool DS3231_ConfigureAlarm(TM* tm, DS3231_ALARM_ENUM alarm, DS3231_DATE_TYPE_ENUM dateType, DS3231_TIME_FORMAT_ENUM timeFormat, DS3231_ALARM_RPT_ENUM repeat)
+bool DS3231_ConfigureAlarm(TM* tm, DS3231_ALARM_ENUM eAlarm, DS3231_DATE_TYPE_ENUM dateType, DS3231_TIME_FORMAT_ENUM timeFormat, bool pm, DS3231_ALARM_RPT_ENUM repeat)
 {
 	bool success = true;
-
+	ALARM_REGISTERS alarm;
+	
+	alarm.seconds = 0;
+	alarm.minutes = 0;
+	alarm.hours = 0;
+	alarm.day_date = 0;
+	
 	// Test for valid ranges
 	success &= (tm->tm_sec < 60);
 	success &= (tm->tm_min < 60);
 
+	if (success)
+	{
+		alarm.seconds = to_bcd(tm->tm_sec);
+		alarm.minutes = to_bcd(tm->tm_min);
+	}
+	
+	/* Set 24 or 12 hour time */
 	switch (timeFormat)
 	{
 	case DS3231_TIME_FORMAT_24HR:
 		success &= (tm->tm_hour < 24);
+		if (success)
+		{
+			alarm.hours = to_bcd(tm->tm_hour);
+			alarm.hours |= ALRM_REG_24_HR_BIT;
+		}
 		break;
 	case DS3231_TIME_FORMAT_AMPM:
 		success &= (tm->tm_hour < 12);
+		if (success)
+		{
+			alarm.hours = to_bcd(tm->tm_hour);
+			alarm.hours |= ALRM_REG_12_HR_BIT;
+			alarm.hours |= (pm ? ALRM_REG_PM_BIT : ALRM_REG_AM_BIT);
+		}
 		break;
 	default:
 		success = false;
 		break;
 	}
 
+	/* Set the date or day-of-week */
 	switch (dateType)
 	{
 	case DS3232_DATE_TYPE_DAYOFMONTH:
-		success &= (tm->tm_mday < days_in_month(tm->tm_mon, is_leap_year(C_TO_GREGORIAN_YEAR(tm->tm_year))));
+		success &= (tm->tm_mday < (int)days_in_month(tm->tm_mon, is_leap_year(C_TO_GREGORIAN_YEAR(tm->tm_year))));
+		if (success)
+		{
+			alarm.day_date = to_bcd(tm->tm_mday);
+			alarm.day_date |= ALRM_REG_DT_BIT;
+		}
 		break;
 	case DS3232_DATE_TYPE_DAYOFWEEK:
-		success &= (tm->tm_mday < 7);
+		success &= (tm->tm_wday < 7);
+		if (success)
+		{
+			alarm.day_date = to_bcd(tm->tm_mday + 1);
+			alarm.day_date |= ALRM_REG_DY_BIT;
+		}
 		break;
 	default:
 		success = false;
 		break;
 	}
-
+	
+	/* Selectable alarm repeat */
+	if (success)
+	{
+		switch(eAlarm)
+		{
+		case DS3231_ALARM_1:
+			success &= SetAlarm1Mask(&alarm, repeat);
+			break;
+		case DS3231_ALARM_2:
+			success &= SetAlarm2Mask(&alarm, repeat);
+			break;
+		}
+	}
+	
+	if (success)
+	{
+		switch(eAlarm)
+		{
+		case DS3231_ALARM_1:
+			write(REG_ALRM1_START, (uint8_t*)(&(alarm.seconds)), REG_ALRM1_LENGTH, NULL);
+			break;
+		case DS3231_ALARM_2:
+			write(REG_ALRM2_START, (uint8_t*)(&(alarm.minutes)), REG_ALRM2_LENGTH, NULL);
+			break;
+		}
+	}
+	
 	return success;
 }
 
@@ -569,6 +662,69 @@ static bool setLocalTime(const TM * tm)
 		{
 			s_dt.time.hours = to_bcd(hour);
 		}
+	}
+	
+	return success;
+}
+static bool SetAlarm1Mask(ALARM_REGISTERS * alarm, DS3231_ALARM_RPT_ENUM repeat)
+{
+
+	bool success = true;
+	
+	switch(repeat)
+	{
+	case DS3231_ALARM_RPT_EVERY_S:
+		alarm->seconds |= ALRM_REG_MASK_BIT;
+		alarm->minutes |= ALRM_REG_MASK_BIT;
+		alarm->hours |= ALRM_REG_MASK_BIT;
+		alarm->day_date |= ALRM_REG_MASK_BIT;
+		break;
+	case DS3231_ALARM_RPT_MATCH_S:
+		alarm->minutes |= ALRM_REG_MASK_BIT;
+		alarm->hours |= ALRM_REG_MASK_BIT;
+		alarm->day_date |= ALRM_REG_MASK_BIT;
+		break;
+	case DS3231_ALARM_RPT_MATCH_MS:
+		alarm->hours |= ALRM_REG_MASK_BIT;
+		alarm->day_date |= ALRM_REG_MASK_BIT;
+		break;
+	case DS3231_ALARM_RPT_MATCH_HMS:
+		alarm->day_date |= ALRM_REG_MASK_BIT;
+		break;
+	case DS3231_ALARM_RPT_MATCH_DHMS:
+		break;
+	default:
+		success = false;
+		break;
+	}
+	
+	return success;
+}
+
+static bool SetAlarm2Mask(ALARM_REGISTERS * alarm, DS3231_ALARM_RPT_ENUM repeat)
+{
+
+	bool success = true;
+	
+	switch(repeat)
+	{
+	case DS3231_ALARM_RPT_EVERY_M:
+		alarm->minutes |= ALRM_REG_MASK_BIT;
+		alarm->hours |= ALRM_REG_MASK_BIT;
+		alarm->day_date |= ALRM_REG_MASK_BIT;
+		break;
+	case DS3231_ALARM_RPT_MATCH_M:
+		alarm->hours |= ALRM_REG_MASK_BIT;
+		alarm->day_date |= ALRM_REG_MASK_BIT;
+		break;
+	case DS3231_ALARM_RPT_MATCH_HM:
+		alarm->day_date |= ALRM_REG_MASK_BIT;
+		break;
+	case DS3231_ALARM_RPT_MATCH_DHMS:
+		break;
+	default:
+		success = false;
+		break;
 	}
 	
 	return success;

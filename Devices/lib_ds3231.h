@@ -33,13 +33,15 @@ typedef enum ds3231_rate_enum DS3231_RATE_ENUM;
 enum ds3231_alarm_rpt_enum
 {
 	DS3231_ALARM_RPT_EVERY_S,
-	DS3231_ALARM_RPT_EVERY_M,
 	DS3231_ALARM_RPT_MATCH_S,
+	DS3231_ALARM_RPT_EVERY_M,
+	DS3231_ALARM_RPT_MATCH_M,
 	DS3231_ALARM_RPT_MATCH_MS,
+	DS3231_ALARM_RPT_MATCH_HM,
 	DS3231_ALARM_RPT_MATCH_HMS,
 	DS3231_ALARM_RPT_MATCH_DHMS
 
-};
+};	
 typedef enum ds3231_alarm_rpt_enum DS3231_ALARM_RPT_ENUM;
 
 enum ds3231_alarm_enum
@@ -65,7 +67,7 @@ void DS3231_GetTime(TM * tm);
 void DS3231_GetDateTime(TM * tm);
 
 void DS3231_AlarmControl(DS3231_ALARM_ENUM alarm, bool on);
-bool DS3231_ConfigureAlarm(TM* tm, DS3231_ALARM_ENUM alarm, DS3231_DATE_TYPE_ENUM dateType, DS3231_TIME_FORMAT_ENUM timeFormat, DS3231_ALARM_RPT_ENUM repeat);
+bool DS3231_ConfigureAlarm(TM* tm, DS3231_ALARM_ENUM alarm, DS3231_DATE_TYPE_ENUM dateType, DS3231_TIME_FORMAT_ENUM timeFormat, bool pm, DS3231_ALARM_RPT_ENUM repeat);
 
 void DS3231_OscControl(bool on);
 
