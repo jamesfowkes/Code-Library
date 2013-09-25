@@ -13,8 +13,9 @@
  * AVR Includes (Defines and Primitives)
  */
  
-#include "avr/io.h"
-#include "util/twi.h"
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <util/twi.h>
 
 /*
  * Common and Generic Includes
@@ -26,7 +27,7 @@
 static void new_slave_event(uint8_t event);
 static void i2c_sm_event(uint8_t event);
 
-I2C_STATEMACHINE * state_machines[4];
+I2C_STATEMACHINE * state_machines[4] = {NULL, NULL, NULL, NULL};
 I2C_STATEMACHINE * active_sm = NULL;
 I2C_TRANSFER_DATA * activeTransfer = NULL;
 
@@ -35,11 +36,18 @@ static I2C_SLAVE_HANDLER getSlaveTransferData = NULL;
 bool I2C_Init(I2C_SLAVE_HANDLER slaveHandler, uint8_t slaveAddress)
 {
 	// Get pointers to the state machines for each mode
+#ifdef I2C_MT
 	state_machines[I2CM_MT] = I2C_MT_GetSM();
+#endif
+#ifdef I2C_MR
 	state_machines[I2CM_MR] = I2C_MR_GetSM();
+#endif
+#ifdef I2C_ST
 	state_machines[I2CM_ST] = I2C_ST_GetSM();
+#endif
+#ifdef I2C_SR
 	state_machines[I2CM_SR] = I2C_SR_GetSM();
-	
+#endif
 	getSlaveTransferData = slaveHandler;
 	
 	I2C_SetSlaveAddress(slaveAddress);
@@ -51,7 +59,7 @@ void I2C_SetSlaveAddress(uint8_t slaveAddress)
 	TWAR = (slaveAddress << 1) & 0xFE;
 }
 
-bool I2C_AcceptGCALL(bool accept)
+void I2C_AcceptGCALL(bool accept)
 {
 	if (accept)
 	{
