@@ -589,7 +589,7 @@ static void read(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb)
 	s_i2c_data.buffer = array;
 	s_i2c_data.totalBytes = n;
 	s_i2c_data.address = reg;
-	s_i2c_data.callback = wr_callback;
+	s_i2c_data.callback = rd_callback;
 	s_onidle_cb = cb;
 	I2C_Write(&s_i2c_data);
 }
