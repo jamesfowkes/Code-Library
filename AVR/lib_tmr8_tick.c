@@ -28,8 +28,10 @@
 
 #ifdef LIB_TMR8_USE_LL
 static LINK_NODE * Head;
+static LINK_NODE * DelayHead;
 #else
 static volatile TMR8_TICK_CONFIG * TimerConfig = NULL;
+static volatile TMR8_DELAY_CONFIG * DelayConfig = NULL;
 #endif
 
 static volatile uint16_t secondsSinceInit = 0;
@@ -41,6 +43,7 @@ static volatile uint16_t msCounter = 0;
 
 #ifdef LIB_TMR8_USE_LL
 bool msListHandler(LINK_NODE * node);
+bool msListDelayHandler(LINK_NODE * node);
 #endif
 
 /*
@@ -114,7 +117,9 @@ bool TMR8_Tick_AddTimerConfig(TMR8_TICK_CONFIG * config)
 			LList_Add(Head, &config->Node);
 		}
 		#else
+		assert(TimerConfig == NULL);
 		TimerConfig = config;
+		TimerConfig->triggered = false;
 		#endif
 		success = true;
 	}
@@ -122,7 +127,45 @@ bool TMR8_Tick_AddTimerConfig(TMR8_TICK_CONFIG * config)
 	return success;
 }
 
+bool TMR8_Tick_StartDelay(TMR8_DELAY_CONFIG * config)
+{
+	bool success = false;
+
+	assert(config->delayMs > 0);
+
+	if (config->delayMs > 0)
+	{
+		#ifdef LIB_TMR8_USE_LL
+		if (LList_ItemCount(Head) == 0)
+		{
+			Head = &config->Node;
+			LList_Init(Head);
+		}
+		else
+		{
+			LList_Add(Head, &config->Node);
+		}
+		#else
+		assert(DelayConfig == NULL);
+		DelayConfig = config;
+		DelayConfig->triggered = false;
+		#endif
+		success = true;
+	}
+	
+	return success;
+}
+
 bool TMR8_Tick_TestAndClear(TMR8_TICK_CONFIG * config)
+{
+	cli();
+	bool triggered = config->triggered;
+	config->triggered = false;
+	sei();
+	return triggered;
+}
+
+bool TMR8_Tick_TestDelayAndClear(TMR8_DELAY_CONFIG * config)
 {
 	cli();
 	bool triggered = config->triggered;
@@ -153,6 +196,27 @@ bool msListHandler(LINK_NODE * node)
 			}
 		}
 	}
+	return false; // continue traversing
+}
+#endif
+
+#ifdef LIB_TMR8_USE_LL
+bool msListDelayHandler(LINK_NODE * node)
+{
+	// Safe pointer conversion
+	TMR8_TICK_CONFIG * TimerConfig = (TMR8_TICK_CONFIG*)node;
+
+	if (DelayConfig)
+	{
+		if (DelayConfig->delayMs > 0)
+		{
+			if (--DelayConfig->delayMs == 0)
+			{
+				DelayConfig->triggered = true;
+			}
+		}
+	}
+	
 	return false; // continue traversing
 }
 #endif
@@ -198,6 +262,7 @@ ISR(TIM0_COMPA_vect)
 
 	#ifdef LIB_TMR8_USE_LL
 	LList_Traverse(Head, msListHandler);
+	LList_Traverse(DelayHead, msListDelayHandler);
 	#else
 	if (TimerConfig)
 	{
@@ -210,6 +275,17 @@ ISR(TIM0_COMPA_vect)
 					TimerConfig->triggered = true;
 					TimerConfig->msTick = TimerConfig->reload;
 				}
+			}
+		}
+	}
+	
+	if (DelayConfig)
+	{
+		if (DelayConfig->delayMs > 0)
+		{
+			if (--DelayConfig->delayMs == 0)
+			{
+				DelayConfig->triggered = true;
 			}
 		}
 	}
