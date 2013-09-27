@@ -23,7 +23,7 @@ static uint8_t s_clockPin;
 static volatile uint8_t * s_dataPort;
 static uint8_t s_dataPin;
 
-void SR_Init(uint8_t * clockPort, uint8_t clockPin, uint8_t * dataPort, uint8_t dataPin)
+void SR_Init(volatile uint8_t * clockPort, uint8_t clockPin, volatile uint8_t * dataPort, uint8_t dataPin)
 {
 	s_clockPort = clockPort;
 	s_clockPin = clockPin;
