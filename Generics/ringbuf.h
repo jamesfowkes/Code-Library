@@ -42,8 +42,10 @@ embedded system. See the unit tests for usage examples. */
 #include <stdint.h>
 #include <stdbool.h>
 
+typedef uint8_t* RINGBUF_DATA;
+
 struct ring_buffer_t {
-	uint8_t *data; /* block of memory or array of data */
+	RINGBUF_DATA data; /* block of memory or array of data */
 	unsigned element_size;      /* how many bytes for each chunk */
 	unsigned element_count;     /* number of chunks of data */
 	unsigned head; /* where the writes go */
@@ -58,14 +60,14 @@ extern "C" {
 
 	bool Ringbuf_Empty(RING_BUFFER const *b);
 	
-	uint8_t *Ringbuf_Get_Oldest(RING_BUFFER const *b);
-	uint8_t *Ringbuf_Get_Newest(RING_BUFFER const *b);
+	RINGBUF_DATA Ringbuf_Get_Oldest(RING_BUFFER const *b);
+	RINGBUF_DATA Ringbuf_Get_Newest(RING_BUFFER const *b);
 	
-	uint8_t *Ringbuf_Pop_Front(RING_BUFFER * b);
+	RINGBUF_DATA Ringbuf_Pop_Front(RING_BUFFER * b);
 	
 	bool Ringbuf_Put(
 		RING_BUFFER * b,        /* ring buffer structure */
-		uint8_t *data_element);  /* one element to add to the ring */
+		RINGBUF_DATA data_element);  /* one element to add to the ring */
 	
 	void Ringbuf_AllowOverwrite(RING_BUFFER *b,	bool allow);
 	
@@ -73,7 +75,7 @@ extern "C" {
 	or it will only use the next lower power of two */
 	void Ringbuf_Init(
 	RING_BUFFER * b,        /* ring buffer structure */
-	uint8_t *data,     /* data block or array of data */
+	RINGBUF_DATA data,     /* data block or array of data */
 	unsigned element_size,  /* size of one element in the data block */
 	unsigned element_count,        /* number of elements in the data block */
 	bool overwriteOnFull); /* true if the oldset element should be overwritten if full */
