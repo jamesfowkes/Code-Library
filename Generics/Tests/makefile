@@ -23,7 +23,7 @@ SYMBOLS=-DUNITY_TEST
 
 CLEANUP = $(DEL) $(TARGET)
 
-.PHONY: memorypool linkedlist
+.PHONY: memorypool linkedlist statemachine
 
 all: default
 
@@ -31,11 +31,18 @@ default:
 	@echo "Available tests:"
 	@echo "memorypool"
 	@echo "linkedlist"
+	@echo "statemachine"
 
+## Specific dependencies and defines for each test
 memorypool: SYMBOLS += -DMEMORY_POOL_BYTES=1024
-memorypool linkedlist: TEST_NAME=$@
+statemachine: SYMBOLS += -DMEMORY_POOL_BYTES=128
+statemachine: SRC_FILES += ../statemachinemanager.c
+statemachine: SRC_FILES += ../ringbuf.c
+statemachine: SRC_FILES += ../memorypool.c
 
-memorypool linkedlist:
+memorypool linkedlist statemachine: TEST_NAME=$@
+
+memorypool linkedlist statemachine:
 	$(CLEANUP)
 	$(C_COMPILER) $(INC_DIRS) $(SYMBOLS) $(SRC_FILES) -o $(TARGET)
 	./$(TARGET)
