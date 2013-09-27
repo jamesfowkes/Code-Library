@@ -42,6 +42,43 @@ bool LList_Add(LINK_NODE * node, LINK_NODE * newNode)
 	return true;
 }
 
+bool LList_Remove(LINK_NODE * Head, LINK_NODE * node)
+{
+
+	bool success = true;
+	if (node != NULL)
+	{
+		if (node->prev && node->next)
+		{
+			// Middle of list
+			((LINK_NODE *)node->prev)->next = node->next;
+			((LINK_NODE *)node->next)->prev = node->prev;
+		}
+		else if (node->prev)
+		{
+			// End of list
+			((LINK_NODE *)node->prev)->next = NULL;
+		}
+		else if (node->next)
+		{
+			// Start of list
+			Head->next = node->next;
+			((LINK_NODE *)node->next)->prev = NULL;
+		}
+		else
+		{
+			success = false;
+		}
+	}
+	else
+	{
+		success = false;
+	}
+	
+	return true;
+	
+}
+
 uint8_t LList_ItemCount(LINK_NODE * listhead)
 {
 
@@ -59,9 +96,11 @@ uint8_t LList_ItemCount(LINK_NODE * listhead)
 	return count;
 }
 
-LINK_NODE * LList_Traverse(LINK_NODE * node, llink_cb callback)
+LINK_NODE * LList_Traverse(LINK_NODE * head, llink_cb callback)
 {
 	bool stop = false;
+	
+	LINK_NODE * node = head->next;
 	
 	while (node && !stop)
 	{
