@@ -44,5 +44,5 @@ typedef bool TIMER_FLAG;
 void TMR_SyncModeControl(bool sync);
 void TMR_SetOutputPorts(TMR_OCCHAN_ENUM eChannel, IO_PORT_ENUM ePort, uint8_t pin);
 void TMR_PWMOff(const TMR_OCCHAN_ENUM eChannel, const IO_STATE_ENUM eState);
-
+bool TMR_TestAndClear(TIMER_FLAG * flag);
 #endif

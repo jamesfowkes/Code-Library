@@ -20,6 +20,7 @@
  */
 
 #include "lib_clk.h"
+#include "lib_io.h"
 #include "lib_tmr16.h"
 
 /*
@@ -216,6 +217,7 @@ bool TMR16_StartTimer(uint16_t us, TIMER_FLAG * timerFlag, const TMR_OCCHAN_ENUM
 	if (s_pTimers[eChannel]) { return false; } // Already a timer in progress
 	s_pTimers[eChannel] = timerFlag;
 	
+	// Convert us to ticks
 	uint16_t currentTimerValue = 0;
 	uint32_t counts = us / s_usResolution;
 	
@@ -244,6 +246,21 @@ bool TMR16_StartTimer(uint16_t us, TIMER_FLAG * timerFlag, const TMR_OCCHAN_ENUM
 		break;
 	}
 	return true;
+}
+
+void TMR16_StopTimer(const TMR_OCCHAN_ENUM eChannel)
+{
+	switch (eChannel)
+	{
+	case TMR_OCCHAN_A:
+		TMR16_InterruptControl(TMR16_INTMASK_OCMPA, false);
+		break;
+	case TMR_OCCHAN_B:
+		TMR16_InterruptControl(TMR16_INTMASK_OCMPA, false);
+		break;
+	case TMR_OCCHAN_INVALID:
+		break;
+	}
 }
 
 /*
