@@ -12,4 +12,7 @@
 #define incrementwithrollover(var, max) (var = (var < max) ? var + 1 : 0)
 #define decrementwithrollover(var, max) (var = (var > 0) ? var - 1 : max)
 
+#define set(reg, bit) (reg |= (1 << bit))
+#define clr(reg, bit) (reg &= ~(1 << bit))
+
 #endif

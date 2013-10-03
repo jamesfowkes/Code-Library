@@ -22,41 +22,59 @@
  
 #include "lib_pcint.h"
 
+/*
+ * Utility Library Includes
+ */
+
+#include "util_macros.h"
+
 static bool s_bTriggered[ePCINT_MAX];
 
-bool PCINT_TestAndClear(PCINT_ENUM eInterrupt)
+void PCINT_EnableInterrupt(uint8_t pin, bool enable)
 {
-	cli();
-	bool complete = s_bTriggered[eInterrupt];
-	s_bTriggered[eInterrupt] = false;
-	sei();
-	return complete;
+	// Split pin into register and pin
+	// e.g PCINT10:
+	// 10 / 8 = 1 => PCINT1
+	// 10 - (1 * 8) = 2 => Bit 2 in PCINT1
+	
+	uint8_t reg = pin / 8;
+	pin -= (reg * 8);
+	
+	switch (reg)
+	{
+	#ifdef PCMSK0
+	case 0:
+		enable ? set(PCMSK0, pin) : clr(PCMSK0, pin);
+		break;
+	#endif
+	#ifdef PCMSK1
+	case 1:
+		enable ? set(PCMSK1, pin) : clr(PCMSK1, pin);
+		break;
+	#endif
+	#ifdef PCMSK2
+	case 2:
+		enable ? set(PCMSK2, pin) : clr(PCMSK2, pin);
+		break;
+	#endif
+	#ifdef PCMSK3
+	case 3:
+		enable ? set(PCMSK3, pin) : clr(PCMSK3, pin);
+		break;
+	#endif
+	default:
+		break;
+	}
 }
 
-#ifdef INT0_vect
-PCINT_ISR(INT0);
-#endif
-#ifdef INT1_vect
-PCINT_ISR(INT1);
-#endif
-#ifdef INT2_vect
-PCINT_ISR(INT2);
-#endif
-#ifdef INT3_vect
-PCINT_ISR(INT3);
-#endif
-#ifdef INT4_vect
-PCINT_ISR(INT4);
-#endif
-#ifdef INT5_vect
-PCINT_ISR(INT5);
-#endif
-#ifdef INT6_vect
-PCINT_ISR(INT6);
-#endif
-#ifdef INT7_vect
-PCINT_ISR(INT7);
-#endif
+bool PCINT_TestAndClear(PCINT_VECTOR_ENUM eVector)
+{
+	cli();
+	bool triggered = s_bTriggered[eVector];
+	s_bTriggered[eVector] = false;
+	sei();
+	return triggered;
+}
 
 #ifdef PCINT0_vect
 PCINT_ISR(PCINT0);
