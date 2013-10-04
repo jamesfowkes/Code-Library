@@ -26,12 +26,17 @@
 //=======External Functions This Runner Calls=====
 extern void setUp(void);
 extern void tearDown(void);
+
 extern void test_AddingNodes(void);
 extern void test_CountingNodes(void);
+
 extern void test_RemovingHeadNodes(void);
 extern void test_RemovingMiddleNodes(void);
 extern void test_RemovingTailNodes(void);
+
 extern void test_TraversingNodes(void);
+extern void test_TraversingNodesStopEarly(void);
+extern void test_TraversingNodesWithRemove(void);
 
 //=======Test Reset Option=====
 void resetTest()
@@ -44,11 +49,13 @@ void resetTest()
 //=======MAIN=====
 int main(void)
 {
-  Unity.TestFile = "util_time_test.c";
+  Unity.TestFile = "linkedlist_test.c";
   UnityBegin();
   RUN_TEST(test_AddingNodes, 57);
   RUN_TEST(test_CountingNodes, 58);
   RUN_TEST(test_TraversingNodes, 62);
+  RUN_TEST(test_TraversingNodesStopEarly, 63);
+  RUN_TEST(test_TraversingNodesWithRemove, 64);
   RUN_TEST(test_RemovingHeadNodes, 59);
   RUN_TEST(test_RemovingMiddleNodes, 60);
   RUN_TEST(test_RemovingTailNodes, 61);
