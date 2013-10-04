@@ -6,15 +6,8 @@
  */
 #include "lib_tmr8.h"
 
-#ifdef LIB_TMR8_USE_LL
-#include "linkedlist.h"
-#endif
-
 struct tmr8_tick_config
 {
-	#ifdef LIB_TMR8_USE_LL
-	LINK_NODE Node;
-	#endif
 	uint32_t			msTick;
 	uint32_t			reload;
 	bool				active;
@@ -24,15 +17,12 @@ typedef struct tmr8_tick_config TMR8_TICK_CONFIG;
 
 struct tmr8_delay_config
 {
-	#ifdef LIB_TMR8_USE_LL
-	LINK_NODE Node;
-	#endif
 	uint32_t			delayMs;
 	bool				triggered;
 };
 typedef struct tmr8_delay_config TMR8_DELAY_CONFIG;
 
-void TMR8_Tick_Init(void);
+void TMR8_Tick_Init(uint8_t nTimers, uint8_t nDelays);
 
 bool TMR8_Tick_AddTimerConfig(TMR8_TICK_CONFIG * config);
 bool TMR8_Tick_StartDelay(TMR8_DELAY_CONFIG * config);

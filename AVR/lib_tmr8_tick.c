@@ -22,30 +22,36 @@
 #include "lib_tmr8.h"
 #include "lib_tmr8_tick.h"
 #include "lib_io.h"
+
+/*
+ * Generic Library Includes
+ */
+ 
+#include "memorypool.h"
+
 /*
  * Private Variables
  */
 
-#ifdef LIB_TMR8_USE_LL
-static LINK_NODE * Head;
-static LINK_NODE * DelayHead;
-#else
-static volatile TMR8_TICK_CONFIG * TimerConfig = NULL;
-static volatile TMR8_DELAY_CONFIG * DelayConfig = NULL;
-#endif
+typedef TMR8_TICK_CONFIG* TMR8_TICK_PTR;
+typedef TMR8_DELAY_CONFIG* TMR8_DELAY_PTR;
+
+static volatile TMR8_TICK_PTR *TimerConfigs;
+static volatile TMR8_DELAY_PTR *DelayConfigs;
 
 static volatile uint16_t secondsSinceInit = 0;
 static volatile uint16_t msCounter = 0;
+
+static uint8_t s_TimerCount = 0;
+static uint8_t s_MaxTimerCount = 0;
+static uint8_t s_MaxDelayCount = 0;
 
 /*
  * Private Function Prototypes
  */
 
-#ifdef LIB_TMR8_USE_LL
-bool msListHandler(LINK_NODE * node);
-bool msListDelayHandler(LINK_NODE * node);
-#endif
-
+static void isrHandler(void);
+ 
 /*
  * Public Functions
  */
@@ -57,43 +63,52 @@ bool msListDelayHandler(LINK_NODE * node);
  * Timer source must be set before this function is called!
  *
  */
-void TMR8_Tick_Init(void)
+void TMR8_Tick_Init(uint8_t nTimers, uint8_t nDelays)
 {
 
-	TMR8_SetOutputCompareMode(TMR_OUTPUTMODE_NONE, TMR_OCCHAN_A);
-	TMR8_SetCountMode(TMR8_COUNTMODE_CTC);
+	s_MaxTimerCount = nTimers;
+	s_MaxDelayCount = nDelays;
+	
+	TimerConfigs = (TMR8_TICK_PTR*)MEMPOOL_GetBytes(sizeof(TMR8_TICK_PTR) * nTimers);
+	DelayConfigs = (TMR8_DELAY_PTR*)MEMPOOL_GetBytes(sizeof(TMR8_DELAY_PTR) * nDelays);
 
-	/* Calculate value based on clock frequency and timer division */
-
-	TMR_SRC_ENUM tmrSource = TMR8_GetSource();
-
-	if (tmrSource == TMR_SRC_OFF)
+	if (TimerConfigs && DelayConfigs)
 	{
-		tmrSource = TMR_SRC_FCLK;
-		TMR8_SetSource(tmrSource);
-	}
+		TMR8_SetOutputCompareMode(TMR_OUTPUTMODE_NONE, TMR_OCCHAN_A);
+		TMR8_SetCountMode(TMR8_COUNTMODE_CTC);
 
-	uint16_t tmr8Div = (uint16_t)TMR8_GetDivisor();
-	uint16_t cpuDiv = (1 << CLK_GetPrescaler());
+		/* Calculate value based on clock frequency and timer division */
 
-	uint32_t oneMilli = F_CPU / cpuDiv;
-	oneMilli /= tmr8Div;
-	oneMilli /= 1000;
+		TMR_SRC_ENUM tmrSource = TMR8_GetSource();
 
-	while((oneMilli > 255) && (tmrSource < TMR_SRC_FCLK_1024))
-	{
-		TMR8_SetSource(++tmrSource);
-		tmr8Div = (uint16_t)TMR8_GetDivisor();
-		oneMilli = F_CPU / (1 << CLK_GetPrescaler());
+		if (tmrSource == TMR_SRC_OFF)
+		{
+			tmrSource = TMR_SRC_FCLK;
+			TMR8_SetSource(tmrSource);
+		}
+
+		uint16_t tmr8Div = (uint16_t)TMR8_GetDivisor();
+		uint16_t cpuDiv = (1 << CLK_GetPrescaler());
+
+		uint32_t oneMilli = F_CPU / cpuDiv;
 		oneMilli /= tmr8Div;
 		oneMilli /= 1000;
+
+		while((oneMilli > 255) && (tmrSource < TMR_SRC_FCLK_1024))
+		{
+			TMR8_SetSource(++tmrSource);
+			tmr8Div = (uint16_t)TMR8_GetDivisor();
+			oneMilli = F_CPU / (1 << CLK_GetPrescaler());
+			oneMilli /= tmr8Div;
+			oneMilli /= 1000;
+		}
+
+		TMR8_SetOutputCompareValue((uint8_t)oneMilli, TMR_OCCHAN_A);
+
+		TMR8_InterruptControl(TMR8_INTMASK_OCMPA, true);
+
+		secondsSinceInit = 0;
 	}
-
-	TMR8_SetOutputCompareValue((uint8_t)oneMilli, TMR_OCCHAN_A);
-
-	TMR8_InterruptControl(TMR8_INTMASK_OCMPA, true);
-
-	secondsSinceInit = 0;
 }
 
 bool TMR8_Tick_AddTimerConfig(TMR8_TICK_CONFIG * config)
@@ -102,25 +117,15 @@ bool TMR8_Tick_AddTimerConfig(TMR8_TICK_CONFIG * config)
 
 	assert(config->reload > 0);
 
-	if (config->reload > 0)
+	if ((config->reload > 0) && (s_TimerCount < s_MaxTimerCount))
 	{
 		config->msTick = config->reload;
 
-		#ifdef LIB_TMR8_USE_LL
-		if (LList_ItemCount(Head) == 0)
-		{
-			Head = &config->Node;
-			LList_Init(Head);
-		}
-		else
-		{
-			LList_Add(Head, &config->Node);
-		}
-		#else
-		assert(TimerConfig == NULL);
-		TimerConfig = config;
-		TimerConfig->triggered = false;
-		#endif
+		assert(TimerConfigs[s_TimerCount] == NULL);
+		TimerConfigs[s_TimerCount] = config;
+		TimerConfigs[s_TimerCount]->triggered = false;
+		s_TimerCount++;
+
 		success = true;
 	}
 
@@ -135,22 +140,23 @@ bool TMR8_Tick_StartDelay(TMR8_DELAY_CONFIG * config)
 
 	if (config->delayMs > 0)
 	{
-		#ifdef LIB_TMR8_USE_LL
-		if (LList_ItemCount(Head) == 0)
+		// Find the first NULL in the delay array
+		volatile TMR8_DELAY_CONFIG * freeConfig = DelayConfigs[0];
+		uint8_t i = 0;
+		
+		while ((freeConfig != NULL) && (i < s_MaxDelayCount))
 		{
-			Head = &config->Node;
-			LList_Init(Head);
+			freeConfig++;
+			i++;
 		}
-		else
+		
+		if ((freeConfig == NULL) && (i < s_MaxDelayCount))
 		{
-			LList_Add(Head, &config->Node);
+			assert(freeConfig == NULL);
+			freeConfig = config;
+			freeConfig->triggered = false;
+			success = true;
 		}
-		#else
-		assert(DelayConfig == NULL);
-		DelayConfig = config;
-		DelayConfig->triggered = false;
-		#endif
-		success = true;
 	}
 	
 	return success;
@@ -179,116 +185,56 @@ uint16_t TMR8_GetSecondsSinceInit(void)
 	return secondsSinceInit;
 }
 
-#ifdef LIB_TMR8_USE_LL
-bool msListHandler(LINK_NODE * node)
-{
-	// Safe pointer conversion
-	TMR8_TICK_CONFIG * TimerConfig = (TMR8_TICK_CONFIG*)node;
-
-	if (TimerConfig->active)
-	{
-		if (TimerConfig->msTick > 0)
-		{
-			if (--TimerConfig->msTick == 0)
-			{
-				TimerConfig->msTick = TimerConfig->reload;
-				TimerConfig->triggered = true;
-			}
-		}
-	}
-	return false; // continue traversing
-}
-#endif
-
-#ifdef LIB_TMR8_USE_LL
-bool msListDelayHandler(LINK_NODE * node)
-{
-	// Safe pointer conversion
-	TMR8_TICK_CONFIG * TimerConfig = (TMR8_TICK_CONFIG*)node;
-
-	if (DelayConfig)
-	{
-		if (DelayConfig->delayMs > 0)
-		{
-			if (--DelayConfig->delayMs == 0)
-			{
-				DelayConfig->triggered = true;
-			}
-		}
-	}
-	
-	return false; // continue traversing
-}
-#endif
-
-#ifdef TIMER0_COMPA_vect
-ISR(TIMER0_COMPA_vect)
+static void isrHandler(void)
 {
 	if (1000 == ++msCounter)
 	{
 		++secondsSinceInit;
 		msCounter = 0;
 	}
-
-	#ifdef LIB_TMR8_USE_LL
-	LList_Traverse(Head, msListHandler);
-	#else
-	if (TimerConfig)
+	
+	uint8_t i = 0;
+	for (i = 0; i < s_TimerCount; ++i)
 	{
-		if (TimerConfig->active)
+		if (TimerConfigs[i]->active)
 		{
-			if (TimerConfig->msTick > 0)
+			if (TimerConfigs[i]->msTick > 0)
 			{
-				if (--TimerConfig->msTick == 0)
+				if (--TimerConfigs[i]->msTick == 0)
 				{
-					TimerConfig->triggered = true;
-					TimerConfig->msTick = TimerConfig->reload;
+					TimerConfigs[i]->triggered = true;
+					TimerConfigs[i]->msTick = TimerConfigs[i]->reload;
 				}
 			}
 		}
 	}
-	#endif
+	
+	for (i = 0; i < s_MaxDelayCount; ++i)
+	{
+		if (DelayConfigs[i])
+		{
+			if (DelayConfigs[i]->delayMs > 0)
+			{
+				if (--DelayConfigs[i]->delayMs == 0)
+				{
+					DelayConfigs[i]->triggered = true;
+					DelayConfigs[i] = NULL;
+				}
+			}
+		}
+	}
+}
+
+#ifdef TIMER0_COMPA_vect
+ISR(TIMER0_COMPA_vect)
+{
+	isrHandler();
 }
 #endif
 
 #ifdef TIM0_COMPA_vect
 ISR(TIM0_COMPA_vect)
 {
-	if (1000 == ++msCounter)
-	{
-		++secondsSinceInit;
-		msCounter = 0;
-	}
-
-	#ifdef LIB_TMR8_USE_LL
-	LList_Traverse(Head, msListHandler);
-	LList_Traverse(DelayHead, msListDelayHandler);
-	#else
-	if (TimerConfig)
-	{
-		if (TimerConfig->active)
-		{
-			if (TimerConfig->msTick > 0)
-			{
-				if (--TimerConfig->msTick == 0)
-				{
-					TimerConfig->triggered = true;
-					TimerConfig->msTick = TimerConfig->reload;
-				}
-			}
-		}
-	}
-	
-	if (DelayConfig)
-	{
-		if (DelayConfig->delayMs > 0)
-		{
-			if (--DelayConfig->delayMs == 0)
-			{
-				DelayConfig->triggered = true;
-			}
-		}
-	}
-	#endif
+	isrHandler();
 }
 #endif
