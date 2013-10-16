@@ -36,16 +36,23 @@ uint8_t SSEG_CreateDigit(uint8_t digit, SEVEN_SEGMENT_MAP * map, bool tails)
 	
 	if (tails)
 	{
-		if (digit == 6) { display |= map->A; }
-		if (digit == 9) { display |= map->D; }
+		if (digit == 6) { display |= (1 << map->A); }
+		if (digit == 9) { display |= (1 << map->D); }
 	}
 	
 	return display;
 }
 
-void SSEG_AddDecimal(uint8_t *pDisplay, SEVEN_SEGMENT_MAP * map)
+void SSEG_AddDecimal(uint8_t *pDisplay, SEVEN_SEGMENT_MAP * map, bool add)
 {
-	*pDisplay |= (1 << map->DP);
+	if (add)
+	{
+		*pDisplay |= (1 << map->DP);
+	}
+	else
+	{
+		*pDisplay &= ~(1 << map->DP);
+	}
 }
 
 uint8_t A(uint8_t digit, uint8_t bit)

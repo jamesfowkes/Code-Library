@@ -16,4 +16,4 @@ struct seven_segment_map
 typedef struct seven_segment_map SEVEN_SEGMENT_MAP;
 
 uint8_t SSEG_CreateDigit(uint8_t digit, SEVEN_SEGMENT_MAP * map, bool tails);
-void SSEG_AddDecimal(uint8_t *pDisplay, SEVEN_SEGMENT_MAP * map);
+void SSEG_AddDecimal(uint8_t *pDisplay, SEVEN_SEGMENT_MAP * map, bool add);
