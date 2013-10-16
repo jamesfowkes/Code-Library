@@ -37,6 +37,7 @@ enum io_mode_enum
 	IO_MODE_INPUT,
 	IO_MODE_PULLUPINPUT,
 	IO_MODE_OUTPUT,
+	IO_MODE_I2C_PULLUP
 };
 typedef enum io_mode_enum IO_MODE_ENUM;
 

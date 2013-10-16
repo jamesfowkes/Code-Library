@@ -65,6 +65,9 @@ void IO_SetMode(IO_PORT_ENUM ePort, uint8_t pin, IO_MODE_ENUM eMode)
 	case IO_MODE_OUTPUT:
 		SetDDR(ePort, pin);
 		break;
+	case IO_MODE_I2C_PULLUP:
+		SetPORT(ePort, pin);
+		break;
 	}
 }
 
