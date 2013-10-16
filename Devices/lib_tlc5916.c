@@ -16,9 +16,9 @@
 
 void TLC5916_ClockOut(uint8_t* data, uint8_t nBytes, TLC5916_CONTROL * tlc)
 {
-	tlc->latch(false);
-	tlc->sr.shiftOutFn(data, nBytes, SR_CLKEDGE_POS);
+	tlc->sr.shiftOutFn(data, nBytes, SR_CLKEDGE_POS, SR_DIR_MSBFIRST);
 	tlc->latch(true);
+	tlc->latch(false);
 }
 
 void TLC5916_OutputEnable(TLC5916_CONTROL * tlc, bool enable)
