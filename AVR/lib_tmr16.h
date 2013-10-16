@@ -58,5 +58,5 @@ void					TMR16_PWMOff(const TMR_OCCHAN_ENUM eChannel, const IO_STATE_ENUM eState
 void					TMR16_InterruptControl(TMR16_INTMASK_ENUM eMask, bool enable);
 
 bool					TMR16_StartTimer(uint16_t us, TIMER_FLAG * timerFlag, const TMR_OCCHAN_ENUM eChannel);
-void 					TMR16_StopTimer();
+void 					TMR16_StopTimer(const TMR_OCCHAN_ENUM eChannel);
 #endif
