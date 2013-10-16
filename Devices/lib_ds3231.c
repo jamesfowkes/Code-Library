@@ -26,9 +26,16 @@
 #include "lib_i2c_common.h"
 
 /*
+ * AVR Includes (Defines and Primitives)
+ */
+#include <avr/io.h>
+#include "lib_io.h"
+
+/*
  * Private defines and typedefs
  */
 
+#define DS3231_I2C_ADDRESS	0x68
 #define	AMPM_SELECT		(1 << 6)
 #define	AMPM_SET		(1 << 5)
 
@@ -171,6 +178,9 @@ static uint8_t s_temperature[2];
 static bool s_ampm_mode;
 
 static I2C_TRANSFER_DATA s_i2c_data;
+static I2C_TRANSFER_DATA s_i2c_setup;
+
+static uint8_t s_rwRegister;
 
 /*
  * Private Function Prototypes
@@ -194,7 +204,7 @@ static bool SetAlarm2Mask(ALARM_REGISTERS * alarm, DS3231_ALARM_RPT_ENUM repeat)
 
 bool DS3231_Init(void)
 {
-	return true;
+	return I2C_Init(NULL);
 }
 
 bool DS3231_SetTime(const TM * tm, bool ampm_mode, DS3231_ONIDLE_FN cb)
@@ -245,7 +255,7 @@ void DS3231_ReadDateTime(DS3231_ONIDLE_FN cb)
 {
 	if (!s_busy)
 	{
-		read(REG_DATETIME_START, (uint8_t*)&s_dt, REG_DATETIME_LENGTH, cb);
+		read(REG_DATETIME_START + 0x0A, (uint8_t*)&s_dt, REG_DATETIME_LENGTH, cb);
 	}
 }
 
@@ -734,35 +744,53 @@ static void write(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb)
 {
 	s_i2c_data.buffer = array;
 	s_i2c_data.totalBytes = n;
-	s_i2c_data.address = reg;
+	s_i2c_data.address = DS3231_I2C_ADDRESS;
 	s_i2c_data.callback = wr_callback;
+
 	s_onidle_cb = cb;
-	I2C_StartMaster(&s_i2c_data, false);
+	I2C_StartMaster(&s_i2c_data, false, false);
 }
 
 static void read(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb)
 {
+	// Save the read transfer data into s_i2c_data for later.
 	s_i2c_data.buffer = array;
 	s_i2c_data.totalBytes = n;
-	s_i2c_data.address = reg;
+	s_i2c_data.address = DS3231_I2C_ADDRESS;
 	s_i2c_data.callback = rd_callback;
 	s_onidle_cb = cb;
-	I2C_StartMaster(&s_i2c_data, true);
+
+	// First there needs to be a write to the register pointer
+	s_rwRegister = reg;
+	s_i2c_setup.buffer = &reg;
+	s_i2c_setup.totalBytes = 1;
+	s_i2c_setup.address = DS3231_I2C_ADDRESS;
+	s_i2c_setup.callback = rd_callback;
+
+	// And request a write with repeated start
+	I2C_StartMaster(&s_i2c_setup, false, true);
 }
 
 static void rd_callback(I2C_TRANSFER_DATA * transfer)
 {
-	(void)transfer;
-	s_busy = false;
-	if (s_onidle_cb)
+	if (transfer == &s_i2c_setup)
 	{
-		s_onidle_cb(false);
+		// The read register has been set, can now start the read
+		IO_Control(IO_PORTB, 5, IO_ON);
+		I2C_StartMasterFromRS(&s_i2c_data, true, false);
+	}
+	else
+	{
+		s_busy = false;
+		if (s_onidle_cb)
+		{
+			s_onidle_cb(false);
+		}
 	}
 }
 
 static void wr_callback(I2C_TRANSFER_DATA * transfer)
 {
-	(void)transfer;
 	s_busy = false;
 	if (s_onidle_cb)
 	{

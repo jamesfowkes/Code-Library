@@ -18,11 +18,15 @@ typedef struct i2c_transfer_data_struct I2C_TRANSFER_DATA;
 
 typedef I2C_TRANSFER_DATA* (*I2C_SLAVE_HANDLER)(bool read);
 
-bool I2C_Init(I2C_SLAVE_HANDLER slaveHandler, uint8_t slaveAddress);
+bool I2C_Init(I2C_SLAVE_HANDLER slaveHandler);
+
+void I2C_Task(void);
+
 void I2C_SetSlaveAddress(uint8_t slaveAddress);
 
 void I2C_AcceptGCALL(bool accept);
 
-bool I2C_StartMaster(I2C_TRANSFER_DATA * newTransferData, bool read);
+bool I2C_StartMaster(I2C_TRANSFER_DATA * newTransferData, bool read, bool repeatStart);
+bool I2C_StartMasterFromRS(I2C_TRANSFER_DATA * newTransferData, bool read, bool repeatStart);
 
 #endif

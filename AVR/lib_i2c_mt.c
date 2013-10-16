@@ -23,9 +23,12 @@
 #include "lib_i2c_private.h"
 #include "lib_i2c_defs.h"
 
+#include "lib_io.h"
+
 static void sendAddress(void);
 static void errorCondition(void);
 static void txNextByte(void);
+static void finish(void);
 
 static I2C_STATEMACHINEENTRY sm_entries[] = 
 {
@@ -41,24 +44,31 @@ static I2C_STATEMACHINEENTRY sm_entries[] =
 	{I2CS_TRANSFERRING,	TW_MT_DATA_ACK,		txNextByte,		I2CS_TRANSFERRING	},
 	{I2CS_TRANSFERRING,	TW_MT_DATA_NACK,	errorCondition,	I2CS_IDLE			},
 	{I2CS_TRANSFERRING,	TW_MT_ARB_LOST,		errorCondition,	I2CS_IDLE			},
-	
+	{I2CS_TRANSFERRING, TW_REP_START,		finish,			I2CS_IDLE			},
+
 	{I2CS_TRANSFERRING,	TW_BUS_ERROR,		errorCondition,	I2CS_IDLE			},
 };
 
 static I2C_STATEMACHINE sm = {false, 0, I2CS_IDLE, sm_entries};
+static I2C_TRANSFER_DATA * pTransfer = NULL;
 
 I2C_STATEMACHINE * I2C_MT_GetSM(void) {return &sm;}
 
-void I2C_MT_Start(void)
+static bool s_repeatStart = false;
+
+void I2C_MT_Start(I2C_TRANSFER_DATA * transfer, bool repeatStart)
 {
+	pTransfer = transfer;
+	pTransfer->bytesTransferred = 0;
+	s_repeatStart = repeatStart;
 	start();
 }
 
 static void sendAddress(void)
 {
-	uint8_t address = (data()->address << 1);
+	uint8_t address = (pTransfer->address << 1);
 	TWDR = address;
-	ack();
+	send();
 }
 
 static void errorCondition(void)
@@ -83,12 +93,24 @@ static void txNextByte(void)
 {
 	if (!I2C_BufferUsed())
 	{
-		TWDR = data()->buffer[data()->bytesTransferred++]; // More data to send
-		ack();
+		TWDR = pTransfer->buffer[pTransfer->bytesTransferred++]; // More data to send
+		send();
 	}
 	else
 	{
-		stop(); // No more data to send
-		I2C_Done(true);
+		if (s_repeatStart)
+		{
+			start();
+		}
+		else
+		{
+			stop(); // No more data to send
+			I2C_Done(true);
+		}
 	}
+}
+
+static void finish(void)
+{
+	I2C_Done(true);
 }

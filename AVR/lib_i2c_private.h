@@ -51,16 +51,14 @@ I2C_STATEMACHINE * I2C_MR_GetSM(void);
 I2C_STATEMACHINE * I2C_ST_GetSM(void);
 I2C_STATEMACHINE * I2C_SR_GetSM(void);
 
-I2C_TRANSFER_DATA * data(void);
-
 void I2C_Done(bool success);
 
 bool I2C_BufferFull(void);
 bool I2C_BufferUsed(void);
 
 
-void I2C_MR_Start(void);
-void I2C_MT_Start(void);
+void I2C_MR_Start(I2C_TRANSFER_DATA * transfer, bool repeatStart);
+void I2C_MT_Start(I2C_TRANSFER_DATA * transfer, bool repeatStart);
 bool I2C_ST_Start(void);
 bool I2C_SR_Start(void);
 
