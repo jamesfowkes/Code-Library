@@ -1,3 +1,6 @@
 ## Compiled Objects ##
 *.o
 *.exe
+
+#LUFA Library
+LUFA/*
