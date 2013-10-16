@@ -85,7 +85,7 @@ struct tm
 };
 typedef struct tm TM;
 
-typedef uint32_t UNIX_TIMESTAMP;
+typedef uint64_t UNIX_TIMESTAMP;
 typedef int C_STRUCT_YEAR;
 typedef int GREGORIAN_YEAR;
 
