@@ -15,6 +15,8 @@
 
 #include "ringbuf.h"
 
+#include "memorypool.h"
+
 #define SM_PRIVATE_ACCESS
 #include "statemachine.h"
 #include "statemachinemanager.h"
@@ -72,6 +74,8 @@ int8_t SMM_GetNextMachine(STATE_MACHINE_INTERNAL **NewMachine, SM_EVENT **NewEve
 		
 		s_StateMachineCount++;
 	}
+
+	return index;
 }
 
 STATE_MACHINE_INTERNAL * SMM_GetMachine(uint8_t idx)

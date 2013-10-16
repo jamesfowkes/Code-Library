@@ -104,7 +104,7 @@ void SM_Kick(uint8_t idx)
 			Internal->CurrentState = pEntry->NewState;
 		}
 		
-		assert(Internal->CurrentState != Internal->MaxState);
+		assert(Internal->CurrentState <= Internal->MaxState);
 	}
 	
 	Internal->Idle = true;
