@@ -255,7 +255,7 @@ void DS3231_ReadDateTime(DS3231_ONIDLE_FN cb)
 {
 	if (!s_busy)
 	{
-		read(REG_DATETIME_START + 0x0A, (uint8_t*)&s_dt, REG_DATETIME_LENGTH, cb);
+		read(REG_DATETIME_START, (uint8_t*)&s_dt, REG_DATETIME_LENGTH, cb);
 	}
 }
 
@@ -370,7 +370,7 @@ bool DS3231_ConfigureAlarm(TM* tm, DS3231_ALARM_ENUM eAlarm, DS3231_DATE_TYPE_EN
 		success &= (tm->tm_wday < 7);
 		if (success)
 		{
-			alarm.day_date = to_bcd(tm->tm_mday + 1);
+			alarm.day_date = to_bcd(tm->tm_wday + 1);
 			alarm.day_date |= ALRM_REG_DY_BIT;
 		}
 		break;
@@ -776,7 +776,6 @@ static void rd_callback(I2C_TRANSFER_DATA * transfer)
 	if (transfer == &s_i2c_setup)
 	{
 		// The read register has been set, can now start the read
-		IO_Control(IO_PORTB, 5, IO_ON);
 		I2C_StartMasterFromRS(&s_i2c_data, true, false);
 	}
 	else
