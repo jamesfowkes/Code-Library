@@ -23,13 +23,17 @@
  * Generic Library Includes
  */
 
+#ifndef TEST
 #include "lib_i2c_common.h"
+#endif
 
 /*
  * AVR Includes (Defines and Primitives)
  */
+#ifndef TEST
 #include <avr/io.h>
 #include "lib_io.h"
+#endif
 
 /*
  * Private defines and typedefs
@@ -177,10 +181,12 @@ static uint8_t s_temperature[2];
 
 static bool s_ampm_mode;
 
+#ifndef TEST
 static I2C_TRANSFER_DATA s_i2c_data;
 static I2C_TRANSFER_DATA s_i2c_setup;
 
 static uint8_t s_rwRegister;
+#endif
 
 /*
  * Private Function Prototypes
@@ -189,8 +195,10 @@ static uint8_t s_rwRegister;
 static void write(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb);
 static void read(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb);
 
+#ifndef TEST
 static void rd_callback(I2C_TRANSFER_DATA * transfer);
 static void wr_callback(I2C_TRANSFER_DATA * transfer);
+#endif
 
 static bool setLocalDate(const TM * tm);
 static bool setLocalTime(const TM * tm);
@@ -204,7 +212,11 @@ static bool SetAlarm2Mask(ALARM_REGISTERS * alarm, DS3231_ALARM_RPT_ENUM repeat)
 
 bool DS3231_Init(void)
 {
+	#ifdef TEST
+	return true;
+	#else
 	return I2C_Init(NULL);
+	#endif
 }
 
 bool DS3231_SetTime(const TM * tm, bool ampm_mode, DS3231_ONIDLE_FN cb)
@@ -304,6 +316,13 @@ void DS3231_GetDateTime(TM * tm)
 		DS3231_GetTime(tm);
 	}
 }
+
+#ifdef TEST
+uint8_t DS3231_GetRegisterValue(uint8_t regIndex)
+{
+	return ((uint8_t *)(&s_dt))[regIndex];
+}
+#endif
 
 /*
  * Configure an alarm.
@@ -616,7 +635,7 @@ static bool setLocalDate(const TM * tm)
 	bool success = true;
 	int year = tm->tm_year;
 
-	success &= tm->tm_mday < 31;
+	success &= tm->tm_mday < 32;
 	success &= tm->tm_mday > 0;
 	success &= tm->tm_mon < 12;
 	success &= tm->tm_wday < 7;
@@ -626,11 +645,11 @@ static bool setLocalDate(const TM * tm)
 	{
 		s_dt.date.day = to_bcd(tm->tm_wday + 1);
 		s_dt.date.date = to_bcd(tm->tm_mday);
-		s_dt.date.month = to_bcd(tm->tm_mon);
+		s_dt.date.month = to_bcd(tm->tm_mon + 1);
 		if (year > 99)
 		{
 			year -= 100;
-			s_dt.date.month = CENTURY_SELECT;
+			s_dt.date.month |= CENTURY_SELECT;
 		}
 		s_dt.date.year = to_bcd(year);
 	}
@@ -742,6 +761,7 @@ static bool SetAlarm2Mask(ALARM_REGISTERS * alarm, DS3231_ALARM_RPT_ENUM repeat)
 
 static void write(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb)
 {
+	#ifndef TEST
 	s_i2c_data.buffer = array;
 	s_i2c_data.totalBytes = n;
 	s_i2c_data.address = DS3231_I2C_ADDRESS;
@@ -749,10 +769,17 @@ static void write(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb)
 
 	s_onidle_cb = cb;
 	I2C_StartMaster(&s_i2c_data, false, false);
+	#else
+	(void)reg;
+	(void)array;
+	(void)n;
+	(void)cb;
+	#endif
 }
 
 static void read(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb)
 {
+	#ifndef TEST
 	// Save the read transfer data into s_i2c_data for later.
 	s_i2c_data.buffer = array;
 	s_i2c_data.totalBytes = n;
@@ -769,8 +796,15 @@ static void read(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb)
 
 	// And request a write with repeated start
 	I2C_StartMaster(&s_i2c_setup, false, true);
+	#else
+	(void)reg;
+	(void)array;
+	(void)n;
+	(void)cb;
+	#endif
 }
 
+#ifndef TEST
 static void rd_callback(I2C_TRANSFER_DATA * transfer)
 {
 	if (transfer == &s_i2c_setup)
@@ -796,3 +830,4 @@ static void wr_callback(I2C_TRANSFER_DATA * transfer)
 		s_onidle_cb(true);
 	}
 }
+#endif
