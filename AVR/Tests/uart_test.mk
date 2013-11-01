@@ -6,6 +6,9 @@ LDFLAGS=
 FCPU = 16000000
 DEVICE = attiny2313
 
+EXTRA_DEFINES = \
+-DMEMORY_POOL_BYTES=128
+
 INC_DIRS = \
 ../ \
 ../../Generics
@@ -29,7 +32,7 @@ $(TARGET): $(OBJS)
 	$(CC) $(LDFLAGS) $(OBJS) -o $@
 
 %.o : %.c
-	$(CC) $(CFLAGS) $(INC) -mmcu=$(DEVICE) -DF_CPU=$(FCPU) $< -o $@
+	$(CC) $(CFLAGS) $(INC) -mmcu=$(DEVICE) -DF_CPU=$(FCPU) $(EXTRA_DEFINES) $< -o $@
 
 clean:
 	rm $(OBJS)

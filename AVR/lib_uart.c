@@ -37,32 +37,51 @@ LICENSE:
 						
 *************************************************************************/
 
+/*
+ * Standard Library Includes
+ */
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+
+/*
+ * AVR Includes (Defines and Primitives)
+ */
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
 
+/*
+ * AVR Library Includes
+ */
+
+#include "lib_clk.h"
 #include "lib_uart.h"
+
+/*
+ * Generic Library Includes
+ */
+
 #include "ringbuf.h"
 #include "memorypool.h"
 
 /*
-*  constants and macros
-*/
+ *  Private Defines and Typedefs
+ */
 
-/* size of RX/TX buffers */
-#define UART_RX_BUFFER_MASK ( UART_RX_BUFFER_SIZE - 1)
-#define UART_TX_BUFFER_MASK ( UART_TX_BUFFER_SIZE - 1)
+/** @brief  UART Baudrate Expression
+ *  @param  xtalcpu  system clock in Mhz, e.g. 4000000UL for 4Mhz          
+ *  @param  baudrate baudrate in bps, e.g. 1200, 2400, 9600     
+ */
+#define UART_BAUD_SELECT(baudRate,xtalCpu)  (((xtalCpu) + 8UL * (baudRate)) / (16UL * (baudRate)) -1UL)
 
-#if ( UART_RX_BUFFER_SIZE & UART_RX_BUFFER_MASK )
-#error RX buffer size is not a power of 2
-#endif
-#if ( UART_TX_BUFFER_SIZE & UART_TX_BUFFER_MASK )
-#error TX buffer size is not a power of 2
-#endif
+/** @brief  UART Baudrate Expression for ATmega double speed mode
+ *  @param  xtalcpu  system clock in Mhz, e.g. 4000000UL for 4Mhz           
+ *  @param  baudrate baudrate in bps, e.g. 1200, 2400, 9600     
+ */
+#define UART_BAUD_SELECT_DOUBLE_SPEED(baudRate,xtalCpu) ( ((((xtalCpu) + 4UL * (baudRate)) / (8UL * (baudRate)) -1UL)) | 0x8000)
 
 #if defined(__AVR_AT90S2313__) \
 	|| defined(__AVR_AT90S4414__) || defined(__AVR_AT90S4434__) \
@@ -254,6 +273,7 @@ static volatile uint8_t	s_lastRXError[NUMBER_OF_UARTS];
 /*
  * Private Function Prototypes
  */
+
 static void UART0_Init(uint16_t baudrate);
 #if NUMBER_OF_UARTS == 2
 static void UART1_Init(uint16_t baudrate);
@@ -342,20 +362,30 @@ Purpose:  initialize UART and set baudrate
 Input:    baudrate using macro UART_BAUD_SELECT()
 Returns:  none
 **************************************************************************/
-bool UART_Init(UART_ENUM eUART, uint16_t baudrate, uint8_t txBufferSize, uint8_t rxBufferSize)
+bool UART_Init(UART_ENUM eUART, uint16_t baudrate, uint8_t txBufferSize, uint8_t rxBufferSize, bool use2X)
 {
 
 	bool success = false;
 	
+	// Get data buffers for this UART and initalise ringbuffer with them
 	uint8_t * pDataBuffers[2];
-	
-	// Get data buffers for this UART
 	pDataBuffers[TX] = (uint8_t * )MEMPOOL_GetBytes(txBufferSize);
 	pDataBuffers[RX] = (uint8_t * )MEMPOOL_GetBytes(rxBufferSize);
 	
 	Ringbuf_Init((RING_BUFFER*)&s_buffers[eUART][TX], pDataBuffers[TX], sizeof(uint8_t), txBufferSize, true);
 	Ringbuf_Init((RING_BUFFER*)&s_buffers[eUART][RX], pDataBuffers[RX], sizeof(uint8_t), rxBufferSize, true);
-			
+	
+	// Convert standard baudrate to register bitmap
+	uint32_t fcpu = CLK_GetFcpu();
+	if (use2X)
+	{
+		baudrate = UART_BAUD_SELECT_DOUBLE_SPEED(baudrate,fcpu);
+	}
+	else
+	{
+		baudrate = UART_BAUD_SELECT(baudrate,fcpu);
+	}
+	
 	if (pDataBuffers[TX] && pDataBuffers[RX])
 	{
 		if (eUART == UART0)
@@ -549,7 +579,7 @@ void UART_PutProgStr(UART_ENUM eUART, uint8_t * data)
 	if (eUART == UART0) // Only one UART, so only process character if for UART0
 	#endif
 	{
-		while ( (c = pgm_read_byte(data++)) ) 
+		while ( (c = pgm_read_byte(data++)) )
 		{
 			Ringbuf_Put((RING_BUFFER*)&s_buffers[eUART][TX], &c);
 			count++;

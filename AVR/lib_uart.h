@@ -36,11 +36,6 @@ LICENSE:
 *  receiving a byte. The interrupt handling routines use circular buffers
 *  for buffering received and transmitted data.
 *
-*  The UART_RX_BUFFER_SIZE and UART_TX_BUFFER_SIZE constants define
-*  the size of the circular buffers in bytes. Note that these constants must be a power of 2.
-*  You may need to adapt this constants to your target and your application by adding 
-*  CDEFS += -DUART_RX_BUFFER_SIZE=nn -DUART_RX_BUFFER_SIZE=nn to your Makefile.
-*
 *  @note Based on Atmel Application Note AVR306
 *  @author Peter Fleury pfleury@gmx.ch  http://jump.to/fleury
 */
@@ -56,23 +51,6 @@ LICENSE:
 /*
 ** constants and macros
 */
-
-/** @brief  UART Baudrate Expression
-*  @param  xtalcpu  system clock in Mhz, e.g. 4000000UL for 4Mhz          
-*  @param  baudrate baudrate in bps, e.g. 1200, 2400, 9600     
-*/
-#define UART_BAUD_SELECT(baudRate,xtalCpu)  (((xtalCpu) + 8UL * (baudRate)) / (16UL * (baudRate)) -1UL)
-
-/** @brief  UART Baudrate Expression for ATmega double speed mode
-*  @param  xtalcpu  system clock in Mhz, e.g. 4000000UL for 4Mhz           
-*  @param  baudrate baudrate in bps, e.g. 1200, 2400, 9600     
-*/
-#define UART_BAUD_SELECT_DOUBLE_SPEED(baudRate,xtalCpu) ( ((((xtalCpu) + 4UL * (baudRate)) / (8UL * (baudRate)) -1UL)) | 0x8000)
-
-/* test if the size of the circular buffers fits into SRAM */
-#if ( (UART_RX_BUFFER_SIZE+UART_TX_BUFFER_SIZE) >= (RAMEND-0x60 ) )
-#error "size of UART_RX_BUFFER_SIZE + UART_TX_BUFFER_SIZE larger than size of SRAM"
-#endif
 
 /* 
 ** high byte error return code of uart_getc()
@@ -99,7 +77,7 @@ typedef enum uart_enum UART_ENUM;
 @param   baudrate Specify baudrate using macro UART_BAUD_SELECT()
 @return  none
 */
-bool UART_Init(UART_ENUM eUART, unsigned int baudrate, uint8_t txBufferSize, uint8_t rxBufferSize);
+bool UART_Init(UART_ENUM eUART, unsigned int baudrate, uint8_t txBufferSize, uint8_t rxBufferSize, bool use2X);
 
 void UART0_Task(bool * rx, bool * tx);
 void UART1_Task(bool * rx, bool * tx);

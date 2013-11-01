@@ -58,7 +58,7 @@ int main(void)
 	
 	CLK_Init(0);
 	
-	success &= UART_Init(UART0, BAUD_RATE, TX_BUFFER_SIZE, RX_BUFFER_SIZE);
+	success &= UART_Init(UART0, BAUD_RATE, TX_BUFFER_SIZE, RX_BUFFER_SIZE, false);
 
 	while (!success) { continue; }
 	
