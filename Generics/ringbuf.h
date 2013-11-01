@@ -55,7 +55,7 @@ struct ring_buffer_t {
 typedef struct ring_buffer_t RING_BUFFER;
 
 #ifdef __cplusplus
-extern "C" {
+ "C" {
 #endif /* __cplusplus */
 
 	bool Ringbuf_Empty(RING_BUFFER const *b);
