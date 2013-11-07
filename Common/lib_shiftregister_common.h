@@ -25,6 +25,8 @@ typedef void (*SR_SHIFT_FN)(uint8_t* data, uint8_t nBytes, SR_CLKEDGE_ENUM edge,
 struct sr_control_struct
 {
 	SR_SHIFT_FN shiftOutFn;
+	SR_IO_FN clkFn;
+	SR_IO_FN dataFn;
 };
 typedef struct sr_control_struct SR_CONTROL;
 
