@@ -4,12 +4,14 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 #include <stddef.h>
 
 /*
  * Utility Library Includes
  */
 
+#include "util_macros.h"
 #include "util_time.h"
 #include "util_bcd.h"
 
@@ -28,20 +30,12 @@
 #endif
 
 /*
- * AVR Includes (Defines and Primitives)
- */
-#ifndef TEST
-#include <avr/io.h>
-#include "lib_io.h"
-#endif
-
-/*
  * Private defines and typedefs
  */
 
 #define DS3231_I2C_ADDRESS	0x68
 #define	AMPM_SELECT		(1 << 6)
-#define	AMPM_SET		(1 << 5)
+#define	PM_SET			(1 << 5)
 
 #define	CENTURY_SELECT	(1 << 7)
 
@@ -175,17 +169,23 @@ static bool s_busy = false;
 
 static DS3231_ONIDLE_FN s_onidle_cb;
 
-static DATETIME_REGISTERS s_dt;
+static volatile DATETIME_REGISTERS s_dt = {
+		.time.seconds = 0x59,
+		.time.minutes = 0x59,
+		.time.hours = 0x23,
+		.date.day = 0x03,
+		.date.date = 0x22,
+		.date.month = 0x90,
+		.date.year = 0x13
+};
 
 static uint8_t s_temperature[2];
-
-static bool s_ampm_mode;
 
 #ifndef TEST
 static I2C_TRANSFER_DATA s_i2c_data;
 static I2C_TRANSFER_DATA s_i2c_setup;
 
-static uint8_t s_rwRegister;
+static uint8_t s_WriteArray[19];
 #endif
 
 /*
@@ -201,7 +201,7 @@ static void wr_callback(I2C_TRANSFER_DATA * transfer);
 #endif
 
 static bool setLocalDate(const TM * tm);
-static bool setLocalTime(const TM * tm);
+static bool setLocalTime(const TM * tm, bool ampm_mode);
 
 static bool SetAlarm1Mask(ALARM_REGISTERS * alarm, DS3231_ALARM_RPT_ENUM repeat);
 static bool SetAlarm2Mask(ALARM_REGISTERS * alarm, DS3231_ALARM_RPT_ENUM repeat);
@@ -219,14 +219,13 @@ bool DS3231_Init(void)
 	#endif
 }
 
-bool DS3231_SetTime(const TM * tm, bool ampm_mode, DS3231_ONIDLE_FN cb)
+bool DS3231_SetDeviceTime(const TM * tm, bool ampm_mode, DS3231_ONIDLE_FN cb)
 {
 	bool success = true;
 	
 	if (!s_busy)
 	{
-		s_ampm_mode = ampm_mode;
-		if ( setLocalTime(tm) )
+		if ( setLocalTime(tm, ampm_mode) )
 		{
 			write(REG_TIME_START, (uint8_t*)&s_dt, REG_TIME_LENGTH, cb);
 		}
@@ -234,7 +233,7 @@ bool DS3231_SetTime(const TM * tm, bool ampm_mode, DS3231_ONIDLE_FN cb)
 	return success;
 }
 
-bool DS3231_SetDate(const TM * tm, DS3231_ONIDLE_FN cb)
+bool DS3231_SetDeviceDate(const TM * tm, DS3231_ONIDLE_FN cb)
 {
 	bool success = true;
 	if (!s_busy)
@@ -248,14 +247,13 @@ bool DS3231_SetDate(const TM * tm, DS3231_ONIDLE_FN cb)
 	return success;
 }
 
-bool DS3231_SetDateTime(const TM * tm, bool ampm_mode, DS3231_ONIDLE_FN cb)
+bool DS3231_SetDeviceDateTime(const TM * tm, bool ampm_mode, DS3231_ONIDLE_FN cb)
 {
 	bool success = true;
 
 	if (!s_busy)
 	{
-		s_ampm_mode = ampm_mode;
-		success &= setLocalTime(tm);
+		success &= setLocalTime(tm, ampm_mode);
 		success &= setLocalDate(tm);
 		write(REG_DATETIME_START, (uint8_t*)&s_dt, REG_DATETIME_LENGTH, cb);
 	}
@@ -263,7 +261,7 @@ bool DS3231_SetDateTime(const TM * tm, bool ampm_mode, DS3231_ONIDLE_FN cb)
 	return success;
 }
 
-void DS3231_ReadDateTime(DS3231_ONIDLE_FN cb)
+void DS3231_ReadDeviceDateTime(DS3231_ONIDLE_FN cb)
 {
 	if (!s_busy)
 	{
@@ -278,14 +276,23 @@ void DS3231_GetTime(TM * tm)
 		tm->tm_sec = from_bcd(s_dt.time.seconds);
 		tm->tm_min = from_bcd(s_dt.time.minutes);
 
-		if (s_dt.time.hours & AMPM_SELECT)
+		bool time_in_12hr_format = (bool)(s_dt.time.hours & AMPM_SELECT);
+		bool pm_bit_set = (bool)(s_dt.time.hours & PM_SET);
+
+		if (time_in_12hr_format)
 		{
-			s_dt.time.hours = s_dt.time.hours > 11 ? s_dt.time.hours - 12 : s_dt.time.hours;
+			s_dt.time.hours &= 0x1F;
+			tm->tm_hour = from_bcd(s_dt.time.hours);
+			if (pm_bit_set)
+			{
+				tm->tm_hour = min(tm->tm_hour + 12, 23); //Convert from 1pm-12pm to 1300 to 2300
+			}
 		}
-
-		s_dt.time.hours &= 0x3F;
-
-		tm->tm_hour = from_bcd(s_dt.time.hours);
+		else
+		{
+			s_dt.time.hours &= 0x3F;
+			tm->tm_hour = from_bcd(s_dt.time.hours);
+		}
 	}
 }
 
@@ -293,18 +300,18 @@ void DS3231_GetDate(TM * tm)
 {
 	if (!s_busy)
 	{
-		tm->tm_wday = from_bcd(s_dt.date.day);
+		tm->tm_wday = from_bcd(s_dt.date.day) - 1;
 		tm->tm_mday = from_bcd(s_dt.date.date);
 
-		tm->tm_mon = from_bcd(s_dt.date.month & 0x1F);
+		tm->tm_mon = from_bcd(s_dt.date.month & 0x1F) - 1;
 
 		tm->tm_year = from_bcd(s_dt.date.year);
-		if (tm->tm_mon & CENTURY_SELECT)
+		if (s_dt.date.month & CENTURY_SELECT)
 		{
 			tm->tm_year += 100;
 		}
 
-		tm->tm_yday = get_year_days(tm);
+		tm->tm_yday = calculate_days_into_year(tm);
 	}
 }
 
@@ -317,12 +324,10 @@ void DS3231_GetDateTime(TM * tm)
 	}
 }
 
-#ifdef TEST
 uint8_t DS3231_GetRegisterValue(uint8_t regIndex)
 {
 	return ((uint8_t *)(&s_dt))[regIndex];
 }
-#endif
 
 /*
  * Configure an alarm.
@@ -441,19 +446,11 @@ void DS3231_OscControl(bool on)
 	{
 		s_control |= EOSC;
 	}
-
-	write(REG_CONTROL, &s_control, 1, NULL);
 }
 
-/*
- * Set the SWQ/INT pin to output either of square wave or alarm interrupt
- */
-void DS3231_SQWINTControl(bool sqw_on, bool int_on)
+void DS3231_BBSWQ_Control(bool on)
 {
-	// Only one of SWQ and INT can be selected
-	if (sqw_on && int_on) { return;}
-
-	if (sqw_on)
+	if (on)
 	{
 		s_control |= BBSWQ;
 	}
@@ -461,18 +458,28 @@ void DS3231_SQWINTControl(bool sqw_on, bool int_on)
 	{
 		s_control &= ~BBSWQ;
 	}
-
-	if (int_on)
-	{
-		s_control |= INTCN;
-	}
-	else
-	{
-		s_control &= ~INTCN;
-	}
-	write(REG_CONTROL, &s_control, 1, NULL);
 }
 
+/*
+ * Set the SWQ/INT pin to output either of square wave or alarm interrupt
+ */
+void DS3231_SQWINTControl(DS3231_SQWINT_ENUM selection)
+{
+	switch(selection)
+	{
+	case DS3231_SQW:
+		s_control &= ~INTCN;
+		break;
+	case DS3231_INT:
+		s_control |= INTCN;
+		break;
+	}
+}
+
+void DS3231_UpdateControl(void)
+{
+	write(REG_CONTROL, &s_control, 1, NULL);
+}
 /*
  * Temperature conversions are normally every 64 seconds.
  * A conversion can be started manually if needed.
@@ -482,7 +489,9 @@ void DS3231_StartTempConv(void)
 {
 	s_control |= CONV;
 	write(REG_CONTROL, &s_control, 1, NULL);
-	s_control &= ~CONV; // Conv bit is cleared when BSY is cleared (about 2ms)
+	// The conv bit on DS3231 is cleared when BSY is cleared (about 2ms)
+	// TODO: Actually read the BSY and CONV bits before trying a CONV
+	s_control &= ~CONV;
 }
 
 /*
@@ -492,7 +501,6 @@ void DS3231_SetRate(DS3231_RATE_ENUM rate)
 {
 	s_control &= ~(RS2 | RS1);
 	s_control |= ((uint8_t)rate) << RS1_BIT;
-	write(REG_CONTROL, &s_control, 1, NULL);
 }
 
 /*
@@ -508,7 +516,6 @@ void DS3231_AlarmControl(DS3231_ALARM_ENUM alarm, bool on)
 	{
 		s_control &= (DS3231_ALARM_1 == alarm) ? ~A1IE : ~A2IE;
 	}
-	write(REG_CONTROL, &s_control, 1, NULL);
 }
 
 /*
@@ -657,7 +664,7 @@ static bool setLocalDate(const TM * tm)
 	return success;
 }
 
-static bool setLocalTime(const TM * tm)
+static bool setLocalTime(const TM * tm, bool ampm_mode)
 {
 	bool success = true;
 	
@@ -671,20 +678,20 @@ static bool setLocalTime(const TM * tm)
 	{
 		s_dt.time.seconds = to_bcd(tm->tm_sec);
 		s_dt.time.minutes = to_bcd(tm->tm_min);
-		if (s_ampm_mode)
+		if (ampm_mode)
 		{
-			s_dt.time.hours |= AMPM_SELECT;
-			if (hour > 11)
+			s_dt.time.hours = AMPM_SELECT;
+			if (hour == 0)
+			{
+				hour = 12;
+				// Leave PM bit cleared
+			}
+			else if (hour > 12)
 			{
 				// Switch from 24-hour to 12-hour
 				hour = hour - 12;
+				s_dt.time.hours |= PM_SET;
 			}
-			else
-			{
-				// Keep time as it is but set the AM bit
-				hour |= AMPM_SET;
-			}
-			hour = hour > 11 ? hour - 12 : hour;
 			s_dt.time.hours |= to_bcd(hour);
 		}
 		else
@@ -762,8 +769,11 @@ static bool SetAlarm2Mask(ALARM_REGISTERS * alarm, DS3231_ALARM_RPT_ENUM repeat)
 static void write(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb)
 {
 	#ifndef TEST
-	s_i2c_data.buffer = array;
-	s_i2c_data.totalBytes = n;
+	s_busy = true;
+	s_WriteArray[0] = reg;
+	memcpy(&s_WriteArray[1], array, n);
+	s_i2c_data.buffer = s_WriteArray;
+	s_i2c_data.totalBytes = n+1;
 	s_i2c_data.address = DS3231_I2C_ADDRESS;
 	s_i2c_data.callback = wr_callback;
 
@@ -775,11 +785,14 @@ static void write(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb)
 	(void)n;
 	(void)cb;
 	#endif
+
 }
 
 static void read(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb)
 {
 	#ifndef TEST
+	s_busy = true;
+
 	// Save the read transfer data into s_i2c_data for later.
 	s_i2c_data.buffer = array;
 	s_i2c_data.totalBytes = n;
@@ -788,8 +801,8 @@ static void read(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb)
 	s_onidle_cb = cb;
 
 	// First there needs to be a write to the register pointer
-	s_rwRegister = reg;
-	s_i2c_setup.buffer = &reg;
+	s_WriteArray[0] = reg;
+	s_i2c_setup.buffer = s_WriteArray;
 	s_i2c_setup.totalBytes = 1;
 	s_i2c_setup.address = DS3231_I2C_ADDRESS;
 	s_i2c_setup.callback = rd_callback;

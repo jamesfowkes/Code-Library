@@ -23,10 +23,10 @@ typedef enum ds3231_date_type_enum DS3231_DATE_TYPE_ENUM;
 
 enum ds3231_rate_enum
 {
-	DS3131_RATE_1HZ,
-	DS3131_RATE_1024HZ,
-	DS3131_RATE_4096HZ,
-	DS3131_RATE_8191HZ,
+	DS3231_RATE_1HZ,
+	DS3231_RATE_1024HZ,
+	DS3231_RATE_4096HZ,
+	DS3231_RATE_8192HZ,
 };
 typedef enum ds3231_rate_enum DS3231_RATE_ENUM;
 
@@ -51,17 +51,24 @@ enum ds3231_alarm_enum
 };
 typedef enum ds3231_alarm_enum DS3231_ALARM_ENUM;
 
+enum ds3231_sqwint_enum
+{
+	DS3231_SQW,
+	DS3231_INT
+};
+typedef enum ds3231_sqwint_enum DS3231_SQWINT_ENUM;
+
 /*
  * Public Function Prototypes
  */
 
 bool DS3231_Init(void);
 
-bool DS3231_SetTime(const TM *, bool ampm_mode, DS3231_ONIDLE_FN cb);
-bool DS3231_SetDate(const TM *, DS3231_ONIDLE_FN cb);
-bool DS3231_SetDateTime(const TM * tm, bool ampm_mode, DS3231_ONIDLE_FN cb);
+bool DS3231_SetDeviceTime(const TM *, bool ampm_mode, DS3231_ONIDLE_FN cb);
+bool DS3231_SetDeviceDate(const TM *, DS3231_ONIDLE_FN cb);
+bool DS3231_SetDeviceDateTime(const TM * tm, bool ampm_mode, DS3231_ONIDLE_FN cb);
 
-void DS3231_ReadDateTime(DS3231_ONIDLE_FN cb);
+void DS3231_ReadDeviceDateTime(DS3231_ONIDLE_FN cb);
 void DS3231_GetDate(TM * tm);
 void DS3231_GetTime(TM * tm);
 void DS3231_GetDateTime(TM * tm);
@@ -69,10 +76,12 @@ void DS3231_GetDateTime(TM * tm);
 void DS3231_AlarmControl(DS3231_ALARM_ENUM alarm, bool on);
 bool DS3231_ConfigureAlarm(TM* tm, DS3231_ALARM_ENUM alarm, DS3231_DATE_TYPE_ENUM dateType, DS3231_TIME_FORMAT_ENUM timeFormat, bool pm, DS3231_ALARM_RPT_ENUM repeat);
 
+void DS3231_UpdateControl(void);
+
 void DS3231_OscControl(bool on);
 
 void DS3231_SetRate(DS3231_RATE_ENUM rate);
-void DS3231_SQWINTControl(bool sqw_on, bool int_on);
+void DS3231_SQWINTControl(DS3231_SQWINT_ENUM selection);
 
 void DS3231_StartTempConv(void);
 void DS3231_UpdateTemperature(DS3231_ONIDLE_FN cb);
@@ -90,5 +99,7 @@ bool DS3231_GetAlarmFlag(DS3231_ALARM_ENUM alarm);
 void DS3231_SetAgingOffset(uint8_t offset);
 
 bool DS3231_IsIdle(void);
+
+uint8_t DS3231_GetRegisterValue(uint8_t regIndex);
 
 #endif
