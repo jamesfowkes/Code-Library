@@ -30,7 +30,7 @@ static void errorCondition(void);
 static void txNextByte(void);
 static void finish(void);
 
-static I2C_STATEMACHINEENTRY sm_entries[] = 
+static const I2C_STATEMACHINEENTRY sm_entries[] =
 {
 	{I2CS_IDLE,			TW_START,			sendAddress,	I2CS_ADDRESSING		},
 	{I2CS_IDLE,			TW_REP_START,		sendAddress,	I2CS_ADDRESSING		},
@@ -56,12 +56,20 @@ I2C_STATEMACHINE * I2C_MT_GetSM(void) {return &sm;}
 
 static bool s_repeatStart = false;
 
-void I2C_MT_Start(I2C_TRANSFER_DATA * transfer, bool repeatStart)
+void I2C_MT_SetTransferData(I2C_TRANSFER_DATA * transfer)
 {
 	pTransfer = transfer;
 	pTransfer->bytesTransferred = 0;
-	s_repeatStart = repeatStart;
+}
+
+void I2C_MT_Start(void)
+{
 	start();
+}
+
+void I2C_MT_SetRepeatStart(bool repeatStart)
+{
+	s_repeatStart = repeatStart;
 }
 
 static void sendAddress(void)
@@ -91,15 +99,17 @@ static void errorCondition(void)
 
 static void txNextByte(void)
 {
-	if (!I2C_BufferUsed())
+	if (!I2C_TxBufferUsed())
 	{
-		TWDR = pTransfer->buffer[pTransfer->bytesTransferred++]; // More data to send
+		TWDR = pTransfer->buffer[pTransfer->bytesTransferred]; // More data to send
+		(pTransfer->bytesTransferred)++;
 		send();
 	}
 	else
 	{
 		if (s_repeatStart)
 		{
+			s_repeatStart = false;
 			start();
 		}
 		else

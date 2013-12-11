@@ -25,7 +25,6 @@
 #include "lib_i2c_private.h"
 #include "lib_i2c_defs.h"
 
-#include "lib_io.h"
 #include "util_macros.h"
 
 static void new_slave_event(uint8_t event);
@@ -97,7 +96,9 @@ bool I2C_StartMaster(I2C_TRANSFER_DATA * newTransferData, bool read, bool repeat
 			if (!active_sm->busy)
 			{
 				activeTransfer = newTransferData;
-				read ? I2C_MR_Start(activeTransfer, repeatStart) : I2C_MT_Start(activeTransfer, repeatStart);
+				read ? I2C_MR_SetTransferData(activeTransfer) : I2C_MT_SetTransferData(activeTransfer);
+				read ? I2C_MR_SetRepeatStart(repeatStart) : I2C_MT_SetRepeatStart(repeatStart);
+				read ? I2C_MR_Start() : I2C_MT_Start();
 				success = true;
 			}
 		}
@@ -118,14 +119,13 @@ bool I2C_StartMasterFromRS(I2C_TRANSFER_DATA * newTransferData, bool read, bool 
 		{
 			active_sm = state_machines[read ? I2CM_MR : I2CM_MT];
 
-			// Jump the active state machine to its transferring state
-			active_sm->currentState = I2CS_TRANSFERRING;
-
 			if (!active_sm->busy)
 			{
 				activeTransfer = newTransferData;
-				// Pretend the hardware got a data ACK to start transferring
-				read ? i2c_sm_event(TW_MR_DATA_ACK) : i2c_sm_event(TW_MT_DATA_ACK);
+				read ? I2C_MR_SetTransferData(activeTransfer) : I2C_MT_SetTransferData(activeTransfer);
+				read ? I2C_MR_SetRepeatStart(repeatStart) : I2C_MT_SetRepeatStart(repeatStart);
+				// Send in the repeated start event
+				i2c_sm_event(TW_REP_START);
 				success = true;
 			}
 		}
@@ -138,25 +138,23 @@ void I2C_SetPrescaler(uint8_t divisor)
 	TWBR = divisor;
 }
 
-bool I2C_BufferFull(void)
+bool I2C_RxBufferFull(void)
 {
-	return (activeTransfer->bytesTransferred == activeTransfer->totalBytes);
+	// Receive buffer should indicate full 1 byte before full so NACK can be sent
+	return (activeTransfer->bytesTransferred == (activeTransfer->totalBytes - 1));
 }
 
-bool I2C_BufferUsed(void)
+bool I2C_TxBufferUsed(void)
 {
 	return (activeTransfer->bytesTransferred == activeTransfer->totalBytes);
-}
-
-I2C_TRANSFER_DATA * data(void)
-{
-	return activeTransfer;
 }
 
 void I2C_Done(bool success)
 {
-	// Clear the busy flag before clearing the pointer
+	// Clear the busy flag and reset state before clearing the pointer
 	active_sm->busy = false;
+	active_sm->currentState = I2CS_IDLE;
+
 	active_sm = NULL;
 	activeTransfer->success = success;
 	activeTransfer->callback(activeTransfer);
@@ -168,9 +166,10 @@ static void i2c_sm_event(uint8_t event)
 	{
 		active_sm->busy = true;
 
-		I2C_STATEMACHINEENTRY *search = active_sm->entries;
+		I2C_STATEMACHINEENTRY const * search = active_sm->entries;
 
 		// Find state
+
 		while (search->currentState != active_sm->currentState)
 		{
 			search++;
@@ -238,7 +237,6 @@ void I2C_Task(void)
 
 ISR(TWI_vect)
 {
-	while (!(TWCR & (1<<TWINT))) { continue; }
 	s_bTWINTSet = true;
 	s_lastTWSR = TWSR;
 }

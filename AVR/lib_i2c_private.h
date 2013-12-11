@@ -42,7 +42,7 @@ struct i2c_statemachine_struct
 	bool	busy;
 	uint8_t	currentEvent;
 	uint8_t	currentState;
-	I2C_STATEMACHINEENTRY* entries;
+	I2C_STATEMACHINEENTRY const * const entries;
 };
 typedef struct i2c_statemachine_struct I2C_STATEMACHINE;
 
@@ -53,12 +53,18 @@ I2C_STATEMACHINE * I2C_SR_GetSM(void);
 
 void I2C_Done(bool success);
 
-bool I2C_BufferFull(void);
-bool I2C_BufferUsed(void);
+bool I2C_RxBufferFull(void);
+bool I2C_TxBufferUsed(void);
 
 
-void I2C_MR_Start(I2C_TRANSFER_DATA * transfer, bool repeatStart);
-void I2C_MT_Start(I2C_TRANSFER_DATA * transfer, bool repeatStart);
+void I2C_MR_Start(void);
+void I2C_MR_SetRepeatStart(bool repeatStart);
+void I2C_MR_SetTransferData(I2C_TRANSFER_DATA * transfer);
+
+void I2C_MT_Start(void);
+void I2C_MT_SetRepeatStart(bool repeatStart);
+void I2C_MT_SetTransferData(I2C_TRANSFER_DATA * transfer);
+
 bool I2C_ST_Start(void);
 bool I2C_SR_Start(void);
 

@@ -24,16 +24,14 @@
 #include "lib_i2c_private.h"
 #include "lib_i2c_defs.h"
 
-#include "lib_io.h"
-
 static void sendAddress(void);
 static void sendFirstAck(void);
 static void getNextByte(void);
-static void getLastByte(void);
+static void done(void);
 static void finish(void);
 static void errorCondition(void);
 
-static I2C_STATEMACHINEENTRY sm_entries[] = 
+static const I2C_STATEMACHINEENTRY sm_entries[] =
 {
 	{I2CS_IDLE,			TW_START,			sendAddress,	I2CS_ADDRESSING		},
 	{I2CS_IDLE,			TW_REP_START,		sendAddress,	I2CS_ADDRESSING		},
@@ -45,7 +43,7 @@ static I2C_STATEMACHINEENTRY sm_entries[] =
 	{I2CS_ADDRESSING,	TW_BUS_ERROR,		errorCondition,	I2CS_IDLE			},
 	
 	{I2CS_TRANSFERRING,	TW_MR_DATA_ACK,		getNextByte,	I2CS_TRANSFERRING	},
-	{I2CS_TRANSFERRING,	TW_MR_DATA_NACK,	getLastByte,	I2CS_IDLE			},
+	{I2CS_TRANSFERRING,	TW_MR_DATA_NACK,	done,			I2CS_IDLE			},
 	{I2CS_TRANSFERRING, TW_REP_START, 		finish,			I2CS_IDLE			},
 	{I2CS_TRANSFERRING,	TW_MR_ARB_LOST,		errorCondition,	I2CS_IDLE			},
 	
@@ -59,12 +57,20 @@ static bool s_repeatStart = false;
 
 I2C_STATEMACHINE * I2C_MR_GetSM(void) {return &sm;}
 
-void I2C_MR_Start(I2C_TRANSFER_DATA * transfer, bool repeatStart)
+void I2C_MR_SetTransferData(I2C_TRANSFER_DATA * transfer)
 {
 	pTransfer = transfer;
 	pTransfer->bytesTransferred = 0;
-	s_repeatStart = repeatStart;
+}
+
+void I2C_MR_Start(void)
+{
 	start();
+}
+
+void I2C_MR_SetRepeatStart(bool repeatStart)
+{
+	s_repeatStart = repeatStart;
 }
 
 static void sendAddress(void)
@@ -77,22 +83,23 @@ static void sendAddress(void)
 
 static void sendFirstAck(void)
 {
-	if (!I2C_BufferFull()) { ack() } else { nack(); }
+	if (!I2C_RxBufferFull()) { ack() } else { nack(); }
 }
 
 static void getNextByte(void)
 {
-	pTransfer->buffer[(pTransfer->bytesTransferred)++] = TWDR;
+	pTransfer->buffer[pTransfer->bytesTransferred] = TWDR;
+	(pTransfer->bytesTransferred)++;
 	// More bytes to receive
-	if (!I2C_BufferFull()) { ack(); } else { nack(); }
+	if (!I2C_RxBufferFull()) { ack(); } else { nack(); }
 }
 
-static void getLastByte(void)
+static void done(void)
 {
-	pTransfer->buffer[(pTransfer->bytesTransferred)++] = TWDR;
 	// No more bytes to receive after this
 	if (s_repeatStart)
 	{
+		s_repeatStart = false;
 		start();
 	}
 	else
