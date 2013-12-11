@@ -58,6 +58,7 @@ typedef struct ring_buffer_t RING_BUFFER;
  "C" {
 #endif /* __cplusplus */
 
+	bool Ringbuf_Full(RING_BUFFER const *b);
 	bool Ringbuf_Empty(RING_BUFFER const *b);
 	
 	RINGBUF_DATA Ringbuf_Get_Oldest(RING_BUFFER const *b);

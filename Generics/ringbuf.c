@@ -60,7 +60,7 @@ RING_BUFFER const *b)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-static bool Ringbuf_Full (
+bool Ringbuf_Full (
 RING_BUFFER const *b)
 {
 	return (b ? (Ringbuf_Count(b) == b->element_count) : true);
