@@ -44,7 +44,7 @@
  * Private Variables
  */
 
-static IO_PORT_ENUM s_ePort;
+static volatile uint8_t * s_pPort;
 static uint8_t s_pin;
 static LIB_SWS_BAUDRATE_ENUM s_eBaudrate;
 
@@ -58,7 +58,7 @@ static void txDelay(void);
 
 static void translateBuffer(char const * const buffer, uint8_t size, void * args[], uint8_t nargs);
 static uint8_t format(char * buf, const char spec, void * pArg);
-static uint8_t getPlaceCount(uint16_t value, uint16_t place);
+static uint8_t getPlaceCount(uint32_t value, uint32_t place);
 
 /*
  * Public Functions
@@ -66,13 +66,13 @@ static uint8_t getPlaceCount(uint16_t value, uint16_t place);
 
 void SWS_Init(IO_PORT_ENUM ePort, uint8_t pin, LIB_SWS_BAUDRATE_ENUM eBaudrate)
 {
-	s_ePort = ePort;
+	s_pPort = IO_GetPortDirect(ePort);
 	s_pin = pin;
 	
 	s_eBaudrate = eBaudrate;
 	
-	IO_SetMode(s_ePort, s_pin, IO_MODE_OUTPUT);
-	IO_On(s_ePort, s_pin);
+	IO_On(*s_pPort, s_pin);
+	IO_Control(ePort, s_pin, IO_ON);
 }
 
 void SWS_SetBaudrate(LIB_SWS_BAUDRATE_ENUM eBaudrate)
@@ -80,6 +80,7 @@ void SWS_SetBaudrate(LIB_SWS_BAUDRATE_ENUM eBaudrate)
 	s_eBaudrate = eBaudrate;
 }
 
+/* Valid argument formats: %u/%U/%L: 8/16/32-bit unsigned, %s/%S: 8/16-bit signed */
 void SWS_Transmit(char const * const buffer, uint8_t size, void * args[], uint8_t nargs)
 {
 	if (nargs > 0 && args)
@@ -100,17 +101,17 @@ void SWS_Transmit(char const * const buffer, uint8_t size, void * args[], uint8_
 		while (txBuffer[i])
 		{
 			mask = 0x01;
-			IO_Off(s_ePort, s_pin);
+			IO_Off(*s_pPort, s_pin);
 			txDelay(); // Start bit
 
 			for (mask = 0x01; mask > 0; mask <<= 1)
 			{
 
-				(txBuffer[i] & mask) ? IO_On(s_ePort, s_pin) : IO_Off(s_ePort, s_pin);
+				(txBuffer[i] & mask) ? IO_On(*s_pPort, s_pin) : IO_Off(*s_pPort, s_pin);
 				txDelay();
 			}
 
-			IO_On(s_ePort, s_pin);
+			IO_On(*s_pPort, s_pin);
 			txDelay(); // Stop bit
 			i++;
 		}
@@ -177,26 +178,29 @@ static uint8_t format(char * buf, const char spec, void * pArg)
 {
 	uint8_t bytesWritten = 0;
 
-	uint16_t uVal = 0;
-	int16_t sVal = 0;
+	uint32_t uVal = 0;
+	int32_t sVal = 0;
 	uint8_t digitcount = 0;
 	bool foundSignificantDigit = false;
 
 	switch(spec)
 	{
 	case 'u':// Unsigned 8-bit int
-		uVal = *( (uint16_t *)pArg );
+		uVal = (uint32_t)( *( (uint8_t *)pArg ) );
 		break;
 	case 'U':// Unsigned 16-bit int
-		uVal = (uint16_t)( *( (uint16_t *)pArg ) );
+		uVal = (uint32_t)( *( (uint16_t *)pArg ) );
 		break;
 	case 's':// Signed 8-bit int
-		sVal = (int16_t)( *( (int8_t *)pArg ) );
-		uVal = abs(sVal);
+		sVal = (int32_t) ( *( (int8_t *)pArg ) );
+		uVal = labs(sVal);
 		break;
 	case 'S':// Signed 16-bit int
-		sVal = (int16_t)( *( (int16_t *)pArg ) );
-		uVal = abs(sVal);
+		sVal = (int32_t) ( *( (int16_t *)pArg ) );
+		uVal = labs(sVal);
+		break;
+	case 'L':// Signed 32-bit int
+		uVal = (uint32_t)( *( (uint32_t *)pArg ) );
 		break;
 	}
 
@@ -206,9 +210,9 @@ static uint8_t format(char * buf, const char spec, void * pArg)
 		bytesWritten++;
 	}
 
-	uint16_t placevalue = 0;
+	uint32_t placevalue = 0;
 
-	for (placevalue = 10000; placevalue > 1; placevalue /= 10)
+	for (placevalue = 1000000000; placevalue > 1; placevalue /= 10)
 	{
 		digitcount = getPlaceCount(uVal, placevalue);
 		if (digitcount || foundSignificantDigit)
@@ -227,7 +231,7 @@ static uint8_t format(char * buf, const char spec, void * pArg)
 	return bytesWritten;
 }
 
-static uint8_t getPlaceCount(uint16_t value, uint16_t place)
+static uint8_t getPlaceCount(uint32_t value, uint32_t place)
 {
 	if (place > 1 && value > 0)
 	{
