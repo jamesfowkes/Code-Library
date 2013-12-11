@@ -71,6 +71,37 @@ void IO_SetMode(IO_PORT_ENUM ePort, uint8_t pin, IO_MODE_ENUM eMode)
 	}
 }
 
+volatile uint8_t * IO_GetPortDirect(IO_PORT_ENUM ePort)
+{
+
+	volatile uint8_t * port = NULL;
+
+	switch(ePort)
+	{
+#ifdef DDRA
+	case IO_PORTA:
+		port = &PORTA;
+		break;
+#endif
+#ifdef DDRB
+	case IO_PORTB:
+		port = &PORTB;
+		break;
+#endif
+#ifdef DDRC
+	case IO_PORTC:
+		port = &PORTC;
+		break;
+#endif
+#ifdef DDRD
+	case IO_PORTD:
+		port = &PORTD;
+	break;
+#endif
+	}
+
+	return port;
+}
 /*
  * Private Functions
  */

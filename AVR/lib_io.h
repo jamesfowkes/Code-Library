@@ -51,4 +51,6 @@ typedef void (*EXT_IO_FN)(bool);
 void IO_Control(IO_PORT_ENUM ePort, uint8_t pin, IO_STATE_ENUM state);
 void IO_SetMode(IO_PORT_ENUM ePort, uint8_t pin, IO_MODE_ENUM eMode);
 
+volatile uint8_t * IO_GetPortDirect(IO_PORT_ENUM ePort);
+
 #endif
