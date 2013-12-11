@@ -30,12 +30,19 @@ uint16_t days_in_month(uint8_t month, bool is_leap_year)
 	}
 }
 
-uint16_t get_year_days(const TM * tm)
+uint16_t calculate_days_into_year(const TM * tm)
 {
 	uint16_t days = s_days_into_year[tm->tm_mon] + tm->tm_mday;
 
-	if (is_leap_year(tm->tm_year + 1900)) { days++; }
+	if (is_leap_year(tm->tm_year + 1900))
+	{
+		if (days > FEB28TH_DAYS_INTO_YEAR)
+		{
+			days++; //There's an extra day (Feb 29th) not accounted for months days array
+		}
+	}
 
+	days--; // Subtract 1 because tm->tm_mday is 1-31, and first day of year is 0th day
 	return days;
 }
 
@@ -104,10 +111,10 @@ UNIX_TIMESTAMP time_to_unix_seconds(TM const * const tm)
 		days += is_leap_year(C_TO_GREGORIAN_YEAR(year)) ? 366 : 365;
 	}
 	
-	secs += (days * 86400);
+	secs += (days * 86400UL);
 
-	secs += (tm->tm_hour * 3600);
-	secs += (tm->tm_min * 60);
+	secs += (tm->tm_hour * 3600UL);
+	secs += (tm->tm_min * 60UL);
 	secs += tm->tm_sec;
 	
 	return secs;

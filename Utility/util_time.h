@@ -45,6 +45,9 @@ enum month_enum
 
 #define FIRST_DAY_OF_WEEK_1_JAN_1970 (THU) // The unix epoch starts on a Thursday
 
+// Needed for leap years: number of days up to Feb 28th
+#define FEB28TH_DAYS_INTO_YEAR (31 + 28)
+
 // Convert a gregorian year to its YY representation
 #define TWO_DIGIT_YEAR(year) (year % 100)
 
@@ -85,7 +88,7 @@ struct tm
 };
 typedef struct tm TM;
 
-typedef uint64_t UNIX_TIMESTAMP;
+typedef uint32_t UNIX_TIMESTAMP;
 typedef int C_STRUCT_YEAR;
 typedef int GREGORIAN_YEAR;
 
@@ -95,7 +98,7 @@ typedef int GREGORIAN_YEAR;
 
 bool is_leap_year(GREGORIAN_YEAR year);
 uint16_t days_in_month(uint8_t month, bool is_leap_year);
-uint16_t get_year_days(const TM * tm);
+uint16_t calculate_days_into_year(const TM * tm);
 
 void unix_seconds_to_time(UNIX_TIMESTAMP sec, TM * tm);
 UNIX_TIMESTAMP time_to_unix_seconds(TM const * const tm);

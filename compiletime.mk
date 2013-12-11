@@ -6,7 +6,7 @@ compiletime.h:
 	@echo "#define _COMPILE_TIME_H_" >> $@
 	
 	@echo "// Compile time as UINX epoch time" >> $@
-	@echo -n "#define COMPILE_TIME_INT " >> $@
+	@echo -n "#define COMPILE_TIME_INT (uint32_t)" >> $@
 	@date "+%s" >> $@
 	
 	@echo "//Compile time as array of digits" >> $@
