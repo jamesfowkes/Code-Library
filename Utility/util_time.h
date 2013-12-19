@@ -64,7 +64,7 @@ enum month_enum
 #define S_PER_DAY (S_PER_HOUR * HOURS_PER_DAY)
 
 // Milliseconds to other times
-#define MS_PER_S (1000)
+#define MS_PER_S (1000UL)
 #define MS_PER_MIN (MS_PER_S * S_PER_MIN)
 #define MS_PER_HOUR (MS_PER_S * S_PER_HOUR)
 
