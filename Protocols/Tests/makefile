@@ -5,13 +5,12 @@
 # ========================================== 
 
 C_COMPILER=gcc
-UNITY_FOLDER=E:/WorkDir/Unity
+UNITY_FOLDER=C:/Unity
+DEL=@rm -f
 
 ifeq ($(OS),Windows_NT)
 	TARGET_EXTENSION=.exe
-	DEL=del
 else
-	DEL=@rm -f
 	TARGET_EXTENSION=.out
 endif
 

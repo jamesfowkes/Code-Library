@@ -29,6 +29,8 @@ extern void tearDown(void);
 
 extern void test_InitialisingGoodDevice();
 extern void test_InitialisingBadDevice();
+extern void test_StartDevice();
+extern void test_MakeMessage();
 
 //=======Test Reset Option=====
 void resetTest()
@@ -45,6 +47,8 @@ int main(void)
   UnityBegin();
   RUN_TEST(test_InitialisingGoodDevice, 57);
   RUN_TEST(test_InitialisingBadDevice, 58);
+  RUN_TEST(test_StartDevice, 59);
+  RUN_TEST(test_MakeMessage, 60);
 
   return (UnityEnd());
 }

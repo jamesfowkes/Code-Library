@@ -1,3 +1,5 @@
+#ifndef _LLAP_H_
+#define _LLAP_H_
 
 /* Defines and Typedefs */
 
@@ -50,8 +52,9 @@ typedef struct llap_device LLAP_DEVICE;
 
 void LLAP_Init(void);
 bool LLAP_StartDevice(LLAP_DEVICE * dev);
-void LLAP_HandleIncomingMessage(LLAP_DEVICE * dev, char * msg);
-void LLAP_SendOutgoingMessage(LLAP_GENERIC_MSG_ENUM eMsg, char * body);
+bool LLAP_HandleIncomingMessage(LLAP_DEVICE * dev, char * msg);
+void LLAP_SendOutgoingMessage(LLAP_DEVICE * dev, char * body);
+bool LLAP_MakeMessage(LLAP_DEVICE * dev, char * body);
 
 void LLAP_SendBATT(LLAP_DEVICE * dev, char * msg);
 void LLAP_SendCHDEVID(LLAP_DEVICE * dev, char * msg);
@@ -65,3 +68,5 @@ void LLAP_SendAWAKE(LLAP_DEVICE * dev);
 void LLAP_SendBATTLOW(LLAP_DEVICE * dev);
 void LLAP_SendERROR(LLAP_DEVICE * dev, char * msg);
 void LLAP_SendSLEEPING(LLAP_DEVICE * dev);
+
+#endif

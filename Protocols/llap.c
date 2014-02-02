@@ -37,7 +37,7 @@
 #define LLAP_VERSION "1.01"
 #endif
 
-#define GET_BODY_PTR(msg) (&msg[2])
+#define GET_BODY_PTR(msg) (&msg[3])
 
 /* These generics messages are handled internally
 by the LLAP library and them a message request is
@@ -155,13 +155,13 @@ bool LLAP_StartDevice(LLAP_DEVICE * dev)
 	if (dev->valid)
 	{
 		initBuffer(dev);
-		//sendMessage(dev, s_generics[STARTED].msg, s_generics[STARTED].len);
+		sendMessage(dev, s_generics[STARTED].msg, s_generics[STARTED].len);
 	}
 	
 	return dev->valid;
 }
 
-bool LLAP_HandleMessage(LLAP_DEVICE * dev, char * msg)
+bool LLAP_HandleIncomingMessage(LLAP_DEVICE * dev, char * msg)
 {
 	bool bSuccess = false;
 
@@ -189,6 +189,32 @@ bool LLAP_HandleMessage(LLAP_DEVICE * dev, char * msg)
 	}
 	
 	return bSuccess;
+}
+
+void LLAP_SendOutgoingMessage(LLAP_DEVICE * dev, char * body)
+{
+	LLAP_MakeMessage(dev, body);
+	dev->sendRequest(dev->msgBuffer);
+}
+	
+bool LLAP_MakeMessage(LLAP_DEVICE * dev, char * body)
+{
+	bool success = false;
+	
+	if (dev->valid)
+	{
+		uint8_t len = strlen(body);
+		if (len <= MAX_BODY_LENGTH)
+		{
+			success = true;
+			initBuffer(dev);
+			strncpy(GET_BODY_PTR(dev->msgBuffer), body, len+1); // Also copy NULL byte
+			padMessageToLength(dev->msgBuffer);
+		}
+	}
+	
+	return success;
+	
 }
 
 void LLAP_SendBATT(LLAP_DEVICE * dev, char * msg)
@@ -365,6 +391,7 @@ static void initBuffer(LLAP_DEVICE * dev)
 	dev->msgBuffer[0] = 'a';
 	dev->msgBuffer[1] = dev->id[0];
 	dev->msgBuffer[2] = dev->id[1];
+	dev->msgBuffer[3] = '\0';
 }
 
 static void sendMessage(LLAP_DEVICE * dev, char * msgType, uint8_t typeLength)
