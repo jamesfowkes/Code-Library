@@ -102,9 +102,10 @@ static char * s_llapVersion = LLAP_VERSION;
 /*
  * Private Function Prototypes
  */
-static void initBuffer(LLAP_DEVICE * dev);
-static void sendMessage(LLAP_DEVICE * dev, char * msgType, uint8_t typeLength);
-static void sendMessageWithData(LLAP_DEVICE * dev, char * msgType, uint8_t typeLength, char *data, uint8_t dataLength);
+static void initBuffer(LLAP_DEVICE * dev, char * destinationID);
+static bool makeMessage(LLAP_DEVICE * dev, char * body, char * destinationID);
+static void sendMessage(LLAP_DEVICE * dev, char * dest, char * msgType, uint8_t typeLength);
+static void sendMessageWithData(LLAP_DEVICE * dev, char * dest, char * msgType, uint8_t typeLength, char *data, uint8_t dataLength);
 
 static void padMessageToLength(char *msg);
 static bool validateDevice(LLAP_DEVICE * dev);
@@ -129,7 +130,7 @@ void LLAP_Init(void)
 	PVT_GENERIC_MSG_ENUM ePvtGeneric;
 	LLAP_GENERIC_MSG_ENUM eGeneric;
 	
-	for (ePvtGeneric = DEVNAME; ePvtGeneric < MAX_PVT_MSG_ENUM; ++ePvtGeneric)
+	for (ePvtGeneric = APVER; ePvtGeneric < MAX_PVT_MSG_ENUM; ++ePvtGeneric)
 	{
 		s_pvtGenerics[ePvtGeneric].len = strlen( s_pvtGenerics[ePvtGeneric].msg );
 	}
@@ -154,8 +155,7 @@ bool LLAP_StartDevice(LLAP_DEVICE * dev)
 	/* Then if the device is valid, reguest a started message be sent */
 	if (dev->valid)
 	{
-		initBuffer(dev);
-		sendMessage(dev, s_generics[STARTED].msg, s_generics[STARTED].len);
+		sendMessage(dev, NULL, s_generics[STARTED].msg, s_generics[STARTED].len);
 	}
 	
 	return dev->valid;
@@ -178,8 +178,8 @@ bool LLAP_HandleIncomingMessage(LLAP_DEVICE * dev, char * msg)
 			{
 				// Test for LLAP generic messages (application handling)
 				bSuccess = tryGenericMessageHandlers(dev, body);
-			}
-					
+			}	
+	
 			if (!bSuccess)
 			{
 				// This is an application specific message
@@ -191,126 +191,151 @@ bool LLAP_HandleIncomingMessage(LLAP_DEVICE * dev, char * msg)
 	return bSuccess;
 }
 
-void LLAP_SendOutgoingMessage(LLAP_DEVICE * dev, char * body)
+bool LLAP_SendOutgoingMessage(LLAP_DEVICE * dev, char * body)
 {
-	LLAP_MakeMessage(dev, body);
-	dev->sendRequest(dev->msgBuffer);
+	return LLAP_SendOutgoingMessageTo(dev, body, NULL);
 }
-	
-bool LLAP_MakeMessage(LLAP_DEVICE * dev, char * body)
+
+bool LLAP_SendOutgoingMessageTo(LLAP_DEVICE * dev, char * body, char * destinationID)
 {
-	bool success = false;
+	bool success = makeMessage(dev, body, destinationID);
 	
-	if (dev->valid)
+	if (success)
 	{
-		uint8_t len = strlen(body);
-		if (len <= MAX_BODY_LENGTH)
-		{
-			success = true;
-			initBuffer(dev);
-			strncpy(GET_BODY_PTR(dev->msgBuffer), body, len+1); // Also copy NULL byte
-			padMessageToLength(dev->msgBuffer);
-		}
+		dev->sendRequest(dev->msgBuffer);
 	}
 	
 	return success;
+}
 	
+bool LLAP_MakeMessageTo(LLAP_DEVICE * dev, char * body, char * destinationID)
+{
+	return makeMessage(dev, body, destinationID);
 }
 
-void LLAP_SendBATT(LLAP_DEVICE * dev, char * msg)
+bool LLAP_MakeMessageFrom(LLAP_DEVICE * dev, char * body)
 {
-	if (dev->valid && isValidDecimalString(msg))
+	return makeMessage(dev, body, NULL);
+}
+
+bool LLAP_SendBATT(LLAP_DEVICE * dev, char * msg)
+{
+	bool success = dev->valid && isValidDecimalString(msg);
+	if (success)
 	{
-		sendMessageWithData(dev, s_generics[BATT].msg, s_generics[BATT].len, msg, DECIMAL_STR_LENGTH);
+		sendMessageWithData(dev, NULL, s_generics[BATT].msg, s_generics[BATT].len, msg, DECIMAL_STR_LENGTH);
 	}
+	return success;
 }
 
-void LLAP_SendCHDEVID(LLAP_DEVICE * dev, char * msg)
+bool LLAP_SendCHDEVID(LLAP_DEVICE * dev, char *targetID, char * newID)
 {
-	if (dev->valid && isValidID(msg))
+	bool success = dev->valid && isValidID(targetID) && isValidID(newID);
+	if (success)
 	{
-		sendMessageWithData(dev, s_generics[CHDEVID].msg, s_generics[CHDEVID].len, msg, ID_STR_LENGTH);
+		sendMessageWithData(dev, targetID, s_generics[CHDEVID].msg, s_generics[CHDEVID].len, newID, ID_STR_LENGTH);
 	}
+	return success;
 }
 
-void LLAP_SendCYCLE(LLAP_DEVICE * dev)
+bool LLAP_SendCYCLE(LLAP_DEVICE * dev, char *targetID)
 {
+	bool success = dev->valid && isValidID(targetID);
+	if (success)
+	{
+		sendMessage(dev, targetID, s_generics[CYCLE].msg, s_generics[CYCLE].len);
+	}
+	return success;
+}
+
+bool LLAP_SendINTVL(LLAP_DEVICE * dev, char * msg, char *targetID)
+{
+	bool success = dev->valid && isValidIntervalMessage(msg) && isValidID(targetID);
+	if (success)
+	{
+		sendMessageWithData(dev, targetID, s_generics[INTVL].msg, s_generics[INTVL].len, msg, INTERVAL_STR_LENGTH);
+	}
+	return success;
+}
+
+bool LLAP_SendPANID(LLAP_DEVICE * dev, char * msg, char *targetID)
+{
+	bool success = dev->valid && isValidPANIDMessage(msg) && isValidID(targetID);
+	if (success)
+	{
+		sendMessageWithData(dev, targetID, s_generics[PANID].msg, s_generics[PANID].len, msg, PANID_STR_LENGTH);
+	}
+	return success;
+}
+
+bool LLAP_SendREBOOT(LLAP_DEVICE * dev, char *targetID)
+{
+	bool success = dev->valid;
 	if (dev->valid)
 	{
-		sendMessage(dev, s_generics[CYCLE].msg, s_generics[CYCLE].len);
+		sendMessage(dev, targetID, s_generics[REBOOT].msg, s_generics[REBOOT].len);
 	}
+	return success;
 }
 
-void LLAP_SendINTVL(LLAP_DEVICE * dev, char * msg)
+bool LLAP_SendRETRIES(LLAP_DEVICE * dev, char * msg, char *targetID)
 {
-	if (dev->valid && isValidIntervalMessage(msg))
+	bool success = dev->valid && isValidRETRIESMessage(msg) && isValidID(targetID);
+	if (success)
 	{
-		sendMessageWithData(dev, s_generics[CYCLE].msg, s_generics[CYCLE].len, msg, INTERVAL_STR_LENGTH);
+		sendMessageWithData(dev, targetID, s_generics[RETRIES].msg, s_generics[RETRIES].len, msg, RETRIES_STR_LENGTH);
 	}
+	return success;
 }
 
-void LLAP_SendPANID(LLAP_DEVICE * dev, char * msg)
+bool LLAP_SendSLEEP(LLAP_DEVICE * dev, char * msg, char *targetID)
 {
-	if (dev->valid && isValidPANIDMessage(msg))
+	bool success = dev->valid && isValidIntervalMessage(msg) && isValidID(targetID);
+	if (success)
 	{
-		sendMessageWithData(dev, s_generics[PANID].msg, s_generics[PANID].len, msg, PANID_STR_LENGTH);
+		sendMessageWithData(dev, targetID, s_generics[SLEEP].msg, s_generics[SLEEP].len, msg, INTERVAL_STR_LENGTH);
 	}
+	return success;
 }
 
-void LLAP_SendREBOOT(LLAP_DEVICE * dev)
+bool LLAP_SendAWAKE(LLAP_DEVICE * dev)
 {
+	bool success = dev->valid;
 	if (dev->valid)
 	{
-		sendMessage(dev, s_generics[REBOOT].msg, s_generics[REBOOT].len);
+		sendMessage(dev, NULL, s_generics[AWAKE].msg, s_generics[AWAKE].len);
 	}
+	return success;
 }
 
-void LLAP_SendRETRIES(LLAP_DEVICE * dev, char * msg)
+bool LLAP_SendBATTLOW(LLAP_DEVICE * dev)
 {
-	if (dev->valid && isValidRETRIESMessage(msg))
-	{
-		sendMessageWithData(dev, s_generics[REBOOT].msg, s_generics[REBOOT].len, msg, RETRIES_STR_LENGTH);
-	}
-}
-
-void LLAP_SendSLEEP(LLAP_DEVICE * dev, char * msg)
-{
-	if (dev->valid && isValidIntervalMessage(msg))
-	{
-		sendMessageWithData(dev, s_generics[SLEEP].msg, s_generics[SLEEP].len, msg, INTERVAL_STR_LENGTH);
-	}
-}
-
-void LLAP_SendAWAKE(LLAP_DEVICE * dev)
-{
+	bool success = dev->valid;
 	if (dev->valid)
 	{
-		sendMessage(dev, s_generics[AWAKE].msg, s_generics[AWAKE].len);
+		sendMessage(dev, NULL, s_generics[BATTLOW].msg, s_generics[BATTLOW].len);
 	}
+	return success;
 }
 
-void LLAP_SendBATTLOW(LLAP_DEVICE * dev)
+bool LLAP_SendERROR(LLAP_DEVICE * dev, char * msg)
 {
+	bool success = dev->valid;
 	if (dev->valid)
 	{
-		sendMessage(dev, s_generics[BATTLOW].msg, s_generics[BATTLOW].len);
+		sendMessageWithData(dev, NULL, s_generics[ERROR].msg, s_generics[ERROR].len, msg, MAX_ERROR_STR_LENGTH);
 	}
+	return success;
 }
 
-void LLAP_SendERROR(LLAP_DEVICE * dev, char * msg)
+bool LLAP_SendSLEEPING(LLAP_DEVICE * dev)
 {
+	bool success = dev->valid;
 	if (dev->valid)
 	{
-		sendMessageWithData(dev, s_generics[ERROR].msg, s_generics[ERROR].len, msg, MAX_ERROR_STR_LENGTH);
+		sendMessage(dev, NULL, s_generics[SLEEPING].msg, s_generics[SLEEPING].len);
 	}
-}
-
-void LLAP_SendSLEEPING(LLAP_DEVICE * dev)
-{
-	if (dev->valid)
-	{
-		sendMessage(dev, s_generics[SLEEPING].msg, s_generics[SLEEPING].len);
-	}
+	return success;
 }
 
 /*
@@ -322,9 +347,9 @@ static bool tryInternalMessageHandlers(LLAP_DEVICE * dev, char * body)
 	bool msgHandled = false;
 	PVT_GENERIC_MSG_ENUM ePvtGeneric;
 	
-	for (ePvtGeneric = DEVNAME; ((ePvtGeneric < MAX_PVT_MSG_ENUM) && !msgHandled); ++ePvtGeneric)
+	for (ePvtGeneric = APVER; ((ePvtGeneric < MAX_PVT_MSG_ENUM) && !msgHandled); ++ePvtGeneric)
 	{
-		if (strncmp(body, s_pvtGenerics[ePvtGeneric].msg, MAX_BODY_LENGTH) == 0)
+		if (strncmp(body, s_pvtGenerics[ePvtGeneric].msg, s_pvtGenerics[ePvtGeneric].len) == 0)
 		{
 			handleInternalMessage(ePvtGeneric, dev);
 			msgHandled = true;
@@ -361,6 +386,7 @@ static void handleInternalMessage(PVT_GENERIC_MSG_ENUM ePvtGeneric, LLAP_DEVICE 
 	case APVER:
 		strncpy(body, s_pvtGenerics[APVER].msg, s_pvtGenerics[APVER].len);
 		strncpy(body + s_pvtGenerics[APVER].len, s_llapVersion, DECIMAL_STR_LENGTH);
+		break;
 	case DEVNAME:
 		strncpy(body, dev->devName, MAX_BODY_LENGTH);
 		break;
@@ -372,7 +398,7 @@ static void handleInternalMessage(PVT_GENERIC_MSG_ENUM ePvtGeneric, LLAP_DEVICE 
 		strncpy(body + s_pvtGenerics[FVER].len, dev->fwVer, DECIMAL_STR_LENGTH);
 		break;
 	case HELLO:
-		strncpy(body, s_pvtGenerics[HELLO].msg, s_pvtGenerics[HELLO].len);
+		strncpy(body, s_pvtGenerics[HELLO].msg, MAX_BODY_LENGTH);
 		break;
 	case SER:
 		strncpy(body, s_pvtGenerics[SER].msg, s_pvtGenerics[SER].len);
@@ -386,27 +412,46 @@ static void handleInternalMessage(PVT_GENERIC_MSG_ENUM ePvtGeneric, LLAP_DEVICE 
 	dev->sendRequest(dev->msgBuffer);
 }
 
-static void initBuffer(LLAP_DEVICE * dev)
+static void initBuffer(LLAP_DEVICE * dev, char * destinationID)
 {
 	dev->msgBuffer[0] = 'a';
-	dev->msgBuffer[1] = dev->id[0];
-	dev->msgBuffer[2] = dev->id[1];
+	dev->msgBuffer[1] = destinationID ? destinationID[0] : dev->id[0];
+	dev->msgBuffer[2] = destinationID ? destinationID[1] : dev->id[1];
 	dev->msgBuffer[3] = '\0';
 }
 
-static void sendMessage(LLAP_DEVICE * dev, char * msgType, uint8_t typeLength)
+static bool makeMessage(LLAP_DEVICE * dev, char * body, char * destinationID)
 {
-	sendMessageWithData(dev, msgType, typeLength, NULL, 0);
+	bool success = false;
+	
+	if (dev->valid)
+	{
+		uint8_t len = strlen(body);
+		if (len <= MAX_BODY_LENGTH)
+		{
+			success = true;
+			initBuffer(dev, destinationID);
+			strncpy(GET_BODY_PTR(dev->msgBuffer), body, len+1); // Also copy NULL byte
+			padMessageToLength(dev->msgBuffer);
+		}
+	}
+	return success;
 }
 
-static void sendMessageWithData(LLAP_DEVICE * dev, char * msgType, uint8_t typeLength, char *data, uint8_t dataLength)
+static void sendMessage(LLAP_DEVICE * dev, char * dest, char * msgType, uint8_t typeLength)
+{
+	sendMessageWithData(dev, dest, msgType, typeLength, NULL, 0);
+}
+
+static void sendMessageWithData(LLAP_DEVICE * dev, char * dest, char * msgType, uint8_t typeLength, char *data, uint8_t dataLength)
 {
 	if (dev->valid)
 	{
-		strncpy(GET_BODY_PTR(dev->msgBuffer), msgType, typeLength);
+		initBuffer(dev, dest);
+		strncpy(GET_BODY_PTR(dev->msgBuffer), msgType, typeLength+1); // Also copy NULL byte
 		if (data)
 		{
-			strncpy(GET_BODY_PTR(dev->msgBuffer) + typeLength, data, dataLength);
+			strncpy(GET_BODY_PTR(dev->msgBuffer) + typeLength, data, dataLength+1); // Also copy NULL byte
 		}
 		padMessageToLength(dev->msgBuffer);
 		dev->sendRequest(dev->msgBuffer);
@@ -494,14 +539,13 @@ static bool isValidPANIDMessage(char * msg)
 	
 	/* Valid PAN ID strings are 4 chars long in XXXX format,
 	where X is a hex digit */
-
 	valid &= (strlen(msg) == PANID_STR_LENGTH);
 	if (valid)
 	{
-		valid &= isxdigit(msg[0]);
-		valid &= isxdigit(msg[1]);
-		valid &= isxdigit(msg[2]);
-		valid &= isxdigit(msg[2]);
+		valid &= (bool)isxdigit(msg[0]);
+		valid &= (bool)isxdigit(msg[1]);
+		valid &= (bool)isxdigit(msg[2]);
+		valid &= (bool)isxdigit(msg[3]);
 	}
 	
 	return valid;
@@ -512,12 +556,12 @@ static bool isValidRETRIESMessage(char * msg)
 	bool valid = true;
 	
 	/* Valid retry strings are 2 chars long in 99 format */
-
+	
 	valid &= (strlen(msg) == RETRIES_STR_LENGTH);
 	if (valid)
 	{
-		valid &= isdigit(msg[0]);
-		valid &= isdigit(msg[1]);
+		valid &= (bool)isdigit(msg[0]);
+		valid &= (bool)isdigit(msg[1]);
 	}
 	
 	return valid;

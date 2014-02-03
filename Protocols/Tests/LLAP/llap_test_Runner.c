@@ -27,10 +27,24 @@
 extern void setUp(void);
 extern void tearDown(void);
 
-extern void test_InitialisingGoodDevice();
-extern void test_InitialisingBadDevice();
-extern void test_StartDevice();
-extern void test_MakeMessage();
+extern void test_InitialisingGoodDevice(void);
+extern void test_InitialisingBadDevice(void);
+extern void test_StartDevice(void);
+extern void test_SendOutgoingMessage(void);
+extern void test_HandleIncomingMessage(void);
+extern void test_MakeMessage(void);
+extern void test_SendBATT(void);
+extern void test_SendCHDEVID(void);
+extern void test_SendCYCLE(void);
+extern void test_SendINTVL(void);
+extern void test_SendPANID(void);
+extern void test_SendREBOOT(void);
+extern void test_SendRETRIES(void);
+extern void test_SendSLEEP(void);
+extern void test_SendAWAKE(void);
+extern void test_SendBATTLOW(void);
+extern void test_SendERROR(void);
+extern void test_SendSLEEPING(void);
 
 //=======Test Reset Option=====
 void resetTest()
@@ -49,6 +63,19 @@ int main(void)
   RUN_TEST(test_InitialisingBadDevice, 58);
   RUN_TEST(test_StartDevice, 59);
   RUN_TEST(test_MakeMessage, 60);
-
+  RUN_TEST(test_SendBATT, 61);
+  RUN_TEST(test_SendCHDEVID, 62);
+  RUN_TEST(test_SendCYCLE, 62);
+  RUN_TEST(test_SendINTVL, 63);
+  RUN_TEST(test_SendPANID, 64);
+  RUN_TEST(test_SendREBOOT, 65);
+  RUN_TEST(test_SendRETRIES, 66);
+  RUN_TEST(test_SendSLEEP, 67);
+  RUN_TEST(test_SendAWAKE, 68);
+  RUN_TEST(test_SendBATTLOW, 69);
+  RUN_TEST(test_SendERROR, 70);
+  RUN_TEST(test_SendSLEEPING, 71);
+  RUN_TEST(test_SendOutgoingMessage, 72);
+  RUN_TEST(test_HandleIncomingMessage, 72);
   return (UnityEnd());
 }

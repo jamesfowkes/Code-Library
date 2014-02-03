@@ -31,6 +31,7 @@ typedef void 	(*LLAP_SEND_FN)(char * msgBody);
 struct llap_device
 {
 	char id[2];
+	char msgDestination[2];
 	char * devName;
 	char * devType;
 	char * fwVer;
@@ -53,20 +54,22 @@ typedef struct llap_device LLAP_DEVICE;
 void LLAP_Init(void);
 bool LLAP_StartDevice(LLAP_DEVICE * dev);
 bool LLAP_HandleIncomingMessage(LLAP_DEVICE * dev, char * msg);
-void LLAP_SendOutgoingMessage(LLAP_DEVICE * dev, char * body);
-bool LLAP_MakeMessage(LLAP_DEVICE * dev, char * body);
+bool LLAP_SendOutgoingMessage(LLAP_DEVICE * dev, char * body);
+bool LLAP_SendOutgoingMessageTo(LLAP_DEVICE * dev, char * body, char * destinationID);
+bool LLAP_MakeMessageTo(LLAP_DEVICE * dev, char * body, char * destinationID);
+bool LLAP_MakeMessageFrom(LLAP_DEVICE * dev, char * body);
 
-void LLAP_SendBATT(LLAP_DEVICE * dev, char * msg);
-void LLAP_SendCHDEVID(LLAP_DEVICE * dev, char * msg);
-void LLAP_SendCYCLE(LLAP_DEVICE * dev);
-void LLAP_SendINTVL(LLAP_DEVICE * dev, char * msg);
-void LLAP_SendPANID(LLAP_DEVICE * dev, char * msg);
-void LLAP_SendREBOOT(LLAP_DEVICE * dev);
-void LLAP_SendRETRIES(LLAP_DEVICE * dev, char * msg);
-void LLAP_SendSLEEP(LLAP_DEVICE * dev, char * msg);
-void LLAP_SendAWAKE(LLAP_DEVICE * dev);
-void LLAP_SendBATTLOW(LLAP_DEVICE * dev);
-void LLAP_SendERROR(LLAP_DEVICE * dev, char * msg);
-void LLAP_SendSLEEPING(LLAP_DEVICE * dev);
+bool LLAP_SendBATT(LLAP_DEVICE * dev, char * msg);
+bool LLAP_SendCHDEVID(LLAP_DEVICE * dev, char *targetID, char * newID);
+bool LLAP_SendCYCLE(LLAP_DEVICE * dev, char *targetID);
+bool LLAP_SendINTVL(LLAP_DEVICE * dev, char * msg, char *targetID);
+bool LLAP_SendPANID(LLAP_DEVICE * dev, char * msg, char *targetID);
+bool LLAP_SendREBOOT(LLAP_DEVICE * dev, char *targetID);
+bool LLAP_SendRETRIES(LLAP_DEVICE * dev, char * msg, char *targetID);
+bool LLAP_SendSLEEP(LLAP_DEVICE * dev, char * msg, char *targetID);
+bool LLAP_SendAWAKE(LLAP_DEVICE * dev);
+bool LLAP_SendBATTLOW(LLAP_DEVICE * dev);
+bool LLAP_SendERROR(LLAP_DEVICE * dev, char * msg);
+bool LLAP_SendSLEEPING(LLAP_DEVICE * dev);
 
 #endif

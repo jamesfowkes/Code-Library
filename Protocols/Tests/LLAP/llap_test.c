@@ -26,6 +26,8 @@ static char s_SendReqBuffer[] = "xxxxxxxxxxxx";
 
 static LLAP_DEVICE s_device;
 
+void makeGoodDevice(void);
+
 static void genericMsgHandler(LLAP_GENERIC_MSG_ENUM eMsgType, char * genericStr, char * msgBody)
 {
 	(void)eMsgType;
@@ -46,7 +48,8 @@ static void sendRequest(char * msgBody)
 void setUp(void)
 {
 	LLAP_Init();
-
+	makeGoodDevice();
+	LLAP_StartDevice(&s_device);
 }
 
 void makeGoodDevice(void)
@@ -71,8 +74,6 @@ void tearDown(void)
 
 void test_InitialisingGoodDevice(void)
 {
-	makeGoodDevice();
-	LLAP_StartDevice(&s_device);
 	TEST_ASSERT_EQUAL(true, s_device.valid);
 	
 	uint8_t c1;
@@ -94,6 +95,8 @@ void test_InitialisingBadDevice(void)
 {
 	
 	// Test "initialized to zero" s_device
+	memset(&s_device, 0, sizeof(LLAP_DEVICE));
+	
 	LLAP_StartDevice(&s_device);
 	TEST_ASSERT_EQUAL(false, s_device.valid);
 	
@@ -162,33 +165,195 @@ void test_InitialisingBadDevice(void)
 
 void test_StartDevice(void)
 {
-	makeGoodDevice();
-	LLAP_StartDevice(&s_device);
 	TEST_ASSERT_EQUAL(true, s_device.valid);
 	TEST_ASSERT_EQUAL_STRING("aAASTARTED--", s_SendReqBuffer);
 }
 
 void test_MakeMessage(void)
 {
-	makeGoodDevice();
-	LLAP_StartDevice(&s_device);
-	
-	TEST_ASSERT_EQUAL(false, LLAP_MakeMessage(&s_device, "XXXXXXXXXX"));
-	TEST_ASSERT_EQUAL(true, LLAP_MakeMessage(&s_device, "XXXXXXXXX"));
+	TEST_ASSERT_EQUAL(false, LLAP_MakeMessageFrom(&s_device, "XXXXXXXXXX"));
+	TEST_ASSERT_EQUAL(true, LLAP_MakeMessageFrom(&s_device, "XXXXXXXXX"));
 	TEST_ASSERT_EQUAL_STRING("aAAXXXXXXXXX", s_device.msgBuffer);
-	TEST_ASSERT_EQUAL(true, LLAP_MakeMessage(&s_device, "X"));
+	TEST_ASSERT_EQUAL(true, LLAP_MakeMessageFrom(&s_device, "X"));
 	TEST_ASSERT_EQUAL_STRING("aAAX--------", s_device.msgBuffer);
+	
+	TEST_ASSERT_EQUAL(false, LLAP_MakeMessageTo(&s_device, "XXXXXXXXXX", "TG"));
+	TEST_ASSERT_EQUAL(true, LLAP_MakeMessageTo(&s_device, "XXXXXXXXX", "TG"));
+	TEST_ASSERT_EQUAL_STRING("aTGXXXXXXXXX", s_device.msgBuffer);
+	TEST_ASSERT_EQUAL(true, LLAP_MakeMessageTo(&s_device, "X", "TG"));
+	TEST_ASSERT_EQUAL_STRING("aTGX--------", s_device.msgBuffer);
 }
 
-/*test_SendBATT(LLAP_DEVICE * dev, char * msg);
-test_SendCHDEVID(LLAP_DEVICE * dev, char * msg);
-test_SendCYCLE(LLAP_DEVICE * dev);
-test_SendINTVL(LLAP_DEVICE * dev, char * msg);
-test_SendPANID(LLAP_DEVICE * dev, char * msg);
-test_SendREBOOT(LLAP_DEVICE * dev);
-test_SendRETRIES(LLAP_DEVICE * dev, char * msg);
-test_SendSLEEP(LLAP_DEVICE * dev, char * msg);
-test_SendAWAKE(LLAP_DEVICE * dev);
-test_SendBATTLOW(LLAP_DEVICE * dev);
-test_SendERROR(LLAP_DEVICE * dev, char * msg);
-test_SendSLEEPING(LLAP_DEVICE * dev);*/
+void test_SendOutgoingMessage(void)
+{
+	TEST_ASSERT_EQUAL(false, LLAP_SendOutgoingMessage(&s_device, "XXXXXXXXXX"));
+	TEST_ASSERT_EQUAL(true, LLAP_SendOutgoingMessage(&s_device, "XXXXXXXXX"));
+	TEST_ASSERT_EQUAL_STRING("aAAXXXXXXXXX", s_SendReqBuffer);
+	TEST_ASSERT_EQUAL(true, LLAP_SendOutgoingMessage(&s_device, "X"));
+	TEST_ASSERT_EQUAL_STRING("aAAX--------", s_SendReqBuffer);
+	
+	TEST_ASSERT_EQUAL(false, LLAP_SendOutgoingMessageTo(&s_device, "XXXXXXXXXX", "TG"));
+	TEST_ASSERT_EQUAL(true, LLAP_SendOutgoingMessageTo(&s_device, "XXXXXXXXX", "TG"));
+	TEST_ASSERT_EQUAL_STRING("aTGXXXXXXXXX", s_SendReqBuffer);
+	TEST_ASSERT_EQUAL(true, LLAP_SendOutgoingMessageTo(&s_device, "X", "TG"));
+	TEST_ASSERT_EQUAL_STRING("aTGX--------", s_SendReqBuffer);
+}
+
+void test_HandleIncomingMessage(void)
+{
+	TEST_ASSERT_EQUAL(true, LLAP_HandleIncomingMessage(&s_device, "aAADEVNAME--"));
+	TEST_ASSERT_EQUAL_STRING("aAATestDev--", s_SendReqBuffer);
+	
+	TEST_ASSERT_EQUAL(true, LLAP_HandleIncomingMessage(&s_device, "aAAHELLO----"));
+	TEST_ASSERT_EQUAL_STRING("aAAHELLO----", s_SendReqBuffer);
+	
+	TEST_ASSERT_EQUAL(true, LLAP_HandleIncomingMessage(&s_device, "aAAAPVER----"));
+	TEST_ASSERT_EQUAL_STRING("aAAAPVER1.01", s_SendReqBuffer);
+	
+	TEST_ASSERT_EQUAL(true, LLAP_HandleIncomingMessage(&s_device, "aAADEVTYPE--"));
+	TEST_ASSERT_EQUAL_STRING("aAADevType--", s_SendReqBuffer);
+	
+	TEST_ASSERT_EQUAL(true, LLAP_HandleIncomingMessage(&s_device, "aAAFVER-----"));
+	TEST_ASSERT_EQUAL_STRING("aAAFVER1.00-", s_SendReqBuffer);
+	
+	TEST_ASSERT_EQUAL(true, LLAP_HandleIncomingMessage(&s_device, "aAASER------"));
+	TEST_ASSERT_EQUAL_STRING("aAASERSERNUM", s_SendReqBuffer);
+}
+
+void test_SendBATT(void)
+{
+	TEST_ASSERT_EQUAL(true, LLAP_SendBATT(&s_device, "3.30"));
+	TEST_ASSERT_EQUAL_STRING("aAABATT3.30-", s_SendReqBuffer);
+	TEST_ASSERT_EQUAL(false, LLAP_SendBATT(&s_device, "3"));
+	TEST_ASSERT_EQUAL(false, LLAP_SendBATT(&s_device, "33"));
+	TEST_ASSERT_EQUAL(false, LLAP_SendBATT(&s_device, "330"));
+	TEST_ASSERT_EQUAL(false, LLAP_SendBATT(&s_device, "3.3"));
+	TEST_ASSERT_EQUAL(false, LLAP_SendBATT(&s_device, "3.3"));
+	TEST_ASSERT_EQUAL(false, LLAP_SendBATT(&s_device, "33.3"));
+}
+
+void test_SendCHDEVID(void)
+{
+	TEST_ASSERT_EQUAL(true, LLAP_SendCHDEVID(&s_device, "TG", "AB"));
+	TEST_ASSERT_EQUAL_STRING("aTGCHDEVIDAB", s_SendReqBuffer);
+	TEST_ASSERT_EQUAL(false, LLAP_SendCHDEVID(&s_device, "TG", "A"));
+	TEST_ASSERT_EQUAL(false, LLAP_SendCHDEVID(&s_device, "TG", "A1"));
+	TEST_ASSERT_EQUAL(false, LLAP_SendCHDEVID(&s_device, "TG", "11"));
+	TEST_ASSERT_EQUAL(false, LLAP_SendCHDEVID(&s_device, "A", "TG"));
+	TEST_ASSERT_EQUAL(false, LLAP_SendCHDEVID(&s_device, "A1", "TG"));
+	TEST_ASSERT_EQUAL(false, LLAP_SendCHDEVID(&s_device, "11", "TG"));
+	TEST_ASSERT_EQUAL(false, LLAP_SendCHDEVID(&s_device, "A", "A"));
+}
+
+void test_SendCYCLE(void)
+{
+	TEST_ASSERT_EQUAL(true, LLAP_SendCYCLE(&s_device, "TG"));
+	TEST_ASSERT_EQUAL_STRING("aTGCYCLE----", s_SendReqBuffer);
+}
+
+void test_SendINTVL(void)
+{
+	int i;
+	char intervalString[] = "    ";
+	char expectedString[] = "            ";
+	for (i = 0; i < 1000; ++i)
+	{
+		sprintf(intervalString, "%03dS", i);
+		sprintf(expectedString, "aTGINTVL%03dS", i);
+		TEST_ASSERT_EQUAL(true, LLAP_SendINTVL(&s_device, intervalString, "TG"));
+		TEST_ASSERT_EQUAL_STRING(expectedString, s_SendReqBuffer);
+	}
+
+	TEST_ASSERT_EQUAL(false, LLAP_SendINTVL(&s_device, "", "TG"));
+	TEST_ASSERT_EQUAL(false, LLAP_SendINTVL(&s_device, "9", "TG"));
+	TEST_ASSERT_EQUAL(false, LLAP_SendINTVL(&s_device, "99", "TG"));
+	TEST_ASSERT_EQUAL(false, LLAP_SendINTVL(&s_device, "999", "TG"));
+	TEST_ASSERT_EQUAL(false, LLAP_SendINTVL(&s_device, "999A", "TG"));
+}
+
+void test_SendPANID(void)
+{
+	int i;
+	char panidString[] = "    ";
+	char expectedString[] = "            ";
+	for (i = 0; i <= 0xFFFF; ++i)
+	{
+		sprintf(panidString, "%04x", i);
+		sprintf(expectedString, "aTGPANID%04x", i);
+		TEST_ASSERT_EQUAL(true, LLAP_SendPANID(&s_device, panidString, "TG"));
+		TEST_ASSERT_EQUAL_STRING(expectedString, s_SendReqBuffer);
+	}
+
+	TEST_ASSERT_EQUAL(false, LLAP_SendPANID(&s_device, "", "TG"));
+	TEST_ASSERT_EQUAL(false, LLAP_SendPANID(&s_device, "9", "TG"));
+	TEST_ASSERT_EQUAL(false, LLAP_SendPANID(&s_device, "99", "TG"));
+	TEST_ASSERT_EQUAL(false, LLAP_SendPANID(&s_device, "999", "TG"));
+}
+
+void test_SendREBOOT(void)
+{
+	TEST_ASSERT_EQUAL(true, LLAP_SendREBOOT(&s_device, "TG"));
+	TEST_ASSERT_EQUAL_STRING("aTGREBOOT---", s_SendReqBuffer);
+}
+
+void test_SendRETRIES(void)
+{
+	int i;
+	char retriesString[] = "  ";
+	char expectedString[] = "            ";
+	for (i = 0; i < 100; ++i)
+	{
+		sprintf(retriesString, "%02d", i);
+		sprintf(expectedString, "aTGRETRIES%02d", i);
+		TEST_ASSERT_EQUAL(true, LLAP_SendRETRIES(&s_device, retriesString, "TG"));
+		TEST_ASSERT_EQUAL_STRING(expectedString, s_SendReqBuffer);
+	}
+
+	TEST_ASSERT_EQUAL(false, LLAP_SendRETRIES(&s_device, "", "TG"));
+	TEST_ASSERT_EQUAL(false, LLAP_SendRETRIES(&s_device, "9", "TG"));
+	TEST_ASSERT_EQUAL(false, LLAP_SendRETRIES(&s_device, "AA", "TG"));
+}
+
+void test_SendSLEEP(void)
+{
+	int i;
+	char intervalString[] = "    ";
+	char expectedString[] = "            ";
+	for (i = 0; i < 1000; ++i)
+	{
+		sprintf(intervalString, "%03dS", i);
+		sprintf(expectedString, "aTGSLEEP%03dS", i);
+		TEST_ASSERT_EQUAL(true, LLAP_SendSLEEP(&s_device, intervalString, "TG"));
+		TEST_ASSERT_EQUAL_STRING(expectedString, s_SendReqBuffer);
+	}
+
+	TEST_ASSERT_EQUAL(false, LLAP_SendSLEEP(&s_device, "", "TG"));
+	TEST_ASSERT_EQUAL(false, LLAP_SendSLEEP(&s_device, "9", "TG"));
+	TEST_ASSERT_EQUAL(false, LLAP_SendSLEEP(&s_device, "99", "TG"));
+	TEST_ASSERT_EQUAL(false, LLAP_SendSLEEP(&s_device, "999", "TG"));
+	TEST_ASSERT_EQUAL(false, LLAP_SendSLEEP(&s_device, "999A", "TG"));
+}
+
+void test_SendAWAKE(void)
+{
+	TEST_ASSERT_EQUAL(true, LLAP_SendAWAKE(&s_device));
+	TEST_ASSERT_EQUAL_STRING("aAAAWAKE----", s_SendReqBuffer);
+}
+
+void test_SendBATTLOW(void)
+{
+	TEST_ASSERT_EQUAL(true, LLAP_SendBATTLOW(&s_device));
+	TEST_ASSERT_EQUAL_STRING("aAABATTLOW--", s_SendReqBuffer);
+}
+
+void test_SendERROR(void)
+{
+	TEST_ASSERT_EQUAL(true, LLAP_SendERROR(&s_device, "ERID"));
+	TEST_ASSERT_EQUAL_STRING("aAAERRORERID", s_SendReqBuffer);
+}
+
+void test_SendSLEEPING(void)
+{
+	TEST_ASSERT_EQUAL(true, LLAP_SendSLEEPING(&s_device));
+	TEST_ASSERT_EQUAL_STRING("aAASLEEPING-", s_SendReqBuffer);
+}
