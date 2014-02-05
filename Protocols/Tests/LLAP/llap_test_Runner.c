@@ -76,6 +76,6 @@ int main(void)
   RUN_TEST(test_SendERROR, 70);
   RUN_TEST(test_SendSLEEPING, 71);
   RUN_TEST(test_SendOutgoingMessage, 72);
-  RUN_TEST(test_HandleIncomingMessage, 72);
+  RUN_TEST(test_HandleIncomingMessage, 73);
   return (UnityEnd());
 }

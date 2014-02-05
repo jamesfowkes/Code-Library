@@ -25,14 +25,14 @@
  * Private Function Ptototypes
  */
 
-static bool isValidJump(uint8_t currentState, uint8_t nextEvent, SM_ENTRY const * pEntry);
-static void internalInit(STATE_MACHINE_INTERNAL * Internal, SM_STATE initialState, SM_EVENT maxEvent, SM_STATE maxState, const SM_ENTRY *sm);
+static bool isValidJump(SM_STATE *currentState, uint8_t nextEvent, SM_ENTRY const * pEntry);
+static void internalInit(STATE_MACHINE_INTERNAL * Internal, SM_STATE *initialState, SM_EVENT maxEvent, uint8_t maxStateID, const SM_ENTRY *sm);
 
 /*
  * Public Functions
  */
 
-int8_t SM_Init(SM_STATE initialState, SM_EVENT maxEvent, SM_STATE maxState, const SM_ENTRY *sm)
+int8_t SM_Init(SM_STATE *initialState, SM_EVENT maxEvent, uint8_t maxState, const SM_ENTRY *sm)
 {
 	STATE_MACHINE_INTERNAL * NewMachine = NULL;
 	SM_EVENT * NewEventQueue = NULL;
@@ -72,10 +72,10 @@ void SM_SetActive(uint8_t idx, bool active)
 	}
 }
 
-SM_STATE SM_GetState(uint8_t idx)
+SM_STATEID SM_GetState(uint8_t idx)
 {
 	STATE_MACHINE_INTERNAL * Internal = SMM_GetMachine(idx);
-	return Internal->CurrentState;
+	return Internal->CurrentState->ID;
 }
 
 void SM_Kick(uint8_t idx)
@@ -84,7 +84,7 @@ void SM_Kick(uint8_t idx)
 	
 	SM_ENTRY const *pEntry = Internal->StateTable;
 	SM_EVENT nextEvent = Internal->MaxEvent;
-	
+	SM_STATEID oldStateId = Internal->CurrentState->ID; // Used to pass to onEnter , onLeave and state change functions
 	Internal->Idle = false;
 
 	while (!Ringbuf_Empty(&Internal->eventQueueBuffer))
@@ -93,18 +93,29 @@ void SM_Kick(uint8_t idx)
 		assert(nextEvent < Internal->MaxEvent);
 		
 		/* Find current state in table */
-		while (!isValidJump(Internal->CurrentState, nextEvent, pEntry) && pEntry->OldState < Internal->MaxState) {pEntry++;}
+		while (!isValidJump(Internal->CurrentState, nextEvent, pEntry) && pEntry->OldState->ID < Internal->MaxStateID) {pEntry++;}
 		
 		if (isValidJump(Internal->CurrentState, nextEvent, pEntry))
 		{
+			if (Internal->CurrentState->onLeave)
+			{
+				Internal->CurrentState->onLeave(oldStateId, pEntry->NewState->ID, nextEvent);
+			}
+			
 			if (pEntry->Function)
 			{
-				pEntry->Function();
+				pEntry->Function(oldStateId, pEntry->NewState->ID, nextEvent);
 			}
+			
 			Internal->CurrentState = pEntry->NewState;
+			
+			if (Internal->CurrentState->onEnter)
+			{
+				Internal->CurrentState->onEnter(oldStateId, pEntry->NewState->ID, nextEvent);
+			}
 		}
 		
-		assert(Internal->CurrentState <= Internal->MaxState);
+		assert(Internal->CurrentState->ID <= Internal->MaxStateID);
 	}
 	
 	Internal->Idle = true;
@@ -114,11 +125,11 @@ void SM_Kick(uint8_t idx)
  * Private Function Prototypes
  */
 
-void internalInit(STATE_MACHINE_INTERNAL * Internal, SM_STATE initialState, SM_EVENT maxEvent, SM_STATE maxState, const SM_ENTRY *sm)
+void internalInit(STATE_MACHINE_INTERNAL * Internal, SM_STATE *initialState, SM_EVENT maxEvent, uint8_t maxStateID, const SM_ENTRY *sm)
 {
 	Internal->CurrentState = initialState;
 	Internal->MaxEvent = maxEvent;
-	Internal->MaxState = maxState;
+	Internal->MaxStateID = maxStateID;
 	Internal->StateTable = sm;
 	Internal->Active = false;
 	Internal->Idle = true;
@@ -128,7 +139,7 @@ void internalInit(STATE_MACHINE_INTERNAL * Internal, SM_STATE initialState, SM_E
 	Internal->Initialised = true;
 }
 
-bool isValidJump(uint8_t currentState, uint8_t nextEvent, SM_ENTRY const * pEntry)
+bool isValidJump(SM_STATE *currentState, uint8_t nextEvent, SM_ENTRY const * pEntry)
 {
 	return (pEntry->OldState == currentState) && (pEntry->Event == nextEvent);
 }
