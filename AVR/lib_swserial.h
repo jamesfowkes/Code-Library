@@ -22,7 +22,7 @@ void SWS_RxInit(IO_PORT_ENUM ePort, uint8_t pin);
 void SWS_SetBaudrate(LIB_SWS_BAUDRATE_ENUM eBaudrate);
 #endif
 
-void SWS_Receive(char * rxBuffer, uint8_t n);
+uint8_t SWS_Receive(char * rxBuffer, uint8_t n, bool breakOnNull);
 void SWS_Transmit(char const * const buffer, uint8_t size, void * args[], uint8_t nargs);
 
 #endif

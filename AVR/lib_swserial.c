@@ -100,7 +100,7 @@ void SWS_TxInit(IO_PORT_ENUM ePort, uint8_t pin)
 	IO_On(*s_pPort[TX], s_pin[TX]);
 }
 
-void SWS_Receive(char * rxBuffer, uint8_t n)
+uint8_t SWS_Receive(char * rxBuffer, uint8_t n, bool breakOnNull)
 {
 	/* This function will be called when an start condition interrupt is 
 	detected. Since timing from the first edge cannot be relied upon, wait
@@ -132,9 +132,14 @@ void SWS_Receive(char * rxBuffer, uint8_t n)
 				delay();
 			}
 			delay(); // Stop bit
+			
+			if (breakOnNull && (rxBuffer[i] == '\0')) { break; }
+
 			i++;
 		}
 	}
+	
+	return i;
 }
 	
 /* Valid argument formats: %u/%U/%L: 8/16/32-bit unsigned, %s/%S: 8/16-bit signed */
