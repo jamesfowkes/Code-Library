@@ -26,6 +26,7 @@ void TMR8_Tick_Init(uint8_t nTimers, uint8_t nDelays);
 
 bool TMR8_Tick_AddTimerConfig(TMR8_TICK_CONFIG * config);
 bool TMR8_Tick_StartDelay(TMR8_DELAY_CONFIG * config);
+void TMR8_Tick_SetNewReloadValue(TMR8_TICK_CONFIG * config, uint32_t newReloadMs);
 
 uint16_t TMR8_GetSecondsSinceInit(void);
 
