@@ -25,14 +25,14 @@
  * Private Function Ptototypes
  */
 
-static bool isValidJump(SM_STATE *currentState, uint8_t nextEvent, SM_ENTRY const * pEntry);
-static void internalInit(STATE_MACHINE_INTERNAL * Internal, SM_STATE *initialState, SM_EVENT maxEvent, uint8_t maxStateID, const SM_ENTRY *sm);
+static bool isValidJump(const SM_STATE *const currentState, uint8_t nextEvent, SM_ENTRY const * pEntry);
+static void internalInit(STATE_MACHINE_INTERNAL * Internal, const SM_STATE *const initialState, SM_EVENT maxEvent, uint8_t maxStateID, const SM_ENTRY *sm);
 
 /*
  * Public Functions
  */
 
-int8_t SM_Init(SM_STATE *initialState, SM_EVENT maxEvent, uint8_t maxState, const SM_ENTRY *sm)
+int8_t SM_Init(const SM_STATE * const initialState, SM_EVENT maxEvent, uint8_t maxState, const SM_ENTRY *sm)
 {
 	STATE_MACHINE_INTERNAL * NewMachine = NULL;
 	SM_EVENT * NewEventQueue = NULL;
@@ -125,7 +125,7 @@ void SM_Kick(uint8_t idx)
  * Private Function Prototypes
  */
 
-void internalInit(STATE_MACHINE_INTERNAL * Internal, SM_STATE *initialState, SM_EVENT maxEvent, uint8_t maxStateID, const SM_ENTRY *sm)
+void internalInit(STATE_MACHINE_INTERNAL * Internal, const SM_STATE *const initialState, SM_EVENT maxEvent, uint8_t maxStateID, const SM_ENTRY *sm)
 {
 	Internal->CurrentState = initialState;
 	Internal->MaxEvent = maxEvent;
@@ -139,7 +139,7 @@ void internalInit(STATE_MACHINE_INTERNAL * Internal, SM_STATE *initialState, SM_
 	Internal->Initialised = true;
 }
 
-bool isValidJump(SM_STATE *currentState, uint8_t nextEvent, SM_ENTRY const * pEntry)
+bool isValidJump(const SM_STATE *const currentState, uint8_t nextEvent, SM_ENTRY const * pEntry)
 {
 	return (pEntry->OldState == currentState) && (pEntry->Event == nextEvent);
 }

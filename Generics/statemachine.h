@@ -16,10 +16,10 @@ typedef struct state_machine_state SM_STATE;
 
 struct state_machine_entry
 {
-	SM_STATE	*OldState;
-	SM_EVENT	Event;
-	SM_FUNCTION	Function;
-	SM_STATE	*NewState;
+	const SM_STATE *const	OldState;
+	SM_EVENT				Event;
+	SM_FUNCTION				Function;
+	const SM_STATE *const 	NewState;
 };
 typedef struct state_machine_entry SM_ENTRY;
 
@@ -27,12 +27,12 @@ typedef struct state_machine_entry SM_ENTRY;
 
 struct state_machine_internal
 {
-	SM_STATE		*CurrentState;
+	const SM_STATE *CurrentState;
 	SM_EVENT		MaxEvent;
 	SM_STATEID		MaxStateID;
 	bool			Active;
 	bool			Idle;
-	const SM_ENTRY	*StateTable;
+	const SM_ENTRY *StateTable;
 	bool			Initialised;
 	RING_BUFFER		eventQueueBuffer;
 	SM_EVENT		*eventQueueData;
@@ -45,7 +45,7 @@ typedef struct state_machine_internal STATE_MACHINE_INTERNAL;
  * Public Function Prototypes
  */
 
-int8_t SM_Init(SM_STATE *initialState, SM_EVENT maxEvent, SM_STATEID maxStateID, const SM_ENTRY *sm);
+int8_t SM_Init(const SM_STATE *initialState, SM_EVENT maxEvent, SM_STATEID maxStateID, const SM_ENTRY *sm);
 void SM_Event(uint8_t idx, SM_EVENT event);
 void SM_Kick(uint8_t idx);
 void SM_SetActive(uint8_t idx, bool active);

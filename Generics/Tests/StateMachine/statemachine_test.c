@@ -88,7 +88,7 @@ void tearDown(void)
 void test_GetStateMachinePointers(void)
 {
 	printf("Size of state machine = %d, size of event = %d\n", sizeof(STATE_MACHINE_INTERNAL), sizeof(SM_EVENT));
-	TEST_ASSERT( SMM_Config(2, 20) );
+	TEST_ASSERT( SMM_Config(2, 8) );
 }
 
 void test_StateMachineInit(void)
