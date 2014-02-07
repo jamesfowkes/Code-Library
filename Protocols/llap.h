@@ -24,9 +24,9 @@ enum llap_generic_msg_enum
 };
 typedef enum llap_generic_msg_enum LLAP_GENERIC_MSG_ENUM;
 
-typedef void	(*LLAP_GENERIC_HANDLER)(LLAP_GENERIC_MSG_ENUM eMsgType, char * genericStr, char * msgBody);
-typedef void	(*LLAP_APPLICATION_HANDLER)(char * msgBody);
-typedef void 	(*LLAP_SEND_FN)(char * msgBody);
+typedef void	(*LLAP_GENERIC_HANDLER)(LLAP_GENERIC_MSG_ENUM eMsgType, const char * genericStr, const char * msgBody);
+typedef void	(*LLAP_APPLICATION_HANDLER)(const char * msgBody);
+typedef void 	(*LLAP_SEND_FN)(const char * msgBody);
 
 struct llap_device
 {

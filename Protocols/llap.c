@@ -15,6 +15,12 @@
 #include "llap.h"
 
 /*
+ * Utility Library Includes
+ */
+
+#include "util_memory_placement.h"
+
+/*
  * Private Defines and Typedefs
  */
 
@@ -56,7 +62,7 @@ typedef enum pvt_generic_msg_enum PVT_GENERIC_MSG_ENUM;
 
 struct generic_message_string_struct
 {
-	char * msg;
+	const char * msg;
 	uint8_t len;
 };
 typedef struct generic_message_string_struct GENERIC_MESSAGE_STRING;
@@ -70,31 +76,52 @@ incoming messages. Must be kept in order
 of LLAP_GENERIC_MSG_ENUM enumeration, since that
 are indexed by that enum */
 
+IN_PMEM(char batteryString[]) = "BATT";
+IN_PMEM(char chdevidString[]) = "CHDEVID";
+IN_PMEM(char cycleString[]) = "CYCLE";
+IN_PMEM(char intvlString[]) = "INTVL";
+IN_PMEM(char panidString[]) = "PANID";
+IN_PMEM(char rebootString[]) = "REBOOT";
+IN_PMEM(char retriesString[]) = "RETRIES";
+IN_PMEM(char sleepString[]) = "SLEEP";
+IN_PMEM(char awakeString[]) = "AWAKE";
+IN_PMEM(char battlowString[]) = "BATTLOW";
+IN_PMEM(char errorString[]) = "ERROR";
+IN_PMEM(char sleepingString[]) = "SLEEPING";
+IN_PMEM(char startedString[]) = "STARTED";
+	
 static GENERIC_MESSAGE_STRING s_generics[] = 
 {
-	{"BATT", 0},
-	{"CHDEVID", 0},
-	{"CYCLE", 0},
-	{"INTVL", 0},
-	{"PANID", 0},
-	{"REBOOT", 0},
-	{"RETRIES", 0},
-	{"SLEEP", 0},
-	{"AWAKE", 0},
-	{"BATTLOW", 0},
-	{"ERROR", 0},
-	{"SLEEPING", 0},
-	{"STARTED", 0}
+	{batteryString, 0},
+	{chdevidString, 0},
+	{cycleString, 0},
+	{intvlString, 0},
+	{panidString, 0},
+	{rebootString, 0},
+	{retriesString, 0},
+	{sleepString, 0},
+	{awakeString, 0},
+	{battlowString, 0},
+	{errorString, 0},
+	{sleepingString, 0},
+	{startedString, 0}
 };
+
+IN_PMEM(char apverString[]) = "APVER";
+IN_PMEM(char devnameString[]) = "DEVNAME";
+IN_PMEM(char devtypeString[]) = "DEVTYPE";
+IN_PMEM(char fverString[]) = "FVER";
+IN_PMEM(char helloString[]) = "HELLO";
+IN_PMEM(char serString[]) = "SER";
 
 static GENERIC_MESSAGE_STRING s_pvtGenerics[] = 
 {
-	{"APVER", 0},
-	{"DEVNAME", 0},
-	{"DEVTYPE", 0},
-	{"FVER", 0},
-	{"HELLO", 0},
-	{"SER", 0},
+	{apverString, 0},
+	{devnameString, 0},
+	{devtypeString, 0},
+	{fverString, 0},
+	{helloString, 0},
+	{serString, 0},
 };
 
 static char * s_llapVersion = LLAP_VERSION;
@@ -104,8 +131,8 @@ static char * s_llapVersion = LLAP_VERSION;
  */
 static void initBuffer(LLAP_DEVICE * dev, char * destinationID);
 static bool makeMessage(LLAP_DEVICE * dev, char * body, char * destinationID);
-static void sendMessage(LLAP_DEVICE * dev, char * dest, char * msgType, uint8_t typeLength);
-static void sendMessageWithData(LLAP_DEVICE * dev, char * dest, char * msgType, uint8_t typeLength, char *data, uint8_t dataLength);
+static void sendMessage(LLAP_DEVICE * dev, char * dest, const char * msgType, uint8_t typeLength);
+static void sendMessageWithData(LLAP_DEVICE * dev, char * dest, const char * msgType, uint8_t typeLength, char *data, uint8_t dataLength);
 
 static void padMessageToLength(char *msg);
 static bool validateDevice(LLAP_DEVICE * dev);
@@ -438,12 +465,12 @@ static bool makeMessage(LLAP_DEVICE * dev, char * body, char * destinationID)
 	return success;
 }
 
-static void sendMessage(LLAP_DEVICE * dev, char * dest, char * msgType, uint8_t typeLength)
+static void sendMessage(LLAP_DEVICE * dev, char * dest, const char * msgType, uint8_t typeLength)
 {
 	sendMessageWithData(dev, dest, msgType, typeLength, NULL, 0);
 }
 
-static void sendMessageWithData(LLAP_DEVICE * dev, char * dest, char * msgType, uint8_t typeLength, char *data, uint8_t dataLength)
+static void sendMessageWithData(LLAP_DEVICE * dev, char * dest, const char * msgType, uint8_t typeLength, char *data, uint8_t dataLength)
 {
 	if (dev->valid)
 	{
