@@ -15,4 +15,6 @@
 #define set(reg, bit) (reg |= (1 << bit))
 #define clr(reg, bit) (reg &= ~(1 << bit))
 
+#define div_round(x, y) (((x) + ((y)/2))/(y))
+
 #endif
