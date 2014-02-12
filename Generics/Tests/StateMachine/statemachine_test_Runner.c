@@ -27,6 +27,8 @@
 extern void setUp(void);
 extern void tearDown(void);
 extern void test_GetStateMachinePointers(void);
+extern void test_StateMachineInit(void);
+extern void test_StateMachineRunning(void);
 
 //=======Test Reset Option=====
 void resetTest()
@@ -42,6 +44,7 @@ int main(void)
   Unity.TestFile = "statemachine_test.c";
   UnityBegin();
   RUN_TEST(test_GetStateMachinePointers, 57);
-  
+  RUN_TEST(test_StateMachineInit, 58);
+  RUN_TEST(test_StateMachineRunning, 59);
   return (UnityEnd());
 }

@@ -37,24 +37,39 @@
 #include "lib_swserial.h"
 
 /*
+ * Utility Library Includes
+ */
+
+#include "util_macros.h"
+
+/*
  * Private Defines and Typedefs
  */
+
+enum
+{
+	TX,
+	RX
+};
+
+#define START_CONDITION (true)
 
 /*
  * Private Variables
  */
 
-static volatile uint8_t * s_pPort;
-static uint8_t s_pin;
-static LIB_SWS_BAUDRATE_ENUM s_eBaudrate;
+static volatile uint8_t * s_pPort[2];
+static uint8_t s_pin[2];
 
 static char txBuffer[128];
+
+static uint16_t s_DelayUs = 208; // Default to 4800 baudrate
 
 /*
  * Private Function Prototypes
  */
 
-static void txDelay(void);
+static void delay(void);
 
 static void translateBuffer(char const * const buffer, uint8_t size, void * args[], uint8_t nargs);
 static uint8_t format(char * buf, const char spec, void * pArg);
@@ -64,22 +79,69 @@ static uint8_t getPlaceCount(uint32_t value, uint32_t place);
  * Public Functions
  */
 
-void SWS_Init(IO_PORT_ENUM ePort, uint8_t pin, LIB_SWS_BAUDRATE_ENUM eBaudrate)
+void SWS_SetBaudRate(LIB_SWS_BAUDRATE_ENUM eBaudrate)
 {
-	s_pPort = IO_GetPortDirect(ePort);
-	s_pin = pin;
-	
-	s_eBaudrate = eBaudrate;
-	
-	IO_On(*s_pPort, s_pin);
-	IO_Control(ePort, s_pin, IO_ON);
+	s_DelayUs = (uint16_t)div_round(1000000UL, (uint32_t)eBaudrate);
 }
 
-void SWS_SetBaudrate(LIB_SWS_BAUDRATE_ENUM eBaudrate)
+void SWS_RxInit(IO_PORT_ENUM ePort, uint8_t pin)
 {
-	s_eBaudrate = eBaudrate;
+	s_pPort[RX] = IO_GetPortDirect(ePort);
+	s_pin[RX] = pin;
+	
+	IO_On(*s_pPort[RX], s_pin[RX]);
 }
 
+void SWS_TxInit(IO_PORT_ENUM ePort, uint8_t pin)
+{
+	s_pPort[TX] = IO_GetPortDirect(ePort);
+	s_pin[TX] = pin;
+	
+	IO_On(*s_pPort[TX], s_pin[TX]);
+}
+
+uint8_t SWS_Receive(char * rxBuffer, uint8_t n, bool breakOnNull)
+{
+	/* This function will be called when an start condition interrupt is 
+	detected. Since timing from the first edge cannot be relied upon, wait
+	for a second start condition */
+	
+	while (IO_Read(*s_pPort[RX], s_pin[RX]) == START_CONDITION)
+	{
+		// Wait for first start condition to disappear
+	}
+	
+	while (IO_Read(*s_pPort[RX], s_pin[RX]) != START_CONDITION)
+	{
+		// Wait for second start condition to appear
+	}
+	
+	uint8_t mask = 0x00;
+	uint8_t i = 0;
+	
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+	{
+		while (i < n)
+		{
+			mask = 0x01;
+			delay(); // Start bit
+			for (mask = 0x01; mask > 0; mask <<= 1)
+			{
+
+				rxBuffer[i] |= (IO_Read(*s_pPort[RX], s_pin[RX]) ? mask : 0);
+				delay();
+			}
+			delay(); // Stop bit
+			
+			if (breakOnNull && (rxBuffer[i] == '\0')) { break; }
+
+			i++;
+		}
+	}
+	
+	return i;
+}
+	
 /* Valid argument formats: %u/%U/%L: 8/16/32-bit unsigned, %s/%S: 8/16-bit signed */
 void SWS_Transmit(char const * const buffer, uint8_t size, void * args[], uint8_t nargs)
 {
@@ -101,32 +163,30 @@ void SWS_Transmit(char const * const buffer, uint8_t size, void * args[], uint8_
 		while (txBuffer[i])
 		{
 			mask = 0x01;
-			IO_Off(*s_pPort, s_pin);
-			txDelay(); // Start bit
+			IO_Off(*s_pPort[TX], s_pin[TX]);
+			delay(); // Start bit
 
 			for (mask = 0x01; mask > 0; mask <<= 1)
 			{
 
-				(txBuffer[i] & mask) ? IO_On(*s_pPort, s_pin) : IO_Off(*s_pPort, s_pin);
-				txDelay();
+				(txBuffer[i] & mask) ? IO_On(*s_pPort[TX], s_pin[TX]) : IO_Off(*s_pPort[TX], s_pin[TX]);
+				delay();
 			}
 
-			IO_On(*s_pPort, s_pin);
-			txDelay(); // Stop bit
+			IO_On(*s_pPort[TX], s_pin[TX]);
+			delay(); // Stop bit
 			i++;
 		}
 	}
-
 }
 
 /*
  * Private Functions
  */
-static void txDelay(void)
-{
-	uint16_t usdelay = 0;
 
-	usdelay = 3200;
+static void delay(void)
+{
+	uint16_t usdelay = s_DelayUs;
 
 	while (usdelay)
 	{

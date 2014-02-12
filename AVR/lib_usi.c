@@ -144,6 +144,9 @@ uint8_t USI_GetCounterValue(void)
 	return usisr & ((1 << USICNT3) | (1 << USICNT2) | (1 << USICNT1) | (1 << USICNT0));
 }
 
+/*
+ * Private Function Defintions
+ */
 static uint8_t getClockSourceSetting(USI_CLK_SRC_ENUM clockSource)
 {
 	uint8_t setting = 0;

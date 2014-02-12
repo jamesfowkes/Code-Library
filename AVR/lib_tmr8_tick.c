@@ -30,6 +30,12 @@
 #include "memorypool.h"
 
 /*
+ * Utility Library Includes
+ */
+ 
+#include "util_macros.h"
+
+/*
  * Private Variables
  */
 
@@ -178,6 +184,15 @@ bool TMR8_Tick_TestDelayAndClear(TMR8_DELAY_CONFIG * config)
 	config->triggered = false;
 	sei();
 	return triggered;
+}
+
+void TMR8_Tick_SetNewReloadValue(TMR8_TICK_CONFIG * config, uint32_t newReloadMs)
+{
+	if ((newReloadMs > 0) && (newReloadMs != config->reload))
+	{
+		config->reload = newReloadMs;
+		config->msTick = min(config->msTick, config->reload);
+	}
 }
 
 uint16_t TMR8_GetSecondsSinceInit(void)

@@ -29,7 +29,7 @@ STP_SendCommand(lineSpacingCommand, serial_print) <-- Let the library handle it 
 #define HT (9)
 #define LF (10)
 #define FF (12)
-#define SO (12)
+#define SO (14)
 #define DC2 (18)
 #define DC4 (20)
 #define ESC (27)
