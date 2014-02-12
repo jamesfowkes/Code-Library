@@ -237,19 +237,26 @@ void TMR8_ForceOutputCompare(const TMR_OCCHAN_ENUM eChannel)
 
 void TMR8_InterruptControl(TMR8_INTMASK_ENUM eMask, bool enable)
 {
-
-	uint8_t timsk0 = TIMSK0;
+	#ifdef TIMSK0
+	uint8_t timsk = TIMSK0;
+	#else
+	uint8_t timsk = TIMSK;
+	#endif
 
 	if (enable)
 	{
-		timsk0 |= (uint8_t)eMask;
+		timsk |= (uint8_t)eMask;
 	}
 	else
 	{
-		timsk0 &= ~((uint8_t)eMask);
+		timsk &= ~((uint8_t)eMask);
 	}
 
-	TIMSK0 = timsk0;
+	#ifdef TIMSK0
+	TIMSK0 = timsk;
+	#else
+	TIMSK = timsk;
+	#endif
 
 }
 

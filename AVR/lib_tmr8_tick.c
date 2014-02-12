@@ -230,11 +230,11 @@ ISR(TIMER0_COMPA_vect)
 {
 	isrHandler();
 }
-#endif
-
+#else
 #ifdef TIM0_COMPA_vect
 ISR(TIM0_COMPA_vect)
 {
 	isrHandler();
 }
+#endif
 #endif
