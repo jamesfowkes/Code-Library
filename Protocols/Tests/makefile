@@ -6,11 +6,11 @@
 
 C_COMPILER=gcc
 UNITY_FOLDER=E:/WorkDir/Unity
+LIBRARY_FOLDER=..\..
 DEL=@rm -f
 
 ifeq ($(OS),Windows_NT)
 	TARGET_EXTENSION=.exe
-	DEL=del
 else
 	TARGET_EXTENSION=.out
 endif
@@ -19,7 +19,7 @@ TARGET = $(TEST_NAME)\$(TEST_NAME)$(TARGET_EXTENSION)
 
 SRC_FILES=$(UNITY_FOLDER)/src/unity.c ../$(TEST_NAME).c $(TEST_NAME)/$(TEST_NAME)_test.c $(TEST_NAME)/$(TEST_NAME)_test_Runner.c
 
-INC_DIRS=-I$(UNITY_FOLDER)/src -I$(UNITY_FOLDER)/extras/fixture/src
+INC_DIRS=-I$(UNITY_FOLDER)/src -I$(UNITY_FOLDER)/extras/fixture/src -I$(LIBRARY_FOLDER)\Utility
 SYMBOLS=-DUNITY_TEST
 
 CLEANUP = $(DEL) $(TARGET)

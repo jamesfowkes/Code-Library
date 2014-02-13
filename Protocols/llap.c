@@ -141,6 +141,7 @@ static bool isValidIntervalMessage(char * msg);
 static bool isValidPANIDMessage(char * msg);
 static bool isValidRETRIESMessage(char * msg);
 static bool isValidID(char * id);
+static bool isValidIDChar(char c);
 static bool isValidMessage(LLAP_DEVICE * dev, char * msg);
 static bool tryGenericMessageHandlers(LLAP_DEVICE * dev, char * body);
 static bool tryInternalMessageHandlers(LLAP_DEVICE * dev, char * body);
@@ -532,10 +533,10 @@ static bool isValidDecimalString(char * str)
 	valid &= (strlen(str) == DECIMAL_STR_LENGTH);
 	if (valid)
 	{
-		valid &= isdigit(str[0]);
+		valid &= (bool)isdigit(str[0]);
 		valid &= (str[1] == '.');
-		valid &= isdigit(str[2]);
-		valid &= isdigit(str[3]);
+		valid &= (bool)isdigit(str[2]);
+		valid &= (bool)isdigit(str[3]);
 	}
 	
 	return valid;
@@ -551,9 +552,9 @@ static bool isValidIntervalMessage(char * msg)
 	valid &= (strlen(msg) == INTERVAL_STR_LENGTH);
 	if (valid)
 	{
-		valid &= isdigit(msg[0]);
-		valid &= isdigit(msg[1]);
-		valid &= isdigit(msg[2]);
+		valid &= (bool)isdigit(msg[0]);
+		valid &= (bool)isdigit(msg[1]);
+		valid &= (bool)isdigit(msg[2]);
 		valid &= ((msg[3] == 'S') || (msg[3] == 'M') || (msg[3] == 'H') || (msg[3] == 'D'));
 	}
 	
@@ -596,28 +597,28 @@ static bool isValidRETRIESMessage(char * msg)
 
 static bool isValidID(char * id)
 {
-	bool valid[2] = {false, false};
+	return isValidIDChar(id[0]) && isValidIDChar(id[1]);
+}
+
+static bool isValidIDChar(char c)
+{
+	bool valid = false;
 	
-	uint8_t c;
+	valid |= isupper(c);
+	valid |= (c == '-');
+	valid |= (c == '#');
+	valid |= (c == '@');
+	valid |= (c == '?');
+	valid |= (c == '\\');
+	valid |= (c == '*');
 	
-	for (c = 0; c < 2; ++c)
-	{
-		valid[c] = isupper(id[c]);
-		valid[c] |= (id[c] == '-');
-		valid[c] |= (id[c] == '#');
-		valid[c] |= (id[c] == '@');
-		valid[c] |= (id[c] == '?');
-		valid[c] |= (id[c] == '\\');
-		valid[c] |= (id[c] == '*');
-	}
-	
-	return valid[0] && valid[1];
+	return valid;
 }
 
 static bool isValidMessage(LLAP_DEVICE * dev, char * msg)
 {
 	bool valid = true;
-	valid &= (strlen(msg) == 12);
+	valid &= (strlen(msg) == LLAP_MESSAGE_LENGTH);
 	valid &= (msg[0] == 'a');
 	valid &= (msg[1] == dev->id[0]);
 	valid &= (msg[2] == dev->id[1]);
