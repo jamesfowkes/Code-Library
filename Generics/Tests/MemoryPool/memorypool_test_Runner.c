@@ -26,9 +26,11 @@
 //=======External Functions This Runner Calls=====
 extern void setUp(void);
 extern void tearDown(void);
+extern void test_ZeroReturnsNull(void);
 extern void test_GetWithinBounds(void);
 extern void test_GetOutsideBounds(void);
 extern void test_GetExactBounds(void);
+extern void test_GetOneByteAtATime(void);
 
 //=======Test Reset Option=====
 void resetTest()
@@ -43,10 +45,11 @@ int main(void)
 {
   Unity.TestFile = "memorypool_test.c";
   UnityBegin();
+  RUN_TEST(test_ZeroReturnsNull, 56);
   RUN_TEST(test_GetWithinBounds, 57);
   RUN_TEST(test_GetOutsideBounds, 58);
   RUN_TEST(test_GetExactBounds, 59);
-  RUN_TEST(test_GetAsManyBytes, 60);
+  RUN_TEST(test_GetOneByteAtATime, 60);
   
   return (UnityEnd());
 }

@@ -10,6 +10,7 @@
 /*
  * AVR Includes (Defines and Primitives)
  */
+ 
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
@@ -18,10 +19,14 @@
  * AVR Library Includes
  */
 
+#include "lib_io.h"
 #include "lib_clk.h"
 #include "lib_tmr8.h"
 #include "lib_tmr8_tick.h"
-#include "lib_io.h"
+
+#ifdef TEST_HARNESS
+#include "lib_tmr8_tick_harness_functions.h"
+#endif
 
 /*
  * Generic Library Includes
@@ -69,17 +74,29 @@ static void isrHandler(void);
  * Timer source must be set before this function is called!
  *
  */
-void TMR8_Tick_Init(uint8_t nTimers, uint8_t nDelays)
+bool TMR8_Tick_Init(uint8_t nTimers, uint8_t nDelays)
 {
 
 	s_MaxTimerCount = nTimers;
 	s_MaxDelayCount = nDelays;
 	
-	TimerConfigs = (TMR8_TICK_PTR*)MEMPOOL_GetBytes(sizeof(TMR8_TICK_PTR) * nTimers);
-	DelayConfigs = (TMR8_DELAY_PTR*)MEMPOOL_GetBytes(sizeof(TMR8_DELAY_PTR) * nDelays);
-
-	if (TimerConfigs && DelayConfigs)
+	bool success = true;
+	
+	if (nTimers)
 	{
+		TimerConfigs = (TMR8_TICK_PTR*)MEMPOOL_GetBytes(sizeof(TMR8_TICK_PTR) * nTimers);
+		success &= (TimerConfigs != NULL);
+	}
+	
+	if (nDelays)
+	{
+		DelayConfigs = (TMR8_DELAY_PTR*)MEMPOOL_GetBytes(sizeof(TMR8_DELAY_PTR) * nDelays);
+		success &= (TimerConfigs != NULL);
+	}
+	
+	if (success)
+	{
+		#ifndef TEST_HARNESS
 		TMR8_SetOutputCompareMode(TMR_OUTPUTMODE_NONE, TMR_OCCHAN_A);
 		TMR8_SetCountMode(TMR8_COUNTMODE_CTC);
 
@@ -112,9 +129,12 @@ void TMR8_Tick_Init(uint8_t nTimers, uint8_t nDelays)
 		TMR8_SetOutputCompareValue((uint8_t)oneMilli, TMR_OCCHAN_A);
 
 		TMR8_InterruptControl(TMR8_INTMASK_OCMPA, true);
-
+		
+		#endif
 		secondsSinceInit = 0;
 	}
+	
+	return success;
 }
 
 bool TMR8_Tick_AddTimerConfig(TMR8_TICK_CONFIG * config)
@@ -240,6 +260,18 @@ static void isrHandler(void)
 	}
 }
 
+#ifdef TEST_HARNESS
+void TMR8_Tick_Kick(uint8_t ms)
+{
+	TMR8_Tick_Harness_Kick(
+		ms, 
+		(TMR8_TICK_CONFIG **)TimerConfigs, (TMR8_DELAY_CONFIG**)DelayConfigs, 
+		s_TimerCount, s_MaxDelayCount, 
+		(uint16_t*)&msCounter, (uint16_t*)&secondsSinceInit);
+}
+#endif
+
+#ifndef TEST_HARNESS
 #ifdef TIMER0_COMPA_vect
 ISR(TIMER0_COMPA_vect)
 {
@@ -251,5 +283,6 @@ ISR(TIM0_COMPA_vect)
 {
 	isrHandler();
 }
-#endif
-#endif
+#endif /* TIM0_COMPA_vect */
+#endif /* TIMER0_COMPA_vect */
+#endif /* TEST_HARNESS */

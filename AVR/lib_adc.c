@@ -3,6 +3,7 @@
  */
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /*
  * Defines
@@ -21,7 +22,7 @@
 /*
  * AVR Includes (Defines and Primitives)
  */
-#include "avr/io.h"
+#include <avr/io.h>
 #include <avr/interrupt.h>
 
 /*
@@ -44,6 +45,10 @@ static volatile ADC_CONTROL_ENUM *pControl = NULL;
  */
 
 static void SetChannel(LIB_ADC_CHANNEL_ENUM eChannel);
+
+#ifdef TEST_HARNESS
+ISR(ADC_vect);
+#endif
 
 /*
  * Public Functions
@@ -106,7 +111,11 @@ void ADC_GetReading(ADC_CONTROL_ENUM * control)
 	pControl = control;
 	
 	pControl->busy = true;
+	#ifndef TEST_HARNESS
 	ADCSRA |= (1 << ADSC); // Start conversion
+	#else
+	ADC_vect();
+	#endif
 }
 
 bool ADC_TestAndClear(ADC_CONTROL_ENUM * control)

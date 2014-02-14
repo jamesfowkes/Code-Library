@@ -20,7 +20,7 @@
  */
 #ifndef PC_TEST_HARNESS
 #include <avr/io.h>
-#include <util/delay.h>
+#include <util/delay_basic.h>
 #include <util/atomic.h>
 #include <avr/interrupt.h>
 #endif
@@ -54,6 +54,10 @@ enum
 
 #define START_CONDITION (true)
 
+#define delay() _delay_loop_2(s_DelayCount)
+
+#define US_TO_DELAYCOUNTS(us)	((F_CPU * (us)) / 4e6)
+
 /*
  * Private Variables
  */
@@ -63,17 +67,16 @@ static uint8_t s_pin[2];
 
 static char txBuffer[128];
 
-static uint16_t s_DelayUs = 208; // Default to 4800 baudrate
+static uint16_t s_DelayCount = US_TO_DELAYCOUNTS(208); // Default to 4800 baudrate
 
 /*
  * Private Function Prototypes
  */
 
-static void delay(void);
-
 static void translateBuffer(char const * const buffer, uint8_t size, void * args[], uint8_t nargs);
 static uint8_t format(char * buf, const char spec, void * pArg);
 static uint8_t getPlaceCount(uint32_t value, uint32_t place);
+static void transmit(void);
 
 /*
  * Public Functions
@@ -81,7 +84,7 @@ static uint8_t getPlaceCount(uint32_t value, uint32_t place);
 
 void SWS_SetBaudRate(LIB_SWS_BAUDRATE_ENUM eBaudrate)
 {
-	s_DelayUs = (uint16_t)div_round(1000000UL, (uint32_t)eBaudrate);
+	s_DelayCount = US_TO_DELAYCOUNTS( (uint16_t)div_round(1000000UL, (uint32_t)eBaudrate) );
 }
 
 void SWS_RxInit(IO_PORT_ENUM ePort, uint8_t pin)
@@ -142,6 +145,12 @@ uint8_t SWS_Receive(char * rxBuffer, uint8_t n, bool breakOnNull)
 	return i;
 }
 	
+void SWS_SimpleTransmit(char const * const buffer)
+{
+	strcpy(txBuffer, buffer);
+	transmit();
+}
+
 /* Valid argument formats: %u/%U/%L: 8/16/32-bit unsigned, %s/%S: 8/16-bit signed */
 void SWS_Transmit(char const * const buffer, uint8_t size, void * args[], uint8_t nargs)
 {
@@ -153,7 +162,12 @@ void SWS_Transmit(char const * const buffer, uint8_t size, void * args[], uint8_
 	{
 		strcpy(txBuffer, buffer);
 	}
+	
+	transmit();
+}
 
+static void transmit(void)
+{
 
 	uint8_t mask = 0x00;
 	uint8_t i = 0;
@@ -183,25 +197,6 @@ void SWS_Transmit(char const * const buffer, uint8_t size, void * args[], uint8_
 /*
  * Private Functions
  */
-
-static void delay(void)
-{
-	uint16_t usdelay = s_DelayUs;
-
-	while (usdelay)
-	{
-		if (usdelay > 700)
-		{
-			_delay_us(700);
-			usdelay -= 700;
-		}
-		else
-		{
-			_delay_us(usdelay);
-			usdelay = 0;
-		}
-	}
-}
 
 static void translateBuffer(char const * const buffer, uint8_t size, void * args[], uint8_t nargs)
 {

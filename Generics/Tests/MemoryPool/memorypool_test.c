@@ -35,6 +35,13 @@ void tearDown(void)
 	MEMPOOL_Reset();
 }
 
+void test_ZeroReturnsNull(void)
+{
+	printf("Testing with 0 bytes\n");
+	TEST_ASSERT_NULL(MEMPOOL_GetBytes(0));
+	TEST_ASSERT_EQUAL(MEMORY_POOL_BYTES, MEMPOOL_GetRemaining());
+}
+
 void test_GetWithinBounds(void)
 {
 	printf("Testing with %d size struct\n", sizeof(GOOD_TEST));
@@ -56,7 +63,7 @@ void test_GetExactBounds(void)
 	TEST_ASSERT_EQUAL(0, MEMPOOL_GetRemaining());
 }
 
-void test_GetAsManyBytes(void)
+void test_GetOneByteAtATime(void)
 {
 	uint16_t i = 0;
 	

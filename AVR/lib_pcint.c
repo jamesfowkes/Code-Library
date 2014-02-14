@@ -3,6 +3,7 @@
  */
 
 #include <stdbool.h>
+#include <stdint.h>
 
 /*
  * Defines and Typedefs
@@ -37,9 +38,9 @@ PCINT_VECTOR_ENUM PCINT_EnableInterrupt(uint8_t pin, bool enable)
 	// 10 / 8 = 1 => PCINT1
 	// 10 - (1 * 8) = 2 => Bit 2 in PCINT1
 	
-	uint8_t reg = pin / 8;
-	pin -= (reg * 8);
-	
+	uint8_t reg = pin >> 3;
+	pin -= (reg << 3);
+
 	switch (reg)
 	{
 	#ifdef PCMSK0

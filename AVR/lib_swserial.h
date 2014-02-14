@@ -23,6 +23,7 @@ void SWS_SetBaudrate(LIB_SWS_BAUDRATE_ENUM eBaudrate);
 #endif
 
 uint8_t SWS_Receive(char * rxBuffer, uint8_t n, bool breakOnNull);
+void SWS_SimpleTransmit(char const * const buffer);
 void SWS_Transmit(char const * const buffer, uint8_t size, void * args[], uint8_t nargs);
 
 #endif

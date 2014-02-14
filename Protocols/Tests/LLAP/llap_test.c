@@ -26,21 +26,21 @@ static char s_SendReqBuffer[] = "xxxxxxxxxxxx";
 
 static LLAP_DEVICE s_device;
 
-void makeGoodDevice(void);
+static void makeGoodDevice(void);
 
-static void genericMsgHandler(LLAP_GENERIC_MSG_ENUM eMsgType, char * genericStr, char * msgBody)
+static void genericMsgHandler(LLAP_GENERIC_MSG_ENUM eMsgType, const char * genericStr, const char * msgBody)
 {
 	(void)eMsgType;
 	(void)genericStr;
 	(void)msgBody;
 }
 
-static void applicationMsgHandler(char * msgBody)
+static void applicationMsgHandler(const char *  msgBody)
 {
 	(void)msgBody;
 }
 
-static void sendRequest(char * msgBody)
+static void sendRequest(const char *  msgBody)
 {
 	sprintf(s_SendReqBuffer, "%s", msgBody);
 }
@@ -52,7 +52,7 @@ void setUp(void)
 	LLAP_StartDevice(&s_device);
 }
 
-void makeGoodDevice(void)
+static void makeGoodDevice(void)
 {
 	s_device.id[0] = 'A';
 	s_device.id[1] = 'A';
