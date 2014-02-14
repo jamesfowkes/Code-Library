@@ -190,9 +190,6 @@ bool TMR8_Tick_StartDelay(TMR8_DELAY_CONFIG * config)
 
 bool TMR8_Tick_TestAndClear(TMR8_TICK_CONFIG * config)
 {
-	#ifdef TEST_HARNESS
-	TMR8_Tick_Kick(50);
-	#endif
 	cli();
 	bool triggered = config->triggered;
 	config->triggered = false;
