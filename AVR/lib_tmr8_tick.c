@@ -11,25 +11,20 @@
  * AVR Includes (Defines and Primitives)
  */
  
-#ifndef TEST_HARNESS
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
-#else
-#include "avr_harness.h"
-#endif
 
 /*
  * AVR Library Includes
  */
 
+#include "lib_io.h"
+#include "lib_clk.h"
+#include "lib_tmr8.h"
 #include "lib_tmr8_tick.h"
 
-#ifndef TEST_HARNESS
-#include "lib_tmr8.h"
-#include "lib_clk.h"
-#include "lib_io.h"
-#else
+#ifdef TEST_HARNESS
 #include "lib_tmr8_tick_harness_functions.h"
 #endif
 
