@@ -3,6 +3,7 @@
  */
 
 #include <stdbool.h>
+#include <stdint.h>
 
 /*
  * Defines and Typedefs
