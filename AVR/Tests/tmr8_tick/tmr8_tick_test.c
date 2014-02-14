@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <pthread.h>
 #include "../../lib_tmr8_tick.h"
 
 static TMR8_TICK_CONFIG applicationTick;
