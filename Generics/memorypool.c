@@ -16,10 +16,13 @@ uint8_t const * MEMPOOL_GetBytes(size_t bytes)
 {
 	uint8_t const * allocation = NULL;
 	
-	if (poolStart + bytes <= poolEnd)
+	if (bytes > 0)
 	{
-		allocation = poolStart;
-		poolStart += bytes;
+		if (poolStart + bytes <= poolEnd)
+		{
+			allocation = poolStart;
+			poolStart += bytes;
+		}
 	}
 	
 	return allocation;
