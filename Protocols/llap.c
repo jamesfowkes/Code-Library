@@ -76,19 +76,19 @@ incoming messages. Must be kept in order
 of LLAP_GENERIC_MSG_ENUM enumeration, since that
 are indexed by that enum */
 
-IN_PMEM(char batteryString[]) = "BATT";
-IN_PMEM(char chdevidString[]) = "CHDEVID";
-IN_PMEM(char cycleString[]) = "CYCLE";
-IN_PMEM(char intvlString[]) = "INTVL";
-IN_PMEM(char panidString[]) = "PANID";
-IN_PMEM(char rebootString[]) = "REBOOT";
-IN_PMEM(char retriesString[]) = "RETRIES";
-IN_PMEM(char sleepString[]) = "SLEEP";
-IN_PMEM(char awakeString[]) = "AWAKE";
-IN_PMEM(char battlowString[]) = "BATTLOW";
-IN_PMEM(char errorString[]) = "ERROR";
-IN_PMEM(char sleepingString[]) = "SLEEPING";
-IN_PMEM(char startedString[]) = "STARTED";
+IN_PMEM(char const batteryString[]) = "BATT";
+IN_PMEM(char const chdevidString[]) = "CHDEVID";
+IN_PMEM(char const cycleString[]) = "CYCLE";
+IN_PMEM(char const intvlString[]) = "INTVL";
+IN_PMEM(char const panidString[]) = "PANID";
+IN_PMEM(char const rebootString[]) = "REBOOT";
+IN_PMEM(char const retriesString[]) = "RETRIES";
+IN_PMEM(char const sleepString[]) = "SLEEP";
+IN_PMEM(char const awakeString[]) = "AWAKE";
+IN_PMEM(char const battlowString[]) = "BATTLOW";
+IN_PMEM(char const errorString[]) = "ERROR";
+IN_PMEM(char const sleepingString[]) = "SLEEPING";
+IN_PMEM(char const startedString[]) = "STARTED";
 	
 static GENERIC_MESSAGE_STRING s_generics[] = 
 {
@@ -107,12 +107,12 @@ static GENERIC_MESSAGE_STRING s_generics[] =
 	{startedString, 0}
 };
 
-IN_PMEM(char apverString[]) = "APVER";
-IN_PMEM(char devnameString[]) = "DEVNAME";
-IN_PMEM(char devtypeString[]) = "DEVTYPE";
-IN_PMEM(char fverString[]) = "FVER";
-IN_PMEM(char helloString[]) = "HELLO";
-IN_PMEM(char serString[]) = "SER";
+IN_PMEM(char const apverString[]) = "APVER";
+IN_PMEM(char const devnameString[]) = "DEVNAME";
+IN_PMEM(char const devtypeString[]) = "DEVTYPE";
+IN_PMEM(char const fverString[]) = "FVER";
+IN_PMEM(char const helloString[]) = "HELLO";
+IN_PMEM(char const serString[]) = "SER";
 
 static GENERIC_MESSAGE_STRING s_pvtGenerics[] = 
 {
