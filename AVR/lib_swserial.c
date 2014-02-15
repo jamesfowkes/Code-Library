@@ -65,7 +65,7 @@ enum
 static volatile uint8_t * s_pPort[2];
 static uint8_t s_pin[2];
 
-static char txBuffer[128];
+static char txBuffer[TX_BUFFER_SIZE];
 
 static uint16_t s_DelayCount = US_TO_DELAYCOUNTS(208); // Default to 4800 baudrate
 
