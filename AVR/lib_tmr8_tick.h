@@ -25,6 +25,7 @@ void TMR8_Tick_SetNewReloadValue(TMR8_TICK_CONFIG * config, uint32_t newReloadMs
 
 uint16_t TMR8_GetSecondsSinceInit(void);
 
+void TMR8_Tick_SetActive(TMR8_TICK_CONFIG * config, bool active);
 bool TMR8_Tick_TestAndClear(TMR8_TICK_CONFIG * config);
 bool TMR8_Tick_TestDelayAndClear(TMR8_DELAY_CONFIG * config);
 

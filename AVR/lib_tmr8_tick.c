@@ -211,13 +211,23 @@ void TMR8_Tick_SetNewReloadValue(TMR8_TICK_CONFIG * config, uint32_t newReloadMs
 	if ((newReloadMs > 0) && (newReloadMs != config->reload))
 	{
 		config->reload = newReloadMs;
-		config->msTick = min(config->msTick, config->reload);
+		config->msTick = newReloadMs;
 	}
 }
 
 uint16_t TMR8_GetSecondsSinceInit(void)
 {
 	return secondsSinceInit;
+}
+
+void TMR8_Tick_SetActive(TMR8_TICK_CONFIG * config, bool active)
+{
+	config->active = active;
+
+	if (!active)
+	{
+		config->msTick = config->reload;
+	}
 }
 
 static void isrHandler(void)
