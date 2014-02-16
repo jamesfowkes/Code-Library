@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 /*
  * Generic Library Includes
@@ -27,6 +28,7 @@
 
 static bool isValidJump(const SM_STATE *const currentState, uint8_t nextEvent, SM_ENTRY const * pEntry);
 static void internalInit(STATE_MACHINE_INTERNAL * Internal, const SM_STATE *const initialState, SM_EVENT maxEvent, uint8_t maxStateID, const SM_ENTRY *sm);
+static void kickInternal(STATE_MACHINE_INTERNAL * Internal);
 
 /*
  * Public Functions
@@ -57,7 +59,7 @@ void SM_Event(uint8_t idx, SM_EVENT event)
 		Ringbuf_Put(&Internal->eventQueueBuffer, (uint8_t*)&event);
 		if (Internal->Idle)
 		{
-			SM_Kick(idx);
+			kickInternal(Internal);
 		}
 	}
 }
@@ -81,8 +83,14 @@ SM_STATEID SM_GetState(uint8_t idx)
 void SM_Kick(uint8_t idx)
 {
 	STATE_MACHINE_INTERNAL * Internal = SMM_GetMachine(idx);
-	
+	kickInternal(Internal);
+}
+
+void kickInternal(STATE_MACHINE_INTERNAL *Internal)
+{
+
 	SM_ENTRY const *pEntry = Internal->StateTable;
+
 	SM_EVENT nextEvent = Internal->MaxEvent;
 	SM_STATEID oldStateId = Internal->CurrentState->ID; // Used to pass to onEnter , onLeave and state change functions
 	Internal->Idle = false;
