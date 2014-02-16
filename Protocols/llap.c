@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stddef.h>
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
@@ -45,6 +46,8 @@
 
 #define GET_BODY_PTR(msg) (&msg[3])
 
+#define MAKE_MSG_STRUCT(msg) {msg, sizeof(msg)}
+
 /* These generics messages are handled internally
 by the LLAP library and them a message request is
 made to the application */
@@ -76,52 +79,56 @@ incoming messages. Must be kept in order
 of LLAP_GENERIC_MSG_ENUM enumeration, since that
 are indexed by that enum */
 
-IN_PMEM(char const batteryString[]) = "BATT";
-IN_PMEM(char const chdevidString[]) = "CHDEVID";
-IN_PMEM(char const cycleString[]) = "CYCLE";
-IN_PMEM(char const intvlString[]) = "INTVL";
-IN_PMEM(char const panidString[]) = "PANID";
-IN_PMEM(char const rebootString[]) = "REBOOT";
-IN_PMEM(char const retriesString[]) = "RETRIES";
-IN_PMEM(char const sleepString[]) = "SLEEP";
-IN_PMEM(char const awakeString[]) = "AWAKE";
-IN_PMEM(char const battlowString[]) = "BATTLOW";
-IN_PMEM(char const errorString[]) = "ERROR";
-IN_PMEM(char const sleepingString[]) = "SLEEPING";
-IN_PMEM(char const startedString[]) = "STARTED";
+#define MAKE_MSG_STRING(id, msg) \
+		IN_PMEM(const char id##Str[]) = msg; \
+		IN_PMEM(const GENERIC_MESSAGE_STRING id##Msg) = {(const char*)&id##Str, sizeof(msg)}
+
+MAKE_MSG_STRING(battery, "BATT");
+MAKE_MSG_STRING(chdevid, "CHDEVID");
+MAKE_MSG_STRING(cycle, "CYCLE");
+MAKE_MSG_STRING(intvl, "INTVL");
+MAKE_MSG_STRING(panid, "PANID");
+MAKE_MSG_STRING(reboot, "REBOOT");
+MAKE_MSG_STRING(retries, "RETRIES");
+MAKE_MSG_STRING(sleep, "SLEEP");
+MAKE_MSG_STRING(awake, "AWAKE");
+MAKE_MSG_STRING(battlow, "BATTLOW");
+MAKE_MSG_STRING(error, "ERROR");
+MAKE_MSG_STRING(sleeping, "SLEEPING");
+MAKE_MSG_STRING(started, "STARTED");
 	
-static GENERIC_MESSAGE_STRING s_generics[] = 
+IN_PMEM(GENERIC_MESSAGE_STRING const * const s_generics[]) =
 {
-	{batteryString, 0},
-	{chdevidString, 0},
-	{cycleString, 0},
-	{intvlString, 0},
-	{panidString, 0},
-	{rebootString, 0},
-	{retriesString, 0},
-	{sleepString, 0},
-	{awakeString, 0},
-	{battlowString, 0},
-	{errorString, 0},
-	{sleepingString, 0},
-	{startedString, 0}
+	&batteryMsg,
+	&chdevidMsg,
+	&cycleMsg,
+	&intvlMsg,
+	&panidMsg,
+	&rebootMsg,
+	&retriesMsg,
+	&sleepMsg,
+	&awakeMsg,
+	&battlowMsg,
+	&errorMsg,
+	&sleepingMsg,
+	&startedMsg
 };
 
-IN_PMEM(char const apverString[]) = "APVER";
-IN_PMEM(char const devnameString[]) = "DEVNAME";
-IN_PMEM(char const devtypeString[]) = "DEVTYPE";
-IN_PMEM(char const fverString[]) = "FVER";
-IN_PMEM(char const helloString[]) = "HELLO";
-IN_PMEM(char const serString[]) = "SER";
+MAKE_MSG_STRING(apver, "APVER");
+MAKE_MSG_STRING(devname, "DEVNAME");
+MAKE_MSG_STRING(devtype, "DEVTYPE");
+MAKE_MSG_STRING(fver, "FVER");
+MAKE_MSG_STRING(hello, "HELLO");
+MAKE_MSG_STRING(ser, "SER");
 
-static GENERIC_MESSAGE_STRING s_pvtGenerics[] = 
+IN_PMEM(GENERIC_MESSAGE_STRING const * const s_pvtGenerics[]) =
 {
-	{apverString, 0},
-	{devnameString, 0},
-	{devtypeString, 0},
-	{fverString, 0},
-	{helloString, 0},
-	{serString, 0},
+	&apverMsg,
+	&devnameMsg,
+	&devtypeMsg,
+	&fverMsg,
+	&helloMsg,
+	&serMsg
 };
 
 static char * s_llapVersion = LLAP_VERSION;
@@ -136,7 +143,7 @@ static void sendMessageWithData(LLAP_DEVICE * dev, char * dest, const char * msg
 
 static void padMessageToLength(char *msg);
 static bool validateDevice(LLAP_DEVICE * dev);
-static bool isValidDecimalString(char * str);
+static bool isValidDecimalString(const char * str);
 static bool isValidIntervalMessage(char * msg);
 static bool isValidPANIDMessage(char * msg);
 static bool isValidRETRIESMessage(char * msg);
@@ -152,23 +159,6 @@ static void handleInternalMessage(PVT_GENERIC_MSG_ENUM ePvtGeneric, LLAP_DEVICE 
  * Public Function Definitions
  */
 
-void LLAP_Init(void)
-{
-	/* Initialise the length of the generic message strings */
-	PVT_GENERIC_MSG_ENUM ePvtGeneric;
-	LLAP_GENERIC_MSG_ENUM eGeneric;
-	
-	for (ePvtGeneric = APVER; ePvtGeneric < MAX_PVT_MSG_ENUM; ++ePvtGeneric)
-	{
-		s_pvtGenerics[ePvtGeneric].len = strlen( s_pvtGenerics[ePvtGeneric].msg );
-	}
-	
-	for (eGeneric = BATT; eGeneric < MAX_MSG_ENUM; ++eGeneric)
-	{
-		s_generics[eGeneric].len = strlen( s_generics[eGeneric].msg );
-	}
-}
-
 bool LLAP_StartDevice(LLAP_DEVICE * dev)
 {
 	/* First thing to do is check the device information is valid */
@@ -183,7 +173,7 @@ bool LLAP_StartDevice(LLAP_DEVICE * dev)
 	/* Then if the device is valid, reguest a started message be sent */
 	if (dev->valid)
 	{
-		sendMessage(dev, NULL, s_generics[STARTED].msg, s_generics[STARTED].len);
+		sendMessage(dev, NULL, s_generics[STARTED]->msg, s_generics[STARTED]->len);
 	}
 	
 	return dev->valid;
@@ -251,7 +241,7 @@ bool LLAP_SendBATT(LLAP_DEVICE * dev, char * msg)
 	bool success = dev->valid && isValidDecimalString(msg);
 	if (success)
 	{
-		sendMessageWithData(dev, NULL, s_generics[BATT].msg, s_generics[BATT].len, msg, DECIMAL_STR_LENGTH);
+		sendMessageWithData(dev, NULL, s_generics[BATT]->msg, s_generics[BATT]->len, msg, DECIMAL_STR_LENGTH);
 	}
 	return success;
 }
@@ -261,7 +251,7 @@ bool LLAP_SendCHDEVID(LLAP_DEVICE * dev, char *targetID, char * newID)
 	bool success = dev->valid && isValidID(targetID) && isValidID(newID);
 	if (success)
 	{
-		sendMessageWithData(dev, targetID, s_generics[CHDEVID].msg, s_generics[CHDEVID].len, newID, ID_STR_LENGTH);
+		sendMessageWithData(dev, targetID, s_generics[CHDEVID]->msg, s_generics[CHDEVID]->len, newID, ID_STR_LENGTH);
 	}
 	return success;
 }
@@ -271,7 +261,7 @@ bool LLAP_SendCYCLE(LLAP_DEVICE * dev, char *targetID)
 	bool success = dev->valid && isValidID(targetID);
 	if (success)
 	{
-		sendMessage(dev, targetID, s_generics[CYCLE].msg, s_generics[CYCLE].len);
+		sendMessage(dev, targetID, s_generics[CYCLE]->msg, s_generics[CYCLE]->len);
 	}
 	return success;
 }
@@ -281,7 +271,7 @@ bool LLAP_SendINTVL(LLAP_DEVICE * dev, char * msg, char *targetID)
 	bool success = dev->valid && isValidIntervalMessage(msg) && isValidID(targetID);
 	if (success)
 	{
-		sendMessageWithData(dev, targetID, s_generics[INTVL].msg, s_generics[INTVL].len, msg, INTERVAL_STR_LENGTH);
+		sendMessageWithData(dev, targetID, s_generics[INTVL]->msg, s_generics[INTVL]->len, msg, INTERVAL_STR_LENGTH);
 	}
 	return success;
 }
@@ -291,7 +281,7 @@ bool LLAP_SendPANID(LLAP_DEVICE * dev, char * msg, char *targetID)
 	bool success = dev->valid && isValidPANIDMessage(msg) && isValidID(targetID);
 	if (success)
 	{
-		sendMessageWithData(dev, targetID, s_generics[PANID].msg, s_generics[PANID].len, msg, PANID_STR_LENGTH);
+		sendMessageWithData(dev, targetID, s_generics[PANID]->msg, s_generics[PANID]->len, msg, PANID_STR_LENGTH);
 	}
 	return success;
 }
@@ -301,7 +291,7 @@ bool LLAP_SendREBOOT(LLAP_DEVICE * dev, char *targetID)
 	bool success = dev->valid;
 	if (dev->valid)
 	{
-		sendMessage(dev, targetID, s_generics[REBOOT].msg, s_generics[REBOOT].len);
+		sendMessage(dev, targetID, s_generics[REBOOT]->msg, s_generics[REBOOT]->len);
 	}
 	return success;
 }
@@ -311,7 +301,7 @@ bool LLAP_SendRETRIES(LLAP_DEVICE * dev, char * msg, char *targetID)
 	bool success = dev->valid && isValidRETRIESMessage(msg) && isValidID(targetID);
 	if (success)
 	{
-		sendMessageWithData(dev, targetID, s_generics[RETRIES].msg, s_generics[RETRIES].len, msg, RETRIES_STR_LENGTH);
+		sendMessageWithData(dev, targetID, s_generics[RETRIES]->msg, s_generics[RETRIES]->len, msg, RETRIES_STR_LENGTH);
 	}
 	return success;
 }
@@ -321,7 +311,7 @@ bool LLAP_SendSLEEP(LLAP_DEVICE * dev, char * msg, char *targetID)
 	bool success = dev->valid && isValidIntervalMessage(msg) && isValidID(targetID);
 	if (success)
 	{
-		sendMessageWithData(dev, targetID, s_generics[SLEEP].msg, s_generics[SLEEP].len, msg, INTERVAL_STR_LENGTH);
+		sendMessageWithData(dev, targetID, s_generics[SLEEP]->msg, s_generics[SLEEP]->len, msg, INTERVAL_STR_LENGTH);
 	}
 	return success;
 }
@@ -331,7 +321,7 @@ bool LLAP_SendAWAKE(LLAP_DEVICE * dev)
 	bool success = dev->valid;
 	if (dev->valid)
 	{
-		sendMessage(dev, NULL, s_generics[AWAKE].msg, s_generics[AWAKE].len);
+		sendMessage(dev, NULL, s_generics[AWAKE]->msg, s_generics[AWAKE]->len);
 	}
 	return success;
 }
@@ -341,7 +331,7 @@ bool LLAP_SendBATTLOW(LLAP_DEVICE * dev)
 	bool success = dev->valid;
 	if (dev->valid)
 	{
-		sendMessage(dev, NULL, s_generics[BATTLOW].msg, s_generics[BATTLOW].len);
+		sendMessage(dev, NULL, s_generics[BATTLOW]->msg, s_generics[BATTLOW]->len);
 	}
 	return success;
 }
@@ -351,7 +341,7 @@ bool LLAP_SendERROR(LLAP_DEVICE * dev, char * msg)
 	bool success = dev->valid;
 	if (dev->valid)
 	{
-		sendMessageWithData(dev, NULL, s_generics[ERROR].msg, s_generics[ERROR].len, msg, MAX_ERROR_STR_LENGTH);
+		sendMessageWithData(dev, NULL, s_generics[ERROR]->msg, s_generics[ERROR]->len, msg, MAX_ERROR_STR_LENGTH);
 	}
 	return success;
 }
@@ -361,7 +351,7 @@ bool LLAP_SendSLEEPING(LLAP_DEVICE * dev)
 	bool success = dev->valid;
 	if (dev->valid)
 	{
-		sendMessage(dev, NULL, s_generics[SLEEPING].msg, s_generics[SLEEPING].len);
+		sendMessage(dev, NULL, s_generics[SLEEPING]->msg, s_generics[SLEEPING]->len);
 	}
 	return success;
 }
@@ -377,7 +367,7 @@ static bool tryInternalMessageHandlers(LLAP_DEVICE * dev, char * body)
 	
 	for (ePvtGeneric = APVER; ((ePvtGeneric < MAX_PVT_MSG_ENUM) && !msgHandled); ++ePvtGeneric)
 	{
-		if (strncmp(body, s_pvtGenerics[ePvtGeneric].msg, s_pvtGenerics[ePvtGeneric].len) == 0)
+		if (strncmp(body, s_pvtGenerics[ePvtGeneric]->msg, s_pvtGenerics[ePvtGeneric]->len) == 0)
 		{
 			handleInternalMessage(ePvtGeneric, dev);
 			msgHandled = true;
@@ -394,10 +384,10 @@ static bool tryGenericMessageHandlers(LLAP_DEVICE * dev, char * body)
 	
 	for (eGeneric = BATT; ((eGeneric < MAX_MSG_ENUM) && !msgHandled); ++eGeneric)
 	{
-		if (strncmp(body, s_generics[eGeneric].msg, MAX_BODY_LENGTH) == 0)
+		if (strncmp(body, s_generics[eGeneric]->msg, MAX_BODY_LENGTH) == 0)
 		{
 			/* Strings match and device supports this message */
-			dev->genericMsgHandler(eGeneric, s_generics[eGeneric].msg, body);
+			dev->genericMsgHandler(eGeneric, s_generics[eGeneric]->msg, body);
 			msgHandled = true;
 		}
 	}
@@ -412,8 +402,8 @@ static void handleInternalMessage(PVT_GENERIC_MSG_ENUM ePvtGeneric, LLAP_DEVICE 
 	switch(ePvtGeneric)
 	{
 	case APVER:
-		strncpy(body, s_pvtGenerics[APVER].msg, s_pvtGenerics[APVER].len);
-		strncpy(body + s_pvtGenerics[APVER].len, s_llapVersion, DECIMAL_STR_LENGTH);
+		strncpy(body, s_pvtGenerics[APVER]->msg, s_pvtGenerics[APVER]->len);
+		strncpy(body + s_pvtGenerics[APVER]->len, s_llapVersion, DECIMAL_STR_LENGTH);
 		break;
 	case DEVNAME:
 		strncpy(body, dev->devName, MAX_BODY_LENGTH);
@@ -422,15 +412,15 @@ static void handleInternalMessage(PVT_GENERIC_MSG_ENUM ePvtGeneric, LLAP_DEVICE 
 		strncpy(body, dev->devType, MAX_BODY_LENGTH);
 		break;
 	case FVER:
-		strncpy(body, s_pvtGenerics[FVER].msg, s_pvtGenerics[FVER].len);
-		strncpy(body + s_pvtGenerics[FVER].len, dev->fwVer, DECIMAL_STR_LENGTH);
+		strncpy(body, s_pvtGenerics[FVER]->msg, s_pvtGenerics[FVER]->len);
+		strncpy(body + s_pvtGenerics[FVER]->len, dev->fwVer, DECIMAL_STR_LENGTH);
 		break;
 	case HELLO:
-		strncpy(body, s_pvtGenerics[HELLO].msg, MAX_BODY_LENGTH);
+		strncpy(body, s_pvtGenerics[HELLO]->msg, MAX_BODY_LENGTH);
 		break;
 	case SER:
-		strncpy(body, s_pvtGenerics[SER].msg, s_pvtGenerics[SER].len);
-		strncpy(body + s_pvtGenerics[SER].len, dev->serNum, SERNUM_STR_LENGTH);
+		strncpy(body, s_pvtGenerics[SER]->msg, s_pvtGenerics[SER]->len);
+		strncpy(body + s_pvtGenerics[SER]->len, dev->serNum, SERNUM_STR_LENGTH);
 		break;
 	case MAX_PVT_MSG_ENUM:
 	default:
@@ -524,7 +514,7 @@ static bool validateDevice(LLAP_DEVICE * dev)
 	return dev->valid;
 }
 
-static bool isValidDecimalString(char * str)
+static bool isValidDecimalString(const char * str)
 {
 	bool valid = true;
 	

@@ -32,10 +32,10 @@ struct llap_device
 {
 	char id[2];
 	char msgDestination[2];
-	char * devName;
-	char * devType;
-	char * fwVer;
-	char * serNum;
+	const char * devName;
+	const char * devType;
+	const char * fwVer;
+	const char * serNum;
 	LLAP_GENERIC_HANDLER genericMsgHandler; // Handler for generic messages that require application to supply replies
 	LLAP_APPLICATION_HANDLER applicationMsgHandler; // Handler for messages that the protocol does not recognise
 	LLAP_SEND_FN sendRequest;	// Function by which the LLAP library can request a message to be sent
@@ -51,7 +51,6 @@ typedef struct llap_device LLAP_DEVICE;
  * Public Function Prototypes
  */
 
-void LLAP_Init(void);
 bool LLAP_StartDevice(LLAP_DEVICE * dev);
 bool LLAP_HandleIncomingMessage(LLAP_DEVICE * dev, char * msg);
 bool LLAP_SendOutgoingMessage(LLAP_DEVICE * dev, char * body);
