@@ -56,7 +56,7 @@ enum
 
 #define delay() _delay_loop_2(s_DelayCount)
 
-#define US_TO_DELAYCOUNTS(us)	((F_CPU * (us)) / 4e6)
+#define US_TO_DELAYCOUNTS(us)	((F_CPU * (us)) / 4000000)
 
 /*
  * Private Variables
@@ -99,7 +99,7 @@ void SWS_TxInit(IO_PORT_ENUM ePort, uint8_t pin)
 {
 	s_pPort[TX] = IO_GetPortDirect(ePort);
 	s_pin[TX] = pin;
-	
+	IO_SetMode(ePort, pin, IO_MODE_OUTPUT);
 	IO_On(*s_pPort[TX], s_pin[TX]);
 }
 
