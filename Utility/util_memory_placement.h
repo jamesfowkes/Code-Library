@@ -7,6 +7,8 @@
 #else
 
 #define IN_PMEM(x) x
+#define	PMEM_STRNCPY strncpy
+#define STRNCMP strncmp
 
 #endif
 
