@@ -58,6 +58,37 @@ cleared on every power up or reset, along with disabling the watchdog-
 
 */
 
+//prescale values
+enum wdt_time
+{
+	WDTO_15MS,
+	WDTO_30MS,
+	WDTO_60MS,
+	WDTO_120MS,
+	WDTO_250MS,
+	WDTO_500MS,
+	WDTO_1S,
+	WDTO_2S,
+	#if defined(WDP3)
+	WDTO_4S = 0x20,
+	WDTO_8S = 0x21
+	#endif
+};
+typedef enum wdt_time WDT_TIME;
+
+enum wdt_mode
+{
+	WD_OFF = 0,
+	WD_RST = 8, 
+	#if defined(WDIF)
+	WD_IRQ = 0xC0,
+	WD_RST_IRQ = 0xC8
+	#endif
+};
+typedef enum wdt_mode WDT_MODE;
+
+#ifndef TEST_HARNESS
+
 //reset registers to the same name (MCUCSR)
 #if !defined(MCUCSR)
 #define MCUCSR                  MCUSR
@@ -70,36 +101,10 @@ cleared on every power up or reset, along with disabling the watchdog-
 
 //if enhanced watchdog, define irq values, create disable macro
 #if defined(WDIF)
-#define WD_IRQ                  0xC0
-#define WD_RST_IRQ              0xC8
 #define WD_DISABLE()            do{                       \
 									MCUCSR &= ~(1<<WDRF); \
 									WD_SET(WD_OFF);       \
 								}while(0)
-#endif
-
-//all watchdogs
-#define WD_RST                  8
-#define WD_OFF                  0
-
-//prescale values
-enum wdt_time
-{
-	WDTO_15MS
-	WDTO_30MS
-	WDTO_60MS
-	WDTO_120MS
-	WDTO_250MS
-	WDTO_500MS
-	WDTO_1S
-	WDTO_2S
-};
-typedef enum wdt_time WDT_TIME;
-
-//prescale values for avrs with WDP3
-#if defined(WDP3)
-#define WDTO_4S                 0x20
-#define WDTO_8S                 0x21
 #endif
 
 //watchdog reset
@@ -156,6 +161,13 @@ typedef enum wdt_time WDT_TIME;
 #define wdt_enable(val) WD_SET(WD_RST,val)
 #define wdt_disable()   WD_SET(WD_OFF)
 
+#else
+
+#define WD_DISABLE() {}
+#define WD_SET(val,...)
+
+#endif
+
 struct wdt_sleep_tick
 {
 	WDT_TIME time;
@@ -163,7 +175,8 @@ struct wdt_sleep_tick
 };
 typedef struct wdt_sleep_tick WDT_SLEEP_TICK;
 
+void WDT_Configure(WDT_SLEEP_TICK * tick);
+void WDT_Sleep(WDT_SLEEP_TICK * tick, uint8_t sleepMode, bool disableADC);
 bool WDT_TestAndClear(WDT_SLEEP_TICK * tick);
-void WDT_Sleep(WDT_SLEEP_TICK * tick);
 
 #endif /* _AVR_WD_H_ */
