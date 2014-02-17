@@ -83,14 +83,18 @@ cleared on every power up or reset, along with disabling the watchdog-
 #define WD_OFF                  0
 
 //prescale values
-#define WDTO_15MS               0
-#define WDTO_30MS               1
-#define WDTO_60MS               2
-#define WDTO_120MS              3
-#define WDTO_250MS              4
-#define WDTO_500MS              5
-#define WDTO_1S                 6
-#define WDTO_2S                 7
+enum wdt_time
+{
+	WDTO_15MS
+	WDTO_30MS
+	WDTO_60MS
+	WDTO_120MS
+	WDTO_250MS
+	WDTO_500MS
+	WDTO_1S
+	WDTO_2S
+};
+typedef enum wdt_time WDT_TIME;
 
 //prescale values for avrs with WDP3
 #if defined(WDP3)
@@ -152,5 +156,14 @@ cleared on every power up or reset, along with disabling the watchdog-
 #define wdt_enable(val) WD_SET(WD_RST,val)
 #define wdt_disable()   WD_SET(WD_OFF)
 
+struct wdt_sleep_tick
+{
+	WDT_TIME time;
+	bool triggered;
+};
+typedef struct wdt_sleep_tick WDT_SLEEP_TICK;
+
+bool WDT_TestAndClear(WDT_SLEEP_TICK * tick);
+void WDT_Sleep(WDT_SLEEP_TICK * tick);
 
 #endif /* _AVR_WD_H_ */
