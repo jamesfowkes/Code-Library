@@ -30,6 +30,7 @@
  */
 #ifndef PC_TEST_HARNESS
 #include "lib_io.h"
+#include "lib_fuses.h"
 #else
 #include "lib_io_serial_test.h"
 #endif
@@ -56,7 +57,7 @@ enum
 
 #define delay() _delay_loop_2(s_DelayCount)
 
-#define US_TO_DELAYCOUNTS(us)	((F_CPU * (us)) / 4000000)
+#define US_TO_DELAYCOUNTS(us)	div_round(F_CPU * (us), 4000000 + s_uCPUDiv)
 
 /*
  * Private Variables
@@ -67,7 +68,9 @@ static uint8_t s_pin[2];
 
 static char txBuffer[TX_BUFFER_SIZE];
 
-static uint16_t s_DelayCount = US_TO_DELAYCOUNTS(208); // Default to 4800 baudrate
+static uint16_t s_DelayCount = 0;
+
+static uint8_t s_uCPUDiv = 0;
 
 /*
  * Private Function Prototypes
@@ -84,6 +87,7 @@ static void transmit(void);
 
 void SWS_SetBaudRate(LIB_SWS_BAUDRATE_ENUM eBaudrate)
 {
+	s_uCPUDiv = FUS_IsClockDiv8Enabled() ? 8 : 0;
 	s_DelayCount = US_TO_DELAYCOUNTS( (uint16_t)div_round(1000000UL, (uint32_t)eBaudrate) );
 }
 
