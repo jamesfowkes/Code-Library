@@ -19,5 +19,6 @@ struct fuse_settings
 typedef struct fuse_settings FUSE_SETTINGS;
 
 FUSE_SETTINGS * FUS_GetFuses(void);
+bool FUS_IsClockDiv8Enabled(void);
 
 #endif /* LIB_FUSES_H_ */

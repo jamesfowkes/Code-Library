@@ -9,6 +9,7 @@
  */
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "lib_fuses.h"
 
@@ -46,4 +47,10 @@ FUSE_SETTINGS * FUS_GetFuses(void)
 	fuses.lockbits = _GET_LOCK_BITS();
 
 	return &fuses;
+}
+
+bool FUS_IsClockDiv8Enabled(void)
+{
+	FUSE_SETTINGS * pFuses = FUS_GetFuses();
+	return ((pFuses->fuse_low & 0x80) == 0);
 }
