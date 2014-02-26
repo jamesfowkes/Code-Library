@@ -100,6 +100,8 @@ void kickInternal(STATE_MACHINE_INTERNAL *Internal)
 		nextEvent = *Ringbuf_Pop_Front(&Internal->eventQueueBuffer);
 		assert(nextEvent < Internal->MaxEvent);
 		
+		oldStateId = Internal->CurrentState->ID;
+
 		/* Find current state in table */
 		while (!isValidJump(Internal->CurrentState, nextEvent, pEntry) && pEntry->OldState->ID < Internal->MaxStateID) {pEntry++;}
 		
