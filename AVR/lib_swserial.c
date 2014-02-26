@@ -57,7 +57,7 @@ enum
 
 #define delay() _delay_loop_2(s_DelayCount - 6)
 
-#define US_TO_DELAYCOUNTS(us)	div_round(F_CPU * (us), 4000000 + s_uCPUDiv)
+#define US_TO_DELAYCOUNTS(us)	div_round(F_CPU * (us), 4000000 * s_uCPUDiv)
 
 /*
  * Private Variables
