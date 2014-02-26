@@ -6,12 +6,13 @@
 
 C_COMPILER=gcc
 DEL=@rm -f
-UNITY_FOLDER=E:/WorkDir/Unity
 
 ifeq ($(OS),Windows_NT)
 	TARGET_EXTENSION=.exe
+	UNITY_FOLDER=E:/WorkDir/Unity
 else
 	TARGET_EXTENSION=.out
+	UNITY_FOLDER=/home/james/Documents/Unity
 endif
 
 TARGET = $(TEST_NAME)/$(TEST_NAME)$(TARGET_EXTENSION)
@@ -35,7 +36,7 @@ default:
 
 ## Specific dependencies and defines for each test
 memorypool: SYMBOLS += -DMEMORY_POOL_BYTES=1024
-statemachine: SYMBOLS += -DMEMORY_POOL_BYTES=128
+statemachine: SYMBOLS += -DMEMORY_POOL_BYTES=1024
 statemachine: SRC_FILES += ../statemachinemanager.c
 statemachine: SRC_FILES += ../ringbuf.c
 statemachine: SRC_FILES += ../memorypool.c

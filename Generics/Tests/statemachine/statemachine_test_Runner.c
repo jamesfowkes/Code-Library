@@ -29,6 +29,7 @@ extern void tearDown(void);
 extern void test_GetStateMachinePointers(void);
 extern void test_StateMachineInit(void);
 extern void test_StateMachineRunning(void);
+extern void test_StateMachineReentrant(void);
 
 //=======Test Reset Option=====
 void resetTest()
@@ -46,5 +47,6 @@ int main(void)
   RUN_TEST(test_GetStateMachinePointers, 57);
   RUN_TEST(test_StateMachineInit, 58);
   RUN_TEST(test_StateMachineRunning, 59);
+  RUN_TEST(test_StateMachineReentrant, 60);
   return (UnityEnd());
 }

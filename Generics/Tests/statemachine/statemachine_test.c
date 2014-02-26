@@ -14,19 +14,24 @@ static int8_t index = 0UL;
 
 enum states
 {
-	S1,
+	S1 = 1,
 	S2,
 	S3,
 	S4,
+	S5,
+	S6,
 	SMAX
 };
 
 enum events
 {
-	E1,
+	E1 = 1,
 	E2,
 	E3,
 	E4,
+	E5,
+	E6,
+	E7,
 	EMAX
 };
 
@@ -45,11 +50,18 @@ static void onE4S2(SM_STATEID, SM_STATEID, SM_EVENT);
 static void onE4S3(SM_STATEID, SM_STATEID, SM_EVENT);
 static void onE4S4(SM_STATEID, SM_STATEID, SM_EVENT);
 
+static void onE5S4(SM_STATEID, SM_STATEID, SM_EVENT);
+static void onE6S5(SM_STATEID, SM_STATEID, SM_EVENT);
+static void onE7S6(SM_STATEID, SM_STATEID, SM_EVENT);
+
 static SM_STATE states[] = {
+	{0,  NULL,	NULL		},
 	{S1, onS1Leave, onS1Enter	},
 	{S2, onS2Leave,	NULL		},
-	{S3, NULL, 		onS3Enter	},
-	{S4, NULL,		NULL		},
+	{S3, NULL, 	onS3Enter	},
+	{S4, NULL,	NULL		},
+	{S5, NULL,	NULL		},
+	{S6, NULL,	NULL		},
 };
 
 static const SM_ENTRY sm[] = {
@@ -59,7 +71,11 @@ static const SM_ENTRY sm[] = {
 	
 	{&states[S2], E4, onE4S2, &states[S1]},
 	{&states[S3], E4, onE4S3, &states[S1]},
-	{&states[S4], E4, onE4S4, &states[S1]}
+	{&states[S4], E4, onE4S4, &states[S1]},
+
+	{&states[S4], E5, onE5S4, &states[S5]},
+	{&states[S5], E6, onE6S5, &states[S6]},
+	{&states[S6], E7, onE7S6, &states[S1]}
 };
 
 static SM_FUNCTION fnCallHistory[100];
@@ -88,7 +104,7 @@ void tearDown(void)
 void test_GetStateMachinePointers(void)
 {
 	printf("Size of state machine = %d, size of event = %d\n", sizeof(STATE_MACHINE_INTERNAL), sizeof(SM_EVENT));
-	TEST_ASSERT( SMM_Config(2, 8) );
+	TEST_ASSERT( SMM_Config(3, 10) );
 }
 
 void test_StateMachineInit(void)
@@ -136,6 +152,19 @@ void test_StateMachineRunning(void)
 	TEST_ASSERT_EQUAL(S1, SM_GetState(index));
 }
 
+void test_StateMachineReentrant(void)
+{
+	index = SM_Init(&states[S1], EMAX, SMAX, &sm[0]);
+	
+	SM_SetActive(index, true);
+
+	SM_Event(index, E3);
+	TEST_ASSERT_EQUAL_PTR(onS1Leave, fnCallHistory[0]);
+	TEST_ASSERT_EQUAL_PTR(onE3S1, fnCallHistory[1]);
+
+	SM_Event(index, E5);
+}
+
 static void storeHistory(const char * name, SM_FUNCTION fn)
 {
 	fnCallHistory[h++] = fn;
@@ -155,4 +184,32 @@ static void onE3S1(SM_STATEID old, SM_STATEID new, SM_EVENT e){ storeHistory(__f
 
 static void onE4S2(SM_STATEID old, SM_STATEID new, SM_EVENT e){ storeHistory(__func__, onE4S2); }
 static void onE4S3(SM_STATEID old, SM_STATEID new, SM_EVENT e){ storeHistory(__func__, onE4S3); }
-static void onE4S4(SM_STATEID old, SM_STATEID new, SM_EVENT e){ storeHistory(__func__, onE4S4); }
+static void onE4S4(SM_STATEID old, SM_STATEID new, SM_EVENT e){	storeHistory(__func__, onE4S4); }
+
+static void onE5S4(SM_STATEID old, SM_STATEID new, SM_EVENT e)
+{
+	storeHistory(__func__, onE5S4);
+	TEST_ASSERT_EQUAL(S4, old);
+	TEST_ASSERT_EQUAL(S5, new);
+	TEST_ASSERT_EQUAL(E5, e);
+	SM_Event(index, E6);
+}
+
+static void onE6S5(SM_STATEID old, SM_STATEID new, SM_EVENT e)
+{
+	storeHistory(__func__, onE6S5);
+	TEST_ASSERT_EQUAL(S5, old);
+	TEST_ASSERT_EQUAL(S6, new);
+	TEST_ASSERT_EQUAL(E6, e);
+
+	SM_Event(index, E7);
+}
+
+static void onE7S6(SM_STATEID old, SM_STATEID new, SM_EVENT e)
+{
+	storeHistory(__func__, onE7S6);
+	TEST_ASSERT_EQUAL(S6, old);
+	TEST_ASSERT_EQUAL(S1, new);
+	TEST_ASSERT_EQUAL(E7, e);
+
+}
