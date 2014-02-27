@@ -27,7 +27,9 @@
 extern void setUp(void);
 extern void tearDown(void);
 extern void test_ThermistorInit(void);
-extern void test_Readings(void);
+extern void test_ValidAt25Degrees(void);
+extern void test_ValidBetweenMinus30And50(void);
+extern void test_Divider(void);
 
 //=======Test Reset Option=====
 void resetTest()
@@ -43,6 +45,8 @@ int main(void)
   Unity.TestFile = "thermistor_test.c";
   UnityBegin();
   RUN_TEST(test_ThermistorInit, 0);
-  RUN_TEST(test_Readings, 1);
+  RUN_TEST(test_ValidAt25Degrees, 1);
+  RUN_TEST(test_ValidBetweenMinus30And50, 2);
+  RUN_TEST(test_Divider, 3);
   return (UnityEnd());
 }

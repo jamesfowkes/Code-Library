@@ -4,6 +4,7 @@
 #include <util/delay.h>
 #include "lib_fuses.h"
 
+#ifndef TEST_HARNESS
 #define DELAY_US(us) \
 if (FUS_IsClockDiv8Enabled()) \
 { \
@@ -23,5 +24,10 @@ else \
 { \
 	_delay_ms(ms); \
 }
+#else
 
+#define DELAY_MS(ms)
+#define DELAY_US(us)
+
+#endif
 #endif
