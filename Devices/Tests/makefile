@@ -1,33 +1,47 @@
+# ==========================================
+#   Unity Project - A Test Framework for C
+#   Copyright (c) 2007 Mike Karlesky, Mark VanderVoord, Greg Williams
+#   [Released under MIT License. Please refer to license.txt for details]
+# ========================================== 
+
 C_COMPILER=gcc
+DEL=@rm -f
 
 ifeq ($(OS),Windows_NT)
 	TARGET_EXTENSION=.exe
-	DEL = del
+	UNITY_FOLDER=E:/WorkDir/Unity
 else
 	TARGET_EXTENSION=.out
-	DEL = @rm -f
+	UNITY_FOLDER=/home/james/Documents/Unity
 endif
 
-SYMBOLS = -Wall -Wextra -DTEST
-INC_DIRS = -I.. -I../../Utility
+TARGET = $(TEST_NAME)/$(TEST_NAME)$(TARGET_EXTENSION)
+
+SRC_FILES=$(UNITY_FOLDER)/src/unity.c ../lib_$(TEST_NAME).c $(TEST_NAME)/$(TEST_NAME)_test.c $(TEST_NAME)/$(TEST_NAME)_test_Runner.c
+
+INC_DIRS=-I$(UNITY_FOLDER)/src -I$(UNITY_FOLDER)/extras/fixture/src
+SYMBOLS=-DUNITY_TEST
 
 CLEANUP = $(DEL) $(TARGET)
 
-DS3231_SRC_FILES = ../lib_ds3231.c lib_ds3231_test.c ../../Utility/util_time.c ../../Utility/util_bcd.c
-DS3231_TARGET = lib_ds3231_test$(TARGET_EXTENSION)
+.PHONY: thermistor
 
-STP_SRC_FILES = ../lib_stp.c ../lib_stp_barcodes.c ../lib_stp_chars.c ../lib_stp_formatting.c lib_stp_test.c
-STP_TARGET = lib_stp_test$(TARGET_EXTENSION)
+all: default
 
-DS3231: TARGET = $(DS3231_TARGET)
-DS3231: SRC_FILES = $(DS3231_SRC_FILES)
-DS3231: buildandrun
+default:
+	@echo "Available tests:"
+	@echo "thermistor"
 
-STP: TARGET = $(STP_TARGET)
-STP: SRC_FILES = $(STP_SRC_FILES)
-STP: buildandrun
+thermistor : TEST_NAME=$@
 
-buildandrun: 
-	$(CLEANUP)	
+## Specific dependencies and defines for each test
+thermistor: INC_DIRS += -I../../Utility/libfixmath/libfixmath -I../
+thermistor: SRC_FILES += ../../Utility/libfixmath/libfixmath/fix16.c ../../Utility/libfixmath/libfixmath/fix16_exp.c ../../Utility/libfixmath/libfixmath/fix16_str.c ../../Utility/libfixmath/libfixmath/fix16_sqrt.c
+
+thermistor:
+	$(CLEANUP)
 	$(C_COMPILER) $(INC_DIRS) $(SYMBOLS) $(SRC_FILES) -o $(TARGET)
 	./$(TARGET)
+
+clean:
+	$(CLEANUP)
