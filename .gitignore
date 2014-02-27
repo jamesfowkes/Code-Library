@@ -3,6 +3,10 @@
 *.exe
 *.hex
 *.elf
+*.pyc
 
-#LUFA Library
+# LUFA Library
 LUFA/*
+
+# Fixed-Point Math Library
+Utility/libfixmath/*
