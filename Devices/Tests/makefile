@@ -19,10 +19,20 @@ TARGET = $(TEST_NAME)/$(TEST_NAME)$(TARGET_EXTENSION)
 
 SRC_FILES=$(UNITY_FOLDER)/src/unity.c ../lib_$(TEST_NAME).c $(TEST_NAME)/$(TEST_NAME)_test.c $(TEST_NAME)/$(TEST_NAME)_test_Runner.c
 
-INC_DIRS=-I$(UNITY_FOLDER)/src -I$(UNITY_FOLDER)/extras/fixture/src
-SYMBOLS=-DUNITY_TEST -DUSE_FIX16
+INC_DIRS=-I$(UNITY_FOLDER)/src -I$(UNITY_FOLDER)/extras/fixture/src -I../ -I../../Utility
+SYMBOLS=-DUNITY_TEST
 
 CLEANUP = $(DEL) $(TARGET)
+
+ifeq ($(USE_FIX16), 0)
+	LD_SUFFIX = -lm
+endif
+
+ifeq ($(USE_FIX16), 1)
+	SYMBOLS += -DFIXMATH_OPTIMIZE_8BIT -DFIXMATH_NO_CACHE -DUSE_FIX16
+	INC_DIRS += -I../../Utility/libfixmath/libfixmath
+	SRC_FILES += ../../Utility/libfixmath/libfixmath/fix16.c ../../Utility/libfixmath/libfixmath/fix16_exp.c ../../Utility/libfixmath/libfixmath/fix16_str.c
+endif
 
 .PHONY: thermistor
 
@@ -34,13 +44,9 @@ default:
 
 thermistor : TEST_NAME=$@
 
-## Specific dependencies and defines for each test
-thermistor: INC_DIRS += -I../../Utility/libfixmath/libfixmath -I../
-thermistor: SRC_FILES += ../../Utility/libfixmath/libfixmath/fix16.c ../../Utility/libfixmath/libfixmath/fix16_exp.c ../../Utility/libfixmath/libfixmath/fix16_str.c
-
 thermistor:
 	$(CLEANUP)
-	$(C_COMPILER) $(INC_DIRS) $(SYMBOLS) $(SRC_FILES) -o $(TARGET)
+	$(C_COMPILER) $(INC_DIRS) $(SYMBOLS) $(SRC_FILES) -o $(TARGET) $(LD_SUFFIX)
 	./$(TARGET)
 
 clean:
