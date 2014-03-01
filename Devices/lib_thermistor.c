@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stddef.h>
 #include <math.h>
+
 /*
  * Utility Library Includes
  */
@@ -66,7 +67,7 @@ bool THERMISTOR_InitDevice(THERMISTOR * pTherm, uint16_t B, uint32_t R25)
 	return success;
 }
 
-bool THERMISTOR_InitDivider(THERMISTOR_DIVIDER_READING * pDivider, uint16_t maxReading, uint32_t rPulldown)
+bool THERMISTOR_InitDivider(THERMISTOR_DIVIDER_READING * pDivider, uint16_t maxReading, uint32_t rDivider, DIVIDER_TYPE eDividerType)
 {
 	bool success = false;
 
@@ -74,7 +75,8 @@ bool THERMISTOR_InitDivider(THERMISTOR_DIVIDER_READING * pDivider, uint16_t maxR
 	{
 		success = true;
 		pDivider->maxReading = maxReading;
-		pDivider->rPulldown = rPulldown;
+		pDivider->rDivider = rDivider;
+		pDivider->eDividerType = eDividerType;
 	}
 	
 	return success;
@@ -128,16 +130,29 @@ FIXED_POINT_TYPE THERMISTOR_GetReading(THERMISTOR * pTherm, uint32_t R)
 
 FIXED_POINT_TYPE THERMISTOR_GetDividerReading(THERMISTOR * pTherm, THERMISTOR_DIVIDER_READING * pDivider, uint16_t reading)
 {
+	FIXED_POINT_TYPE result = fp_from_int(0);
+	uint32_t rTherm;
+	
 	if ((reading > 0) && (reading < pDivider->maxReading))
 	{
-		uint32_t r = (pDivider->rPulldown * pDivider->maxReading) / reading;
-		r -= pDivider->rPulldown;
-		return THERMISTOR_GetReading(pTherm, r);
+		
+		rTherm = (pDivider->rDivider * pDivider->maxReading);
+		
+		switch(pDivider->eDividerType)
+		{
+		case PULLDOWN:
+			rTherm /= reading;
+			rTherm -= pDivider->rDivider;
+			result = THERMISTOR_GetReading(pTherm, rTherm);
+			break;
+		case PULLUP:
+			rTherm /= (1023 - reading);
+			result = THERMISTOR_GetReading(pTherm, rTherm);
+			break;
+		}
 	}
-	else
-	{
-		return fp_from_int(0);
-	}
+	
+	return result;
 }
 
 uint32_t THERMISTOR_GetResistance(THERMISTOR * pTherm, FIXED_POINT_TYPE t)
