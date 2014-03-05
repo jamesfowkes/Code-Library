@@ -13,4 +13,6 @@ typedef enum {
 	clock_div_256 = 8
 } clock_div_t;
 
+#define clock_prescale_set(x) {}
+
 #endif
