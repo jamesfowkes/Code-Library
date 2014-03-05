@@ -3,6 +3,7 @@
 
 uint8_t const * MEMPOOL_GetBytes(size_t bytes);
 uint16_t MEMPOOL_GetRemaining(void);
+uint16_t MEMPOOL_GetUsed(void);
 
 #ifdef TEST
 void MEMPOOL_Reset(void);

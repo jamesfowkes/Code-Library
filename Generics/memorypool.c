@@ -33,6 +33,11 @@ uint16_t MEMPOOL_GetRemaining(void)
 	return (uint16_t)(poolEnd - poolStart);
 }
 
+uint16_t MEMPOOL_GetUsed(void)
+{
+	return (uint16_t)(poolStart - pool);
+}
+
 #ifdef UNITY_TEST
 void MEMPOOL_Reset(void)
 {
