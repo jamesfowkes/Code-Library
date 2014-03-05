@@ -20,11 +20,11 @@ TARGET = $(TEST_NAME)/$(TEST_NAME)$(TARGET_EXTENSION)
 SRC_FILES=$(UNITY_FOLDER)/src/unity.c ../$(TEST_NAME).c $(TEST_NAME)/$(TEST_NAME)_test.c $(TEST_NAME)/$(TEST_NAME)_test_Runner.c
 
 INC_DIRS=-I$(UNITY_FOLDER)/src -I$(UNITY_FOLDER)/extras/fixture/src
-SYMBOLS=-DUNITY_TEST
+SYMBOLS=-DUNITY_TEST -std=c99
 
 CLEANUP = $(DEL) $(TARGET)
 
-.PHONY: memorypool linkedlist statemachine
+.PHONY: memorypool linkedlist statemachine ringbuf averager
 
 all: default
 
@@ -33,17 +33,26 @@ default:
 	@echo "memorypool"
 	@echo "linkedlist"
 	@echo "statemachine"
+	@echo "ringbuf"
+	@echo "averager"
 
 ## Specific dependencies and defines for each test
-memorypool: SYMBOLS += -DMEMORY_POOL_BYTES=1024
+memorypool: SYMBOLS += -DMEMORY_POOL_BYTES=1024 -DTEST
+
 statemachine: SYMBOLS += -DMEMORY_POOL_BYTES=1024
 statemachine: SRC_FILES += ../statemachinemanager.c
 statemachine: SRC_FILES += ../ringbuf.c
 statemachine: SRC_FILES += ../memorypool.c
 
-memorypool linkedlist statemachine: TEST_NAME=$@
+ringbuf: INC_DIRS += -I../../Utility
 
-memorypool linkedlist statemachine:
+averager: SYMBOLS += -DMEMORY_POOL_BYTES=1024
+averager: INC_DIRS += -I../../Utility
+averager: SRC_FILES += ../memorypool.c
+
+memorypool linkedlist statemachine ringbuf averager: TEST_NAME=$@
+
+memorypool linkedlist statemachine ringbuf averager:
 	$(CLEANUP)
 	$(C_COMPILER) $(INC_DIRS) $(SYMBOLS) $(SRC_FILES) -o $(TARGET)
 	./$(TARGET)
