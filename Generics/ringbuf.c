@@ -41,6 +41,11 @@ embedded system. See the unit tests for usage examples. */
 #include <stdint.h>
 
 #include "ringbuf.h"
+#include "util_macros.h"
+
+static uint8_t * getElementN(RING_BUFFER *b, uint8_t n);
+static uint8_t getElementNIndex(RING_BUFFER *b, uint8_t n);
+static unsigned valid_power_of_two(unsigned k);
 
 /****************************************************************************
 * DESCRIPTION: Returns the number of elements in the ring buffer
@@ -48,10 +53,10 @@ embedded system. See the unit tests for usage examples. */
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-static unsigned Ringbuf_Count (
+unsigned Ringbuf_Count (
 RING_BUFFER const *b)
 {
-	return (b ? (b->head - b->tail) : 0);
+	return (b ? min((b->head - b->tail), b->element_count) : 0);
 }
 
 /****************************************************************************
@@ -63,7 +68,7 @@ RING_BUFFER const *b)
 bool Ringbuf_Full (
 RING_BUFFER const *b)
 {
-	return (b ? (Ringbuf_Count(b) == b->element_count) : true);
+	return (b ? ((b->head - b->tail) >= b->element_count) : true);
 }
 
 /****************************************************************************
@@ -109,6 +114,65 @@ RING_BUFFER const *b)
 }
 
 /****************************************************************************
+* DESCRIPTION: Looks element N of the list without removing it
+* RETURN:      pointer to the data, or N is beyond the list
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+uint8_t *Ringbuf_Get_Element(RING_BUFFER *b, uint8_t n)
+{
+	if (b)
+	{
+		if (Ringbuf_Count(b) > n)
+		{
+			return getElementN(b, n);
+		}
+	}
+	
+	return NULL;
+}
+
+/****************************************************************************
+* DESCRIPTION: Copies N elements from the list to a specified pointer (presumably an array)
+* RETURN:      true/false success
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+bool Ringbuf_Get_Elements(RING_BUFFER *b, uint8_t startIndex, uint8_t count, RINGBUF_DATA copyBuffer)
+{
+	bool success = true;
+	success &= ((b != NULL) & (copyBuffer != NULL));
+	success &= (count > 0);
+	
+	uint8_t readElementIndex;
+	uint8_t copyElementIndex = 0;
+	
+	if (success)
+	{
+		success &= (Ringbuf_Count(b) >= count);
+		if (success)
+		{
+			startIndex = getElementNIndex(b, startIndex);
+			readElementIndex = startIndex;
+			
+			for (uint8_t i = 0; i < count; ++i)
+			{
+				for (uint8_t byteIndex = 0; byteIndex < b->element_size; byteIndex++)
+				{
+					copyBuffer[copyElementIndex + byteIndex] = b->data[readElementIndex + byteIndex];
+				}
+				
+				copyElementIndex += b->element_size;
+				readElementIndex += b->element_size;
+				if (readElementIndex > (b->element_count * b->element_size)) {readElementIndex = 0;}
+			}
+		}
+	}
+	
+	return success;
+}
+
+/****************************************************************************
 * DESCRIPTION: Gets the data from the front of the list, and removes it
 * RETURN:      pointer to the data, or NULL if nothing in the list
 * ALGORITHM:   none
@@ -120,7 +184,7 @@ RING_BUFFER * b)
 	uint8_t *data = NULL;  /* return value */
 
 	if (!Ringbuf_Empty(b)) {
-		data = &(b->data[(b->tail % b->element_count) * b->element_size]);
+		data = getElementN(b, 0);
 		b->tail++;
 	}
 
@@ -198,6 +262,22 @@ static unsigned valid_power_of_two(unsigned k)
 	return k;
 }
 
+/****************************************************************************
+* DESCRIPTION: Returns a pointer to a ring buffer element
+* RETURN:      Pointer to element. Validity is not checked.
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+
+static uint8_t getElementNIndex(RING_BUFFER *b, uint8_t n)
+{
+	return ((b->tail + n) % b->element_count) * b->element_size;
+}
+
+static uint8_t * getElementN(RING_BUFFER *b, uint8_t n)
+{
+	return &(b->data[ getElementNIndex(b, n) ]);
+}
 
 /****************************************************************************
 * DESCRIPTION: Configures the ring buffer

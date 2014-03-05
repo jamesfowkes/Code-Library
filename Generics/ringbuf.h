@@ -61,6 +61,8 @@ typedef struct ring_buffer_t RING_BUFFER;
 	bool Ringbuf_Full(RING_BUFFER const *b);
 	bool Ringbuf_Empty(RING_BUFFER const *b);
 	
+	unsigned Ringbuf_Count(RING_BUFFER const *b);
+	
 	RINGBUF_DATA Ringbuf_Get_Oldest(RING_BUFFER const *b);
 	RINGBUF_DATA Ringbuf_Get_Newest(RING_BUFFER const *b);
 	
@@ -72,6 +74,9 @@ typedef struct ring_buffer_t RING_BUFFER;
 	
 	void Ringbuf_AllowOverwrite(RING_BUFFER *b,	bool allow);
 	
+	RINGBUF_DATA Ringbuf_Get_Element(RING_BUFFER *b, uint8_t n);
+	bool Ringbuf_Get_Elements(RING_BUFFER *b, uint8_t startIndex, uint8_t count, RINGBUF_DATA copyBuffer);
+		
 	/* Note: element_count should be a power of two,
 	or it will only use the next lower power of two */
 	void Ringbuf_Init(
