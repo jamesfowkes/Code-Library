@@ -85,14 +85,40 @@ if (pTypedPtr) \
 }
 
 #define RETURN_AVERAGE(pTypedPtr, rtntype) \
-uint8_t n = 0; \
 int32_t average = 0; \
-uint8_t count = pTypedPtr->full ? pTypedPtr->maxIndex : pTypedPtr->iWrite - 1; \
-for (n = 0; n <= count; n++) \
+uint8_t count = 0; \
+if (pTypedPtr) \
 { \
-	average += pTypedPtr->data[n]; \
+	if (pTypedPtr->iWrite || pTypedPtr->full) \
+	{ \
+		uint8_t n = 0; \
+		count = pTypedPtr->full ? pTypedPtr->maxIndex : pTypedPtr->iWrite - 1; \
+		for (n = 0; n <= count; n++) \
+		{ \
+			average += pTypedPtr->data[n]; \
+		} \
+	} \
+	else \
+	{ \
+		return 0; \
+	} \
+} \
+else \
+{ \
+	return 0; \
 } \
 return (rtntype)div_round(average, count+1);
+
+#define RESET_AVERAGER(pTypedPtr, value) \
+if (pTypedPtr) \
+{ \
+	for (uint8_t n = 0; n <= pTypedPtr->maxIndex; n++) \
+	{ \
+		pTypedPtr->data[n] = value; \
+	} \
+	pTypedPtr->iWrite = 0; \
+	pTypedPtr->full = (value != 0); \
+}
 
 /*
  * Private Function Prototypes
@@ -149,6 +175,21 @@ int16_t AVERAGER16_GetAverage(AVERAGER16 * pAverager)
 int32_t AVERAGER32_GetAverage(AVERAGER32 * pAverager)
 {
 	RETURN_AVERAGE(pAverager, int32_t);
+}
+
+void AVERAGER8_Reset(AVERAGER8 * pTypedPtr, int8_t value)
+{
+	RESET_AVERAGER(pTypedPtr, value);
+}
+
+void AVERAGER16_Reset(AVERAGER16 * pTypedPtr, int16_t value)
+{
+	RESET_AVERAGER(pTypedPtr, value);
+}
+
+void AVERAGER32_Reset(AVERAGER32 * pTypedPtr, int32_t value)
+{
+	RESET_AVERAGER(pTypedPtr, value);
 }
 
 /*

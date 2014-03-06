@@ -21,4 +21,8 @@ int8_t AVERAGER8_GetAverage(AVERAGER8 * pAverager);
 int16_t AVERAGER16_GetAverage(AVERAGER16 * pAverager);
 int32_t AVERAGER32_GetAverage(AVERAGER32 * pAverager);
 
+void AVERAGER8_Reset(AVERAGER8 * pAverager, int8_t value);
+void AVERAGER16_Reset(AVERAGER16 * pAverager, int16_t value);
+void AVERAGER32_Reset(AVERAGER32 * pAverager, int32_t value);
+
 #endif

@@ -38,9 +38,7 @@ static AVERAGER32 *pAverager32;
 
 void setUp(void)
 {
-	pAverager8 = AVERAGER8_GetAverager(20);
-	pAverager16 = AVERAGER16_GetAverager(20);
-	pAverager32 = AVERAGER32_GetAverager(20);
+
 }
 
 void tearDown(void)
@@ -50,6 +48,11 @@ void tearDown(void)
 
 void test_AveragerInit(void)
 {
+
+	pAverager8 = AVERAGER8_GetAverager(20);
+	pAverager16 = AVERAGER16_GetAverager(20);
+	pAverager32 = AVERAGER32_GetAverager(20);
+	
 	TEST_ASSERT_NOT_EQUAL(NULL, pAverager8);
 	TEST_ASSERT_NOT_EQUAL(NULL, pAverager16);
 	TEST_ASSERT_NOT_EQUAL(NULL, pAverager32);
@@ -117,4 +120,28 @@ void test_Averager32Running(void)
 	
 	TEST_ASSERT_EQUAL(18173, AVERAGER32_GetAverage(pAverager32));
 	
+}
+
+void test_Averager8Reset(void)
+{
+	AVERAGER8_Reset(pAverager8, 0);
+	TEST_ASSERT_EQUAL(0, AVERAGER8_GetAverage(pAverager8));
+	AVERAGER8_Reset(pAverager8, 10);
+	TEST_ASSERT_EQUAL(10, AVERAGER8_GetAverage(pAverager8));
+}
+
+void test_Averager16Reset(void)
+{
+	AVERAGER16_Reset(pAverager16, 0);
+	TEST_ASSERT_EQUAL(0, AVERAGER16_GetAverage(pAverager16));
+	AVERAGER16_Reset(pAverager16, 1000);
+	TEST_ASSERT_EQUAL(1000, AVERAGER16_GetAverage(pAverager16));
+}
+
+void test_Averager32Reset(void)
+{
+	AVERAGER32_Reset(pAverager32, 0);
+	TEST_ASSERT_EQUAL(0, AVERAGER32_GetAverage(pAverager32));
+	AVERAGER32_Reset(pAverager32, 100000);
+	TEST_ASSERT_EQUAL(100000, AVERAGER32_GetAverage(pAverager32));
 }
