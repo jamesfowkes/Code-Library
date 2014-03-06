@@ -27,7 +27,9 @@
 extern void setUp(void);
 extern void tearDown(void);
 extern void test_AveragerInit(void);
-extern void test_AveragerRunning(void);
+extern void test_Averager8Running(void);
+extern void test_Averager16Running(void);
+extern void test_Averager32Running(void);
 
 //=======Test Reset Option=====
 void resetTest()
@@ -43,6 +45,8 @@ int main(void)
   Unity.TestFile = "averager_test.c";
   UnityBegin();
   RUN_TEST(test_AveragerInit, 1);
-  RUN_TEST(test_AveragerRunning, 2);
+  RUN_TEST(test_Averager8Running, 2);
+  RUN_TEST(test_Averager16Running, 3);
+  RUN_TEST(test_Averager32Running, 4);
   return (UnityEnd());
 }

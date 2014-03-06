@@ -43,7 +43,7 @@ statemachine: SYMBOLS += -DMEMORY_POOL_BYTES=1024
 statemachine: SRC_FILES += ../statemachinemanager.c
 statemachine: SRC_FILES += ../ringbuf.c
 statemachine: SRC_FILES += ../memorypool.c
-
+statemachine: INC_DIRS += -I../../Utility
 ringbuf: INC_DIRS += -I../../Utility
 
 averager: SYMBOLS += -DMEMORY_POOL_BYTES=1024
