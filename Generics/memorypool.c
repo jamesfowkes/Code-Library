@@ -1,6 +1,11 @@
+/*
+ * Standard Library Includes
+ */
+ 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include "memorypool.h"
 
@@ -22,6 +27,13 @@ uint8_t const * MEMPOOL_GetBytes(size_t bytes)
 		{
 			allocation = poolStart;
 			poolStart += bytes;
+		}
+		else
+		{
+			#ifdef TEST_HARNESS
+			printf("MEMPOOL allocation failed requesting %zd bytes (%d remaining in pool)\n", bytes, (poolEnd - poolStart));
+			#endif
+			while(true) {};
 		}
 	}
 	
