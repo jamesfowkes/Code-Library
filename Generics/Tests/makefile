@@ -24,7 +24,7 @@ SYMBOLS=-DUNITY_TEST -std=c99
 
 CLEANUP = $(DEL) $(TARGET)
 
-.PHONY: memorypool linkedlist statemachine ringbuf averager
+.PHONY: memorypool linkedlist statemachine ringbuf averager button
 
 all: default
 
@@ -35,9 +35,10 @@ default:
 	@echo "statemachine"
 	@echo "ringbuf"
 	@echo "averager"
+	@echo "button"
 
 ## Specific dependencies and defines for each test
-memorypool: SYMBOLS += -DMEMORY_POOL_BYTES=1024 -DTEST
+memorypool: SYMBOLS += -DMEMORY_POOL_BYTES=1024 -DTEST_HARNESS
 
 statemachine: SYMBOLS += -DMEMORY_POOL_BYTES=1024
 statemachine: SRC_FILES += ../statemachinemanager.c
@@ -50,9 +51,9 @@ averager: SYMBOLS += -DMEMORY_POOL_BYTES=1024
 averager: INC_DIRS += -I../../Utility
 averager: SRC_FILES += ../memorypool.c
 
-memorypool linkedlist statemachine ringbuf averager: TEST_NAME=$@
+memorypool linkedlist statemachine ringbuf averager button: TEST_NAME=$@
 
-memorypool linkedlist statemachine ringbuf averager:
+memorypool linkedlist statemachine ringbuf averager button:
 	$(CLEANUP)
 	$(C_COMPILER) $(INC_DIRS) $(SYMBOLS) $(SRC_FILES) -o $(TARGET)
 	./$(TARGET)
