@@ -6,6 +6,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "memorypool.h"
 
@@ -50,10 +51,11 @@ uint16_t MEMPOOL_GetUsed(void)
 	return (uint16_t)(poolStart - pool);
 }
 
-#ifdef UNITY_TEST
+#ifdef TEST_HARNESS
 void MEMPOOL_Reset(void)
 {
 	// NEVER call except when under test rig!
 	poolStart = pool;
+	memset((void*)poolStart, 0, MEMORY_POOL_BYTES);
 }
 #endif
