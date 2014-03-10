@@ -147,6 +147,7 @@ FIXED_POINT_TYPE THERMISTOR_GetDividerReading(THERMISTOR * pTherm, THERMISTOR_DI
 			break;
 		case PULLUP:
 			rTherm /= (1023 - reading);
+			rTherm -= pDivider->rDivider;
 			result = THERMISTOR_GetReading(pTherm, rTherm);
 			break;
 		}
