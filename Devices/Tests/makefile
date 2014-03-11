@@ -20,7 +20,7 @@ TARGET = $(TEST_NAME)/$(TEST_NAME)$(TARGET_EXTENSION)
 SRC_FILES=$(UNITY_FOLDER)/src/unity.c ../lib_$(TEST_NAME).c $(TEST_NAME)/$(TEST_NAME)_test.c $(TEST_NAME)/$(TEST_NAME)_test_Runner.c
 
 INC_DIRS=-I$(UNITY_FOLDER)/src -I$(UNITY_FOLDER)/extras/fixture/src -I../ -I../../Utility
-SYMBOLS=-DUNITY_TEST
+SYMBOLS=-DUNITY_TEST -std=c99
 
 CLEANUP = $(DEL) $(TARGET)
 
@@ -34,17 +34,20 @@ ifeq ($(USE_FIX16), 1)
 	SRC_FILES += ../../Utility/libfixmath/libfixmath/fix16.c ../../Utility/libfixmath/libfixmath/fix16_exp.c ../../Utility/libfixmath/libfixmath/fix16_str.c
 endif
 
-.PHONY: thermistor
+.PHONY: thermistor pot_divider
 
 all: default
 
 default:
 	@echo "Available tests:"
 	@echo "thermistor"
+	@echo "pot_divider"
 
-thermistor : TEST_NAME=$@
+thermistor: SRC_FILES += ../lib_pot_divider.c
+	
+thermistor pot_divider: TEST_NAME=$@
 
-thermistor:
+thermistor pot_divider:
 	$(CLEANUP)
 	$(C_COMPILER) $(INC_DIRS) $(SYMBOLS) $(SRC_FILES) -o $(TARGET) $(LD_SUFFIX)
 	./$(TARGET)

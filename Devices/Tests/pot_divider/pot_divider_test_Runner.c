@@ -26,11 +26,9 @@
 //=======External Functions This Runner Calls=====
 extern void setUp(void);
 extern void tearDown(void);
-extern void test_initDevice(void);
-extern void test_ValidAt25Degrees(void);
-extern void test_ValidBetweenMinus30And50(void);
-extern void test_PullupDivider(void);
-extern void test_PulldownDivider(void);
+extern void test_Initialisation(void);
+extern void test_Pulldown(void);
+extern void test_Pullup(void);
 
 //=======Test Reset Option=====
 void resetTest()
@@ -43,12 +41,11 @@ void resetTest()
 //=======MAIN=====
 int main(void)
 {
-  Unity.TestFile = "thermistor_test.c";
+  Unity.TestFile = "pot_divider_test.c";
   UnityBegin();
-  RUN_TEST(test_initDevice, 0);
-  RUN_TEST(test_ValidAt25Degrees, 1);
-  RUN_TEST(test_ValidBetweenMinus30And50, 2);
-  RUN_TEST(test_PullupDivider, 3);
-  RUN_TEST(test_PulldownDivider, 4);
+  RUN_TEST(test_Initialisation, 0);
+  RUN_TEST(test_Pulldown, 1);
+  RUN_TEST(test_Pullup, 2);
+  
   return (UnityEnd());
 }

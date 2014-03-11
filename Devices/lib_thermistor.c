@@ -18,6 +18,7 @@
  * Device Library Includes
  */
 
+#include "lib_pot_divider.h"
 #include "lib_thermistor.h"
 
 /*
@@ -67,22 +68,7 @@ bool THERMISTOR_InitDevice(THERMISTOR * pTherm, uint16_t B, uint32_t R25)
 	return success;
 }
 
-bool THERMISTOR_InitDivider(THERMISTOR_DIVIDER_READING * pDivider, uint16_t maxReading, uint32_t rDivider, DIVIDER_TYPE eDividerType)
-{
-	bool success = false;
-
-	if (pDivider)
-	{
-		success = true;
-		pDivider->maxReading = maxReading;
-		pDivider->rDivider = rDivider;
-		pDivider->eDividerType = eDividerType;
-	}
-	
-	return success;
-}
-
-FIXED_POINT_TYPE THERMISTOR_GetReading(THERMISTOR * pTherm, uint32_t R)
+FIXED_POINT_TYPE THERMISTOR_TemperatureFromResistance(THERMISTOR * pTherm, uint32_t R)
 {
 	FIXED_POINT_TYPE t;
 
@@ -128,35 +114,21 @@ FIXED_POINT_TYPE THERMISTOR_GetReading(THERMISTOR * pTherm, uint32_t R)
 	return fp_sub(t, T0CinKelvin);
 }
 
-FIXED_POINT_TYPE THERMISTOR_GetDividerReading(THERMISTOR * pTherm, THERMISTOR_DIVIDER_READING * pDivider, uint16_t reading)
+FIXED_POINT_TYPE THERMISTOR_TemperatureFromADCReading(THERMISTOR * pTherm, POT_DIVIDER * pDivider, uint16_t reading)
 {
 	FIXED_POINT_TYPE result = fp_from_int(0);
-	uint32_t rTherm;
 	
-	if ((reading > 0) && (reading < pDivider->maxReading))
+	uint32_t rTherm = POTDIVIDER_GetResistanceFromADC(pDivider, reading);
+	
+	if (rTherm > 0)
 	{
-		
-		rTherm = (pDivider->rDivider * pDivider->maxReading);
-		
-		switch(pDivider->eDividerType)
-		{
-		case PULLDOWN:
-			rTherm /= reading;
-			rTherm -= pDivider->rDivider;
-			result = THERMISTOR_GetReading(pTherm, rTherm);
-			break;
-		case PULLUP:
-			rTherm /= (1023 - reading);
-			rTherm -= pDivider->rDivider;
-			result = THERMISTOR_GetReading(pTherm, rTherm);
-			break;
-		}
+		result = THERMISTOR_TemperatureFromResistance(pTherm, rTherm);
 	}
 	
 	return result;
 }
 
-uint32_t THERMISTOR_GetResistance(THERMISTOR * pTherm, FIXED_POINT_TYPE t)
+uint32_t THERMISTOR_GetResistanceFromTemperature(THERMISTOR * pTherm, FIXED_POINT_TYPE t)
 {
 	// Convert celcius to kelvin
 	t = fp_add(t, T0CinKelvin);
