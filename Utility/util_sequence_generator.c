@@ -37,7 +37,7 @@ struct sequence
  * Public Function Defintions
  */
 
-static void writeValue(SEQUENCE * seq, uint16_t value)
+static void writeValue(SEQUENCE * seq, int16_t value)
 {
 	((uint16_t*)seq->data)[seq->wIndex] = value;
 	incrementwithrollover(seq->wIndex, seq->length-1);
@@ -64,7 +64,7 @@ SEQUENCE * SEQGEN_GetNewSequence(uint16_t length)
 	return seq;
 }
 
-void SEQGEN_AddConstants(SEQUENCE * seq, uint16_t value, uint16_t length)
+void SEQGEN_AddConstants(SEQUENCE * seq, int16_t value, uint16_t length)
 {
 	if (seq)
 	{
@@ -75,20 +75,20 @@ void SEQGEN_AddConstants(SEQUENCE * seq, uint16_t value, uint16_t length)
 	}
 }
 
-uint16_t SEQGEN_Read(SEQUENCE * seq)
+int16_t SEQGEN_Read(SEQUENCE * seq)
 {
 	uint16_t value = 0;
 	
 	if (seq)
 	{
-		value = ((uint16_t*)seq->data)[seq->rIndex];
+		value = ((int16_t*)seq->data)[seq->rIndex];
 		incrementwithrollover(seq->rIndex, seq->length-1);
 	}
 	
 	return value;
 }
 
-void SEQGEN_AddRamp_StartStepLength(SEQUENCE * seq, uint16_t strt, uint16_t step, uint16_t length)
+void SEQGEN_AddRamp_StartStepLength(SEQUENCE * seq, int16_t strt, int16_t step, uint16_t length)
 {
 	uint16_t value = strt;
 	
@@ -103,9 +103,9 @@ void SEQGEN_AddRamp_StartStepLength(SEQUENCE * seq, uint16_t strt, uint16_t step
 }
 
 #ifdef TEST_HARNESS
-uint16_t SEQGENspy_GetFromIndex(SEQUENCE * seq, uint16_t index)
+int16_t SEQGENspy_GetFromIndex(SEQUENCE * seq, uint16_t index)
 {
-	return ((uint16_t*)seq->data)[index];
+	return ((int16_t*)seq->data)[index];
 }
 #endif
 
