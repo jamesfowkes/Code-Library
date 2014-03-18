@@ -18,6 +18,6 @@
 #define div_round_pos(x, y) (((x) + ((y)/2))/(y))
 #define div_round_neg(x, y) (((x) - ((y)/2))/(y))
 
-#define div_round(x, y) (x >= 0) ? div_round_pos(x, y) : div_round_neg(x, y)
+#define div_round(x, y) (x == 0) ? 0 : ((x > 0) ? div_round_pos(x, y) : div_round_neg(x, y))
 
 #endif
