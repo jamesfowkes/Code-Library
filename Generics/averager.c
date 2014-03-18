@@ -124,6 +124,8 @@ static void * getDataPointer(AVERAGER_TYPE eType, uint8_t nElements)
 		return (void*)MEMPOOL_GetBytes(nElements * sizeof(int32_t));
 	case U32:
 		return (void*)MEMPOOL_GetBytes(nElements * sizeof(uint32_t));
+	default:
+		return NULL;
 	}
 }
 

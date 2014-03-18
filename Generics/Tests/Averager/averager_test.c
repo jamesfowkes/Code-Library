@@ -129,7 +129,7 @@ void test_AveragerU32Running(void) { TEST_RUNNING(U32, uint32_t, u32data, u32dat
 
 void test_AveragerS8Reset(void) { TEST_RESET(S8, int8_t, s8resetValue); }
 void test_AveragerU8Reset(void) { TEST_RESET(U8, uint8_t, u8resetValue); }
-void test_AveragerS16Reset(void) { TEST_RESET(S16, int16_t, u16resetValue); }
+void test_AveragerS16Reset(void) { TEST_RESET(S16, int16_t, s16resetValue); }
 void test_AveragerU16Reset(void) { TEST_RESET(U16, uint16_t, u16resetValue); }
-void test_AveragerS32Reset(void) { TEST_RESET(S16, int16_t, u32resetValue); }
+void test_AveragerS32Reset(void) { TEST_RESET(S16, int16_t, s32resetValue); }
 void test_AveragerU32Reset(void) { TEST_RESET(U16, uint16_t, u32resetValue); }

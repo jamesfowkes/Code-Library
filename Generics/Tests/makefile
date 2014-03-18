@@ -20,7 +20,7 @@ TARGET = $(TEST_NAME)/$(TEST_NAME)$(TARGET_EXTENSION)
 SRC_FILES=$(UNITY_FOLDER)/src/unity.c ../$(TEST_NAME).c $(TEST_NAME)/$(TEST_NAME)_test.c $(TEST_NAME)/$(TEST_NAME)_test_Runner.c
 
 INC_DIRS=-I$(UNITY_FOLDER)/src -I$(UNITY_FOLDER)/extras/fixture/src
-SYMBOLS=-DUNITY_TEST -std=c99
+SYMBOLS=-DUNITY_TEST -std=c99 -Wall -Wextra
 
 CLEANUP = $(DEL) $(TARGET)
 
