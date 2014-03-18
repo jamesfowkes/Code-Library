@@ -135,7 +135,7 @@ static void * getDataPointer(AVERAGER_TYPE eType, uint8_t nElements)
 
 AVERAGER * AVERAGER_GetAverager(AVERAGER_TYPE eType, uint8_t size)
 {
-	AVERAGER* pAverager;
+	AVERAGER* pAverager = NULL;
 	
 	if (size)
 	{
