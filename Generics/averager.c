@@ -30,55 +30,21 @@ struct averager
 	bool full;
 };
 
-#define WRITE_NEW_DATA(pAverager, pNewData, data_type) \
-if (pAverager) \
-{ \
-	((data_type*)pAverager->data)[pAverager->iWrite] = *(data_type*)pNewData; \
-	pAverager->full |= (pAverager->iWrite == pAverager->maxIndex); \
-	incrementwithrollover(pAverager->iWrite, pAverager->maxIndex); \
-}
+#ifdef INCLUDE_32BIT_AVERAGER
+typedef int64_t SUMMING_TYPE;
+#else
+typedef int32_t SUMMING_TYPE;
+#endif
 
-#define DEFINE_GET_AVERAGE_FUNCTION(type, data_type, sumtype) \
-static void Get##type##Average(AVERAGER* pAverager, void* pResult) \
-{ \
-	sumtype average = 0; \
-	uint8_t count = 0; \
-	if (pAverager) \
-	{ \
-		if (pAverager->iWrite || pAverager->full) \
-		{ \
-			uint8_t n = 0; \
-			count = pAverager->full ? pAverager->maxIndex : pAverager->iWrite - 1; \
-			for (n = 0; n <= count; n++) \
-			{ \
-				average += ((data_type*)(pAverager->data))[n]; \
-			} \
-		} \
-		else \
-		{ \
-			*(data_type*)pResult = 0; \
-		} \
-	} \
-	else \
-	{ \
-		*(data_type*)pResult = 0; \
-	} \
-	*(data_type*)pResult = (data_type)div_round(average, count+1); \
-}
-
-#define DEFINE_GET_SIGNED_AVERAGE_FUNCTION(type, data_type) DEFINE_GET_AVERAGE_FUNCTION(type, data_type, int32_t);
-#define DEFINE_GET_UNSIGNED_AVERAGE_FUNCTION(type, data_type) DEFINE_GET_AVERAGE_FUNCTION(type, data_type, uint32_t);
+#define WRITE_NEW_DATA(pAverager, pNewData, data_type) ((data_type*)pAverager->data)[pAverager->iWrite] = *(data_type*)pNewData;
 
 #define DEFINE_RESET_AVERAGER_FUNCTION(type, data_type) \
 static void Reset##type##Data(AVERAGER* pAverager, void* pValue) \
 { \
-	if (pAverager) \
+	data_type value = (pValue) ? *(data_type*)pValue : 0; \
+	for (uint8_t n = 0; n <= pAverager->maxIndex; n++) \
 	{ \
-		data_type value = (pValue) ? *(data_type*)pValue : 0; \
-		for (uint8_t n = 0; n <= pAverager->maxIndex; n++) \
-		{ \
-			((data_type*)pAverager->data)[n] = value; \
-		} \
+		((data_type*)pAverager->data)[n] = value; \
 	} \
 }
 
@@ -94,21 +60,16 @@ static void Reset##type##Data(AVERAGER* pAverager, void* pValue) \
  * Private Function Definitions
  */
 
-DEFINE_GET_SIGNED_AVERAGE_FUNCTION(S8, int8_t)
-DEFINE_GET_UNSIGNED_AVERAGE_FUNCTION(U8, uint8_t)
-DEFINE_GET_SIGNED_AVERAGE_FUNCTION(S16, int16_t)
-DEFINE_GET_UNSIGNED_AVERAGE_FUNCTION(U16, uint16_t)
-DEFINE_GET_SIGNED_AVERAGE_FUNCTION(S32, int32_t)
-DEFINE_GET_UNSIGNED_AVERAGE_FUNCTION(U32, uint32_t)
-
 DEFINE_RESET_AVERAGER_FUNCTION(S8, int8_t)
 DEFINE_RESET_AVERAGER_FUNCTION(U8, uint8_t)
 DEFINE_RESET_AVERAGER_FUNCTION(S16, int16_t)
 DEFINE_RESET_AVERAGER_FUNCTION(U16, uint16_t)
+#ifdef INCLUDE_32BIT_AVERAGER
 DEFINE_RESET_AVERAGER_FUNCTION(S32, int32_t)
 DEFINE_RESET_AVERAGER_FUNCTION(U32, uint32_t)
+#endif
 
-static void * getDataPointer(AVERAGER_TYPE eType, uint8_t nElements)
+static void * allocateDataPointer(AVERAGER_TYPE eType, uint8_t nElements)
 {
 	switch(eType)
 	{
@@ -120,13 +81,66 @@ static void * getDataPointer(AVERAGER_TYPE eType, uint8_t nElements)
 		return (void*)MEMPOOL_GetBytes(nElements * sizeof(int16_t));
 	case U16:
 		return (void*)MEMPOOL_GetBytes(nElements * sizeof(uint16_t));
+#ifdef INCLUDE_32BIT_AVERAGER
 	case S32:
 		return (void*)MEMPOOL_GetBytes(nElements * sizeof(int32_t));
 	case U32:
 		return (void*)MEMPOOL_GetBytes(nElements * sizeof(uint32_t));
+#endif
 	default:
 		return NULL;
 	}
+}
+
+static int32_t getData(AVERAGER * pAverager, uint8_t n)
+{
+	switch(pAverager->type)
+	{
+	case S8:
+		return (int32_t)(((int8_t*)pAverager->data)[n]);
+	case U8:
+		return (int32_t)(((uint8_t*)pAverager->data)[n]);
+	case S16:
+		return (int32_t)(((int16_t*)pAverager->data)[n]);
+	case U16:
+		return (int32_t)(((uint16_t*)pAverager->data)[n]);
+#ifdef INCLUDE_32BIT_AVERAGER
+	case S32:
+		return (int32_t)(((int32_t*)pAverager->data)[n]);
+	case U32:
+		return (int32_t)(((uint32_t*)pAverager->data)[n]);
+#endif
+	default:
+		return 0;
+	}
+}
+
+static SUMMING_TYPE getAverage(AVERAGER * pAverager)
+{
+	SUMMING_TYPE sum = 0;
+	uint8_t count = 0;
+	if (pAverager)
+	{
+		if (pAverager->iWrite || pAverager->full)
+		{
+			uint8_t n = 0;
+			count = pAverager->full ? pAverager->maxIndex : pAverager->iWrite - 1;
+			for (n = 0; n <= count; n++)
+			{
+				sum += getData(pAverager, n);
+			}
+		}
+		else
+		{
+			sum = 0;
+		}
+	}
+	else
+	{
+		sum = 0;
+	}
+	sum = div_round(sum, count+1);
+	return sum;
 }
 
 /*
@@ -142,7 +156,7 @@ AVERAGER * AVERAGER_GetAverager(AVERAGER_TYPE eType, uint8_t size)
 		pAverager = (AVERAGER*)MEMPOOL_GetBytes(sizeof(AVERAGER));
 		if (pAverager)
 		{
-			pAverager->data = getDataPointer(eType, size);
+			pAverager->data = allocateDataPointer(eType, size);
 			
 			if (pAverager->data)
 			{
@@ -162,26 +176,33 @@ AVERAGER * AVERAGER_GetAverager(AVERAGER_TYPE eType, uint8_t size)
 
 void AVERAGER_NewData(AVERAGER * pAverager, void * pNewData)
 {
-	switch(pAverager->type)
+	if (pAverager)
 	{
-	case S8:
-		WRITE_NEW_DATA(pAverager, pNewData, int8_t);
-		break;
-	case U8:
-		WRITE_NEW_DATA(pAverager, pNewData, uint8_t);
-		break;
-	case S16:
-		WRITE_NEW_DATA(pAverager, pNewData, int16_t);
-		break;
-	case U16:
-		WRITE_NEW_DATA(pAverager, pNewData, uint16_t);
-		break;
-	case S32:
-		WRITE_NEW_DATA(pAverager, pNewData, int32_t);
-		break;
-	case U32:
-		WRITE_NEW_DATA(pAverager, pNewData, uint32_t);
-		break;
+		switch(pAverager->type)
+		{
+		case S8:
+			WRITE_NEW_DATA(pAverager, pNewData, int8_t);
+			break;
+		case U8:
+			WRITE_NEW_DATA(pAverager, pNewData, uint8_t);
+			break;
+		case S16:
+			WRITE_NEW_DATA(pAverager, pNewData, int16_t);
+			break;
+		case U16:
+			WRITE_NEW_DATA(pAverager, pNewData, uint16_t);
+			break;
+#ifdef INCLUDE_32BIT_AVERAGER
+		case S32:
+			WRITE_NEW_DATA(pAverager, pNewData, int32_t);
+			break;
+		case U32:
+			WRITE_NEW_DATA(pAverager, pNewData, uint32_t);
+			break;
+#endif	
+		}
+		pAverager->full |= (pAverager->iWrite == pAverager->maxIndex);
+		incrementwithrollover(pAverager->iWrite, pAverager->maxIndex);
 	}
 }
 
@@ -192,17 +213,25 @@ void AVERAGER_GetAverage(AVERAGER * pAverager, void * pResult)
 		switch(pAverager->type)
 		{
 		case S8:
-			return GetS8Average(pAverager, pResult);
+			*(int8_t*)pResult = (int8_t)getAverage(pAverager);
+			break;
 		case U8:
-			return GetU8Average(pAverager, pResult);
+			*(uint8_t*)pResult = (uint8_t)getAverage(pAverager);
+			break;
 		case S16:
-			return GetS16Average(pAverager, pResult);
+			*(int16_t*)pResult = (int16_t)getAverage(pAverager);
+			break;
 		case U16:
-			return GetU16Average(pAverager, pResult);
+			*(uint16_t*)pResult = (uint16_t)getAverage(pAverager);
+			break;
+#ifdef INCLUDE_32BIT_AVERAGER			
 		case S32:
-			return GetS32Average(pAverager, pResult);
+			*(int32_t*)pResult = (int32_t)getAverage(pAverager);
+			break;
 		case U32:
-			return GetU32Average(pAverager, pResult);
+			*(uint32_t*)pResult = (uint32_t)getAverage(pAverager);
+			break;
+#endif			
 		}
 	}
 }
@@ -225,12 +254,14 @@ void AVERAGER_Reset(AVERAGER * pAverager, void * pValue)
 		case U16:
 			ResetU16Data(pAverager, pValue);
 			break;
+#ifdef INCLUDE_32BIT_AVERAGER			
 		case S32:
 			ResetS32Data(pAverager, pValue);
 			break;
 		case U32:
 			ResetU32Data(pAverager, pValue);
 			break;
+#endif			
 		}
 		
 		pAverager->iWrite = 0;
@@ -240,7 +271,3 @@ void AVERAGER_Reset(AVERAGER * pAverager, void * pValue)
 	}
 	
 }
-
-/*
- * Private Function Defintions
- */

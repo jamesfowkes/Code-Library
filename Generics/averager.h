@@ -11,8 +11,10 @@ enum averager_type
 	U8,
 	S16,
 	U16,
+	#ifdef INCLUDE_32BIT_AVERAGER
 	S32,
 	U32
+	#endif
 };
 typedef enum averager_type AVERAGER_TYPE;
 
