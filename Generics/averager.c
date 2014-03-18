@@ -36,8 +36,6 @@ typedef int64_t SUMMING_TYPE;
 typedef int32_t SUMMING_TYPE;
 #endif
 
-#define WRITE_NEW_DATA(pAverager, pNewData, data_type) ((data_type*)pAverager->data)[pAverager->iWrite] = *(data_type*)pNewData;
-
 #define DEFINE_RESET_AVERAGER_FUNCTION(type, data_type) \
 static void Reset##type##Data(AVERAGER* pAverager, void* pValue) \
 { \
@@ -181,23 +179,23 @@ void AVERAGER_NewData(AVERAGER * pAverager, void * pNewData)
 		switch(pAverager->type)
 		{
 		case S8:
-			WRITE_NEW_DATA(pAverager, pNewData, int8_t);
+			((int8_t*)pAverager->data)[pAverager->iWrite] = *(int8_t*)pNewData;
 			break;
 		case U8:
-			WRITE_NEW_DATA(pAverager, pNewData, uint8_t);
+			((int8_t*)pAverager->data)[pAverager->iWrite] = *(uint8_t*)pNewData;
 			break;
 		case S16:
-			WRITE_NEW_DATA(pAverager, pNewData, int16_t);
+			((int16_t*)pAverager->data)[pAverager->iWrite] = *(int16_t*)pNewData;
 			break;
 		case U16:
-			WRITE_NEW_DATA(pAverager, pNewData, uint16_t);
+			((uint16_t*)pAverager->data)[pAverager->iWrite] = *(uint16_t*)pNewData;
 			break;
 #ifdef INCLUDE_32BIT_AVERAGER
 		case S32:
-			WRITE_NEW_DATA(pAverager, pNewData, int32_t);
+			((int32_t*)pAverager->data)[pAverager->iWrite] = *(int32_t*)pNewData;
 			break;
 		case U32:
-			WRITE_NEW_DATA(pAverager, pNewData, uint32_t);
+			((uint32_t*)pAverager->data)[pAverager->iWrite] = *(uint32_t*)pNewData;
 			break;
 #endif	
 		}
