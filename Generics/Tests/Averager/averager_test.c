@@ -6,67 +6,89 @@
 #include "unity.h"
 
 #include "../../averager.h"
+#include "../../memorypool.h"
+
 #include "util_macros.h"
 
-struct averager8
-{
-	int8_t * data;
-	uint8_t maxIndex;
-	uint8_t iWrite;
-	bool full;
-};
+/*
+ * Defines and Typedefs
+ */
 
-struct averager16
-{
-	int16_t * data;
-	uint8_t maxIndex;
-	uint8_t iWrite;
-	bool full;
-};
+#define TEST_RESET(averager_type, data_type, expected_result_var) \
+{ \
+data_type result; \
+pAverager = AVERAGER_GetAverager(averager_type, 20); \
+\
+AVERAGER_Reset(pAverager, &expected_result_var); \
+AVERAGER_GetAverage(pAverager, &result); \
+TEST_ASSERT_EQUAL(expected_result_var, result); \
+\
+AVERAGER_Reset(pAverager, NULL); \
+AVERAGER_GetAverage(pAverager, &result); \
+TEST_ASSERT_EQUAL(0, result); \
+\
+AVERAGER_Reset(pAverager, NULL); \
+AVERAGER_GetAverage(pAverager, &result); \
+TEST_ASSERT_EQUAL(0, result); \
+}
 
-struct averager32
-{
-	int32_t * data;
-	uint8_t maxIndex;
-	uint8_t iWrite;
-	bool full;
-};
+#define TEST_RUNNING(averager_type, data_type, data_ptr, expected_result_var) \
+{ \
+data_type result; \
+pAverager = AVERAGER_GetAverager(averager_type, 20); \
+pCurrentData = data_ptr; \
+fillRunningAverager(sizeof(data_type)); \
+AVERAGER_GetAverage(pAverager, &result); \
+TEST_ASSERT_EQUAL(expected_result_var, result); \
+}
 
-struct averageru8
-{
-	uint8_t * data;
-	uint8_t maxIndex;
-	uint8_t iWrite;
-	bool full;
-};
+/*
+ * Private Test Variables
+ */
+ 
+// The average of these data is 8 (rounded)
+static int8_t s8data[] = {58, -41, 103, 127, 104, -84, 80, -8, 4, -127, 50, -97, -69, 44, -57, 29, 25, 38, -101, 74};
+static int8_t s8dataAverage = 8;
 
-struct averageru16
-{
-	uint16_t * data;
-	uint8_t maxIndex;
-	uint8_t iWrite;
-	bool full;
-};
+// The average of these data is 137 (rounded)
+static uint8_t u8data[] = {71,45,228,13,126,199,250,104,147,178,143,180,88,194,123,115,156,59,70,248};
+static uint8_t u8dataAverage = 137;
 
-struct averageru32
-{
-	uint32_t * data;
-	uint8_t maxIndex;
-	uint8_t iWrite;
-	bool full;
-};
+// The average of these data is 5650 (rounded)
+static int16_t s16data[] =
+		{-3739, 22893, 7805, 17336, -11750, 28826, -2848, 32719, 3500, 14826, -14924, -2126, 13481, -1671, -2755, 26115, -10519, -32498, 22731, 5599};
+static int16_t s16dataAverage = 5650;
 
-static AVERAGER8 *pAverager8;
-static AVERAGER16 *pAverager16;
-static AVERAGER32 *pAverager32;
+// The average of these data is 30019 (rounded)
+static uint16_t u16data[] =
+		{59044,44841,799,40117,15411,3329,65183,44259,4952,53251,23130,41137,21522,31266,4668,45402,28737,4986,18550,49794};
+static uint16_t u16dataAverage = 30019;
 
-static AVERAGERU8 *pAverageru8;
-static AVERAGERU16 *pAverageru16;
-static AVERAGERU32 *pAverageru32;
+// The average of these data is 18173 (rounded)
+static int32_t s32data[] =
+		{20555, 26169, 3383, 31579, 12439, 10241, 27172, 81, 16275, 29671, 20419, 9156, 18084, 13494, 17657, 28744, 27936, 30908, 2160, 17334};
+static int32_t s32dataAverage = 18173;
+
+// The average of these data is 137303231 (rounded)
+static uint32_t u32data[] =
+		{247257524, 93168365, 213206737, 173374918, 130153833, 247899438, 230140165, 68239320, 
+		109850936, 159456795, 144173778, 261536527, 3055151, 74545759, 3605332, 212496497, 
+		31211219, 277576, 192502949, 149911801};	
+static uint32_t u32dataAverage = 137303231;
+
+static AVERAGER *pAverager;
+static void *pCurrentData;
+
+static int8_t s8resetValue = -10;
+static uint8_t u8resetValue = 10;
+static int16_t s16resetValue = -10;
+static uint16_t u16resetValue = 10;
+static int32_t s32resetValue = -10;
+static uint32_t u32resetValue = 10;
 
 void setUp(void)
 {
-
+	MEMPOOL_Reset();
 }
 
 void tearDown(void)
@@ -76,169 +98,38 @@ void tearDown(void)
 
 void test_AveragerInit(void)
 {
-
-	pAverager8 = AVERAGER8_GetAverager(20);
-	pAverager16 = AVERAGER16_GetAverager(20);
-	pAverager32 = AVERAGER32_GetAverager(20);
-	
-	pAverageru8 = AVERAGERU8_GetAverager(20);
-	pAverageru16 = AVERAGERU16_GetAverager(20);
-	pAverageru32 = AVERAGERU32_GetAverager(20);
-	
-	TEST_ASSERT_NOT_EQUAL(NULL, pAverager8);
-	TEST_ASSERT_NOT_EQUAL(NULL, pAverager16);
-	TEST_ASSERT_NOT_EQUAL(NULL, pAverager32);	
-	TEST_ASSERT_NOT_EQUAL(NULL, pAverageru8);
-	TEST_ASSERT_NOT_EQUAL(NULL, pAverageru16);
-	TEST_ASSERT_NOT_EQUAL(NULL, pAverageru32);
+	pAverager = AVERAGER_GetAverager(S8, 20);
+	TEST_ASSERT_NOT_EQUAL(NULL, pAverager);
+	pAverager = AVERAGER_GetAverager(U8, 20);
+	TEST_ASSERT_NOT_EQUAL(NULL, pAverager);
+	pAverager = AVERAGER_GetAverager(S16, 20);
+	TEST_ASSERT_NOT_EQUAL(NULL, pAverager);
+	pAverager = AVERAGER_GetAverager(U16, 20);
+	TEST_ASSERT_NOT_EQUAL(NULL, pAverager);
+	pAverager = AVERAGER_GetAverager(S32, 20);
+	TEST_ASSERT_NOT_EQUAL(NULL, pAverager);
+	pAverager = AVERAGER_GetAverager(U32, 20);
+	TEST_ASSERT_NOT_EQUAL(NULL, pAverager);
 }
 
-void test_Averager8Running(void)
+static void fillRunningAverager(uint8_t size)
 {
-	for (uint8_t i = 0; i < 100; ++i)
-	{
-		AVERAGER8_NewData(pAverager8, 1);
-		TEST_ASSERT_EQUAL(1, AVERAGER8_GetAverage(pAverager8) );
-	}
-	
-	// The average of these data is 8 (rounded)
-	int8_t newData[] =
-		{58, -41, 103, 127, 104, -84, 80, -8, 4, -127, 50, -97, -69, 44, -57, 29, 25, 38, -101, 74};
-	
 	for (uint8_t i = 0; i < 20; ++i)
 	{
-		AVERAGER8_NewData(pAverager8, newData[i]);
-	}
-	
-	TEST_ASSERT_EQUAL(8, AVERAGER8_GetAverage(pAverager8));
-	
+		AVERAGER_NewData(pAverager, pCurrentData + (i*size));
+	}	
 }
 
-void test_Averageru8Running(void)
-{
-	for (uint8_t i = 0; i < 100; ++i)
-	{
-		AVERAGERU8_NewData(pAverageru8, 1);
-		TEST_ASSERT_EQUAL(1, AVERAGERU8_GetAverage(pAverageru8) );
-	}
-	
-	// The average of these data is 137 (rounded)
-	uint8_t newData[] =
-		{71,45,228,13,126,199,250,104,147,178,143,180,88,194,123,115,156,59,70,248};
-	
-	for (uint8_t i = 0; i < 20; ++i)
-	{
-		AVERAGERU8_NewData(pAverageru8, newData[i]);
-	}
-	
-	TEST_ASSERT_EQUAL(137, AVERAGERU8_GetAverage(pAverageru8));
-	
-}
+void test_AveragerS8Running(void) {	TEST_RUNNING(S8, int8_t, s8data, s8dataAverage); }
+void test_AveragerU8Running(void) {	TEST_RUNNING(U8, uint8_t, u8data, u8dataAverage); }
+void test_AveragerS16Running(void) { TEST_RUNNING(S16, int16_t, s16data, s16dataAverage); }
+void test_AveragerU16Running(void) { TEST_RUNNING(U16, uint16_t, u16data, u16dataAverage); }
+void test_AveragerS32Running(void) { TEST_RUNNING(S32, int32_t, s32data, s32dataAverage); }
+void test_AveragerU32Running(void) { TEST_RUNNING(U32, uint32_t, u32data, u32dataAverage); }
 
-void test_Averager16Running(void)
-{
-	for (uint8_t i = 0; i < 100; ++i)
-	{
-		AVERAGER16_NewData(pAverager16, 1);
-		TEST_ASSERT_EQUAL(1, AVERAGER16_GetAverage(pAverager16) );
-	}
-	
-	// The average of these data is 5650 (rounded)
-	int16_t newData[] =
-		{-3739, 22893, 7805, 17336, -11750, 28826, -2848, 32719, 3500, 14826, -14924, -2126, 13481, -1671, -2755, 26115, -10519, -32498, 22731, 5599};
-	
-	for (uint8_t i = 0; i < 20; ++i)
-	{
-		AVERAGER16_NewData(pAverager16, newData[i]);
-	}
-	
-	TEST_ASSERT_EQUAL(5650, AVERAGER16_GetAverage(pAverager16));
-}
-
-void test_Averageru16Running(void)
-{
-	for (uint8_t i = 0; i < 100; ++i)
-	{
-		AVERAGERU16_NewData(pAverageru16, 1);
-		TEST_ASSERT_EQUAL(1, AVERAGERU16_GetAverage(pAverageru16) );
-	}
-	
-	// The average of these data is 30019 (rounded)
-	uint16_t newData[] =
-		{59044,44841,799,40117,15411,3329,65183,44259,4952,53251,23130,41137,21522,31266,4668,45402,28737,4986,18550,49794};
-	
-	for (uint8_t i = 0; i < 20; ++i)
-	{
-		AVERAGERU16_NewData(pAverageru16, newData[i]);
-	}
-	
-	TEST_ASSERT_EQUAL(30019, AVERAGERU16_GetAverage(pAverageru16));
-}
-
-void test_Averager32Running(void)
-{
-	for (uint8_t i = 0; i < 100; ++i)
-	{
-		AVERAGER32_NewData(pAverager32, 1);
-		TEST_ASSERT_EQUAL(1, AVERAGER32_GetAverage(pAverager32) );
-	}
-	
-	// The average of these data is 18173 (rounded)
-	int32_t newData[] =
-		{20555, 26169, 3383, 31579, 12439, 10241, 27172, 81, 16275, 29671, 20419, 9156, 18084, 13494, 17657, 28744, 27936, 30908, 2160, 17334};
-	
-	for (uint8_t i = 0; i < 20; ++i)
-	{
-		AVERAGER32_NewData(pAverager32, newData[i]);
-	}
-	
-	
-	TEST_ASSERT_EQUAL(18173, AVERAGER32_GetAverage(pAverager32));
-}
-
-void test_Averageru32Running(void)
-{
-	for (uint8_t i = 0; i < 100; ++i)
-	{
-		AVERAGERU32_NewData(pAverageru32, 1);
-		TEST_ASSERT_EQUAL(1, AVERAGERU32_GetAverage(pAverageru32) );
-	}
-	
-	// The average of these data is 137303231 (rounded)
-	uint32_t newData[] =
-		{247257524, 93168365, 213206737, 173374918, 130153833, 247899438, 230140165, 68239320, 
-		109850936, 159456795, 144173778, 261536527, 3055151, 74545759, 3605332, 212496497, 
-		31211219, 277576, 192502949, 149911801};
-	
-	for (uint8_t i = 0; i < 20; ++i)
-	{
-		AVERAGERU32_NewData(pAverageru32, newData[i]);
-	}
-	
-	
-	TEST_ASSERT_EQUAL(137303231, AVERAGERU32_GetAverage(pAverageru32));
-}
-
-void test_Averager8Reset(void)
-{
-	AVERAGER8_Reset(pAverager8, 0);
-	TEST_ASSERT_EQUAL(0, AVERAGER8_GetAverage(pAverager8));
-	AVERAGER8_Reset(pAverager8, 10);
-	TEST_ASSERT_EQUAL(10, AVERAGER8_GetAverage(pAverager8));
-}
-
-void test_Averager16Reset(void)
-{
-	AVERAGER16_Reset(pAverager16, 0);
-	TEST_ASSERT_EQUAL(0, AVERAGER16_GetAverage(pAverager16));
-	AVERAGER16_Reset(pAverager16, 1000);
-	TEST_ASSERT_EQUAL(1000, AVERAGER16_GetAverage(pAverager16));
-}
-
-void test_Averager32Reset(void)
-{
-	AVERAGER32_Reset(pAverager32, 0);
-	TEST_ASSERT_EQUAL(0, AVERAGER32_GetAverage(pAverager32));
-	AVERAGER32_Reset(pAverager32, 100000);
-	TEST_ASSERT_EQUAL(100000, AVERAGER32_GetAverage(pAverager32));
-}
+void test_AveragerS8Reset(void) { TEST_RESET(S8, int8_t, s8resetValue); }
+void test_AveragerU8Reset(void) { TEST_RESET(U8, uint8_t, u8resetValue); }
+void test_AveragerS16Reset(void) { TEST_RESET(S16, int16_t, u16resetValue); }
+void test_AveragerU16Reset(void) { TEST_RESET(U16, uint16_t, u16resetValue); }
+void test_AveragerS32Reset(void) { TEST_RESET(S16, int16_t, u32resetValue); }
+void test_AveragerU32Reset(void) { TEST_RESET(U16, uint16_t, u32resetValue); }

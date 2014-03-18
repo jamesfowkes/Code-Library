@@ -27,15 +27,20 @@
 extern void setUp(void);
 extern void tearDown(void);
 extern void test_AveragerInit(void);
-extern void test_Averager8Running(void);
-extern void test_Averageru8Running(void);
-extern void test_Averager16Running(void);
-extern void test_Averageru16Running(void);
-extern void test_Averager32Running(void);
-extern void test_Averageru32Running(void);
-extern void test_Averager8Reset(void);
-extern void test_Averager16Reset(void);
-extern void test_Averager32Reset(void);
+extern void test_AveragerS8Running(void);
+extern void test_AveragerU8Running(void);
+extern void test_AveragerS16Running(void);
+extern void test_AveragerU16Running(void);
+extern void test_AveragerS32Running(void);
+extern void test_AveragerU32Running(void);
+
+extern void test_AveragerS8Reset(void);
+extern void test_AveragerS16Reset(void);
+extern void test_AveragerS32Reset(void);
+
+extern void test_AveragerU8Reset(void);
+extern void test_AveragerU16Reset(void);
+extern void test_AveragerU32Reset(void);
 
 //=======Test Reset Option=====
 void resetTest()
@@ -51,15 +56,20 @@ int main(void)
   Unity.TestFile = "averager_test.c";
   UnityBegin();
   RUN_TEST(test_AveragerInit, 1);
-  RUN_TEST(test_Averager8Running, 2);
-  RUN_TEST(test_Averager16Running, 3);
-  RUN_TEST(test_Averager32Running, 4);
-  RUN_TEST(test_Averager8Reset, 5);
-  RUN_TEST(test_Averager16Reset, 6);
-  RUN_TEST(test_Averager32Reset, 7);
+  RUN_TEST(test_AveragerS8Running, 2);
+  RUN_TEST(test_AveragerU8Running, 3);
+  RUN_TEST(test_AveragerS16Running, 4);
+  RUN_TEST(test_AveragerU16Running, 5);
+  RUN_TEST(test_AveragerS32Running, 6);
+  RUN_TEST(test_AveragerU32Running, 7);
   
-  RUN_TEST(test_Averageru8Running, 8);
-  RUN_TEST(test_Averageru16Running, 9);
-  RUN_TEST(test_Averageru32Running, 9);
+  RUN_TEST(test_AveragerS8Reset, 8);
+  RUN_TEST(test_AveragerS16Reset, 9);
+  RUN_TEST(test_AveragerS32Reset, 10);
+  
+  RUN_TEST(test_AveragerU8Reset, 11);
+  RUN_TEST(test_AveragerU16Reset, 12);
+  RUN_TEST(test_AveragerU32Reset, 13);
+  
   return (UnityEnd());
 }
