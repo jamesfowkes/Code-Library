@@ -28,8 +28,11 @@ extern void setUp(void);
 extern void tearDown(void);
 extern void test_AveragerInit(void);
 extern void test_Averager8Running(void);
+extern void test_Averageru8Running(void);
 extern void test_Averager16Running(void);
+extern void test_Averageru16Running(void);
 extern void test_Averager32Running(void);
+extern void test_Averageru32Running(void);
 extern void test_Averager8Reset(void);
 extern void test_Averager16Reset(void);
 extern void test_Averager32Reset(void);
@@ -54,5 +57,9 @@ int main(void)
   RUN_TEST(test_Averager8Reset, 5);
   RUN_TEST(test_Averager16Reset, 6);
   RUN_TEST(test_Averager32Reset, 7);
+  
+  RUN_TEST(test_Averageru8Running, 8);
+  RUN_TEST(test_Averageru16Running, 9);
+  RUN_TEST(test_Averageru32Running, 9);
   return (UnityEnd());
 }

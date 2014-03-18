@@ -29,29 +29,21 @@ struct averager
 };
 typedef struct averager AVERAGER;
 
-struct averager8
-{
-	int8_t * data;
-	uint8_t maxIndex;
-	uint8_t iWrite;
-	bool full;
-};
+#define AVERAGER_TYPE_STRUCT(averager_type, data_type) \
+struct averager_type \
+{ \
+	data_type * data; \
+	uint8_t maxIndex; \
+	uint8_t iWrite; \
+	bool full; \
+}; \
 
-struct averager16
-{
-	int16_t * data;
-	uint8_t maxIndex;
-	uint8_t iWrite;
-	bool full;
-};
-
-struct averager32
-{
-	int32_t * data;
-	uint8_t maxIndex;
-	uint8_t iWrite;
-	bool full;
-};
+AVERAGER_TYPE_STRUCT(averageru8, uint8_t);
+AVERAGER_TYPE_STRUCT(averager8, int8_t);
+AVERAGER_TYPE_STRUCT(averageru16, uint16_t);
+AVERAGER_TYPE_STRUCT(averager16, int16_t);
+AVERAGER_TYPE_STRUCT(averageru32, uint32_t);
+AVERAGER_TYPE_STRUCT(averager32, int32_t);
 
 #define RETURN_AVERAGER_PTR(averager_type, data_type, nElements) \
 averager_type * pAverager = NULL; \
@@ -75,6 +67,12 @@ if (nElements) \
 } \
 return pAverager;
 
+#define GET_AVERAGER_FUNCTION(averager_type, data_type) \
+averager_type * averager_type##_GetAverager(uint8_t size) \
+{ \
+	RETURN_AVERAGER_PTR(averager_type, data_type, size); \
+}
+
 #define WRITE_NEW_DATA(pAverager, newData, type) \
 type* pTypedPtr = (type*)pAverager; \
 if (pTypedPtr) \
@@ -84,8 +82,14 @@ if (pTypedPtr) \
 	incrementwithrollover(pTypedPtr->iWrite, pTypedPtr->maxIndex); \
 }
 
-#define RETURN_AVERAGE(pTypedPtr, rtntype) \
-int32_t average = 0; \
+#define NEW_DATA_FUNCTION(averager_type, data_type) \
+void averager_type##_NewData(averager_type * pAverager, data_type newData) \
+{ \
+	WRITE_NEW_DATA(pAverager, newData, averager_type) \
+} \
+
+#define RETURN_AVERAGE(pTypedPtr, rtntype, sumtype) \
+sumtype average = 0; \
 uint8_t count = 0; \
 if (pTypedPtr) \
 { \
@@ -109,6 +113,18 @@ else \
 } \
 return (rtntype)div_round(average, count+1);
 
+#define GET_SIGNED_AVERAGE_FUNCTION(averager_type, data_type) \
+data_type averager_type##_GetAverage(averager_type * pAverager) \
+{ \
+	RETURN_AVERAGE(pAverager, data_type, int32_t); \
+} \
+
+#define GET_UNSIGNED_AVERAGE_FUNCTION(averager_type, data_type) \
+data_type averager_type##_GetAverage(averager_type * pAverager) \
+{ \
+	RETURN_AVERAGE(pAverager, data_type, uint32_t); \
+} \
+
 #define RESET_AVERAGER(pTypedPtr, value) \
 if (pTypedPtr) \
 { \
@@ -118,6 +134,12 @@ if (pTypedPtr) \
 	} \
 	pTypedPtr->iWrite = 0; \
 	pTypedPtr->full = (value != 0); \
+}
+
+#define RESET_FUNCTION(averager_type, data_type) \
+void averager_type##_Reset(averager_type * pTypedPtr, data_type value) \
+{ \
+	RESET_AVERAGER(pTypedPtr, value); \
 }
 
 /*
@@ -132,65 +154,33 @@ if (pTypedPtr) \
  * Public Function Definitions
  */
 
-AVERAGER8 * AVERAGER8_GetAverager(uint8_t size)
-{
-	RETURN_AVERAGER_PTR(AVERAGER8, int8_t, size);
-}
+GET_AVERAGER_FUNCTION(AVERAGER8, int8_t)
+GET_AVERAGER_FUNCTION(AVERAGERU8, uint8_t)
+GET_AVERAGER_FUNCTION(AVERAGER16, int16_t)
+GET_AVERAGER_FUNCTION(AVERAGERU16, uint16_t)
+GET_AVERAGER_FUNCTION(AVERAGER32, int32_t)
+GET_AVERAGER_FUNCTION(AVERAGERU32, uint32_t)
 
-AVERAGER16 * AVERAGER16_GetAverager(uint8_t size)
-{
-	RETURN_AVERAGER_PTR(AVERAGER16, int16_t, size);
-}
+NEW_DATA_FUNCTION(AVERAGER8, int8_t)
+NEW_DATA_FUNCTION(AVERAGERU8, uint8_t)
+NEW_DATA_FUNCTION(AVERAGER16, int16_t)
+NEW_DATA_FUNCTION(AVERAGERU16, uint16_t)
+NEW_DATA_FUNCTION(AVERAGER32, int32_t)
+NEW_DATA_FUNCTION(AVERAGERU32, uint32_t)
 
-AVERAGER32 * AVERAGER32_GetAverager(uint8_t size)
-{
-	RETURN_AVERAGER_PTR(AVERAGER32, int32_t, size);
-}
+GET_SIGNED_AVERAGE_FUNCTION(AVERAGER8, int8_t)
+GET_UNSIGNED_AVERAGE_FUNCTION(AVERAGERU8, uint8_t)
+GET_SIGNED_AVERAGE_FUNCTION(AVERAGER16, int16_t)
+GET_UNSIGNED_AVERAGE_FUNCTION(AVERAGERU16, uint16_t)
+GET_SIGNED_AVERAGE_FUNCTION(AVERAGER32, int32_t)
+GET_UNSIGNED_AVERAGE_FUNCTION(AVERAGERU32, uint32_t)
 
-void AVERAGER8_NewData(AVERAGER8 * pAverager, int8_t newData)
-{
-	WRITE_NEW_DATA(pAverager, newData, AVERAGER8)
-}
-
-void AVERAGER16_NewData(AVERAGER16 * pAverager, int16_t newData)
-{
-	WRITE_NEW_DATA(pAverager, newData, AVERAGER16)
-}
-
-void AVERAGER32_NewData(AVERAGER32 * pAverager, int32_t newData)
-{
-	WRITE_NEW_DATA(pAverager, newData, AVERAGER32)
-}
-
-int8_t AVERAGER8_GetAverage(AVERAGER8 * pAverager)
-{
-	RETURN_AVERAGE(pAverager, int8_t);
-}
-
-int16_t AVERAGER16_GetAverage(AVERAGER16 * pAverager)
-{
-	RETURN_AVERAGE(pAverager, int16_t);
-}
-
-int32_t AVERAGER32_GetAverage(AVERAGER32 * pAverager)
-{
-	RETURN_AVERAGE(pAverager, int32_t);
-}
-
-void AVERAGER8_Reset(AVERAGER8 * pTypedPtr, int8_t value)
-{
-	RESET_AVERAGER(pTypedPtr, value);
-}
-
-void AVERAGER16_Reset(AVERAGER16 * pTypedPtr, int16_t value)
-{
-	RESET_AVERAGER(pTypedPtr, value);
-}
-
-void AVERAGER32_Reset(AVERAGER32 * pTypedPtr, int32_t value)
-{
-	RESET_AVERAGER(pTypedPtr, value);
-}
+RESET_FUNCTION(AVERAGER8, int8_t)
+RESET_FUNCTION(AVERAGERU8, uint8_t)
+RESET_FUNCTION(AVERAGER16, int16_t)
+RESET_FUNCTION(AVERAGERU16, uint16_t)
+RESET_FUNCTION(AVERAGER32, int32_t)
+RESET_FUNCTION(AVERAGERU32, uint32_t)
 
 /*
  * Private Function Defintions
