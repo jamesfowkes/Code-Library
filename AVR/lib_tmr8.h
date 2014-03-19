@@ -22,9 +22,9 @@ typedef enum tmr8_countmode_enum TMR8_COUNTMODE_ENUM;
 
 enum tmr8_intmask_enum
 {
-	TMR8_INTMASK_OCMPB	= 0x04,
-	TMR8_INTMASK_OCMPA	= 0x02,
-	TMR8_INTMASK_OVF	= 0x01
+	TMR8_INTMASK_OCMPB	= (1 << OCIE0B),
+	TMR8_INTMASK_OCMPA	= (1 << OCIE0A),
+	TMR8_INTMASK_OVF	= (1 << TOIE0)
 };
 typedef enum tmr8_intmask_enum TMR8_INTMASK_ENUM;
 
