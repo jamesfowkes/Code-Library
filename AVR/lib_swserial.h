@@ -5,6 +5,8 @@
  * Public Datatype Definitions
  */
 
+#define sws_var_dump(v, fmt) { void * p = &v; SWS_Transmit(#v "=" fmt, 0, &p, 1); }
+
 enum lib_sws_baudrate
 {
 	LIB_SWS_BAUD_300 = 300,
@@ -16,14 +18,17 @@ enum lib_sws_baudrate
 };
 typedef enum lib_sws_baudrate LIB_SWS_BAUDRATE_ENUM;
 
-#ifndef PC_TEST_HARNESS
 void SWS_TxInit(IO_PORT_ENUM ePort, uint8_t pin);
 void SWS_RxInit(IO_PORT_ENUM ePort, uint8_t pin);
 void SWS_SetBaudRate(LIB_SWS_BAUDRATE_ENUM eBaudrate);
-#endif
 
 uint8_t SWS_Receive(char * rxBuffer, uint8_t n, bool breakOnNull);
 void SWS_SimpleTransmit(char const * const buffer);
+
 void SWS_Transmit(char const * const buffer, uint8_t size, void * args[], uint8_t nargs);
+
+#ifdef TEST_HARNESS
+char * SWS_GetTxBuffer(void);
+#endif
 
 #endif

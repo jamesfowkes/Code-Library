@@ -5,35 +5,30 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-
-#ifdef PC_TEST_HARNESS
 #include <stdio.h>
-#include "avr_compatibility.h"
-#endif
 
 /*
  * Defines
  */
 
+#ifdef TEST_HARNESS
+#define F_CPU 8000000
+#endif
+
 /*
  * AVR Includes (Defines and Primitives)
  */
-#ifndef PC_TEST_HARNESS
 #include <avr/io.h>
 #include <util/delay_basic.h>
 #include <util/atomic.h>
 #include <avr/interrupt.h>
-#endif
 
 /*
  * AVR Library Include
  */
-#ifndef PC_TEST_HARNESS
+
 #include "lib_io.h"
 #include "lib_fuses.h"
-#else
-#include "lib_io_serial_test.h"
-#endif
 
 #include "lib_swserial.h"
 
@@ -197,6 +192,10 @@ static void transmit(void)
 		}
 	}
 }
+
+#ifdef TEST_HARNESS
+char * SWS_GetTxBuffer(void) { return txBuffer; }
+#endif
 
 /*
  * Private Functions
