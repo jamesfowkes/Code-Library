@@ -222,11 +222,17 @@ void SPI_SetClockPhase(LIBSPI_CPHA_ENUM eCPha)
 
 #endif
 
-bool SPI_TestAndClear(SPI_DATA * data)
+bool SPI_TestAndCallback(SPI_DATA * data)
 {
 	cli();
 	bool complete = data->transferComplete;
 	data->transferComplete = false;
 	sei();
+	
+	if (complete && data->callback)
+	{
+		data->callback(data);
+	}
+	
 	return complete;
 }
