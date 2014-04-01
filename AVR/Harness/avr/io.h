@@ -1,26 +1,30 @@
 #ifndef _IO_H_
 #define _IO_H_
 
-uint8_t dummy;
+/* IO Registers */
+uint8_t PORTA;
+uint8_t PORTB;
+uint8_t PORTC;
+uint8_t PORTD;
 
-/* IO defines */
-#define PORTA	(dummy)
-#define PORTB	(dummy)
-#define PORTC	(dummy)
-#define PORTD	(dummy)
+uint8_t PINA;
+uint8_t PINB;
+uint8_t PINC;
+uint8_t PIND;
 
-#define PINA	(dummy)
-#define PINB	(dummy)
-#define PINC	(dummy)
-#define PIND	(dummy)
+uint8_t DDRA;
+uint8_t DDRB;
+uint8_t DDRC;
+uint8_t DDRD;
 
-#define DDRA	(dummy)
-#define DDRB	(dummy)
-#define DDRC	(dummy)
-#define DDRD	(dummy)
+/* ADC Registers */
+uint8_t ADCSRA;
+uint8_t ADMUX;
 
-/* ADC defines */
-#define ADCSRA	(dummy)
+uint8_t	ADCH;
+uint8_t	ADCL;
+
+/* ADC Defines */
 #define ADEN	(7)
 #define ADSC	(6)
 #define ADFR	(5)
@@ -30,7 +34,6 @@ uint8_t dummy;
 #define ADPS1	(1)
 #define ADPS0	(0)
 
-#define	ADMUX	(dummy)
 #define	REFS1   (7)
 #define	REFS0   (6)
 #define	ADLAR   (5)
@@ -39,7 +42,30 @@ uint8_t dummy;
 #define	MUX1    (1)
 #define	MUX0    (0)
 
-#define	ADCH	(dummy)
-#define	ADCL	(dummy)
+/* USI Registers */
+
+uint8_t USIDR;
+uint8_t USRBR;
+uint8_t USISR;
+uint8_t USICR;
+
+/* USI Defines */
+#define USISIF	(7)
+#define USIOIF  (6)
+#define USIPF   (5)
+#define USIDC   (4)
+#define USICNT3 (3)
+#define USICNT2 (2)
+#define USICNT1 (1)
+#define USICNT0	(0)
+
+#define USISIE	(7)
+#define USIOIE  (6)
+#define USIWM1  (5)
+#define USIWM0  (4)
+#define USICS1  (3)
+#define USICS0  (2)
+#define USICLK  (1)
+#define USITC   (0)
 
 #endif
