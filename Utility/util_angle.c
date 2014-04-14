@@ -46,7 +46,7 @@ uint16_t mirror_tdeg(int16_t a, int16_t mirror)
 	uint16_t sanitised_a = sanitiseAngleTdeg(a);
 	uint16_t sanitised_mirror = sanitiseAngleTdeg(mirror);
 	
-	return (3600 + sanitised_mirror - sanitised_a) % 3600;
+	return sanitiseAngleTdeg(3600 + sanitised_mirror - sanitised_a);
 }
 
 /*
@@ -55,9 +55,7 @@ uint16_t mirror_tdeg(int16_t a, int16_t mirror)
  
 static uint16_t sanitiseAngleTdeg(int16_t a)
 {
-	a = a % 3600;
-	if (a < 0)
-	{
-		a = 3600 + a;
-	}
+	while (a >= 3600) { a -= 3600; } // Bring below +360degrees
+	while (a <0) { a += 3600; } // Bring above 0degrees
+	return (uint16_t)a;
 }
