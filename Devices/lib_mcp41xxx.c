@@ -87,6 +87,8 @@ void MCP41xxx_SetResistanceSteps(MCP41XXX * dev, uint8_t steps, POT_SELECT ePot)
  
 static void setSteps(MCP41XXX * dev, uint8_t steps, POT_SELECT ePot)
 {
+	/* First send a write command to the device.
+	Steps byte gets sent in the SPI callback */
 	uint8_t byte = ((uint8_t)ePot) << P0_BIT;
 	byte |= WRITE_COMMAND;
 	
@@ -99,10 +101,12 @@ static void setSteps(MCP41XXX * dev, uint8_t steps, POT_SELECT ePot)
 
 static void localSPICallback(SPI_DATA * spi)
 {
+	/* Check if a steps write is pending */
 	if (s_pPendingWriteDevice)
 	{
 		if (&(s_pPendingWriteDevice->spi) == spi)
 		{
+			/* A write is pending, so send the steps byte */
 			MCP41XXX * dev = s_pPendingWriteDevice;
 			s_pPendingWriteDevice = NULL;
 			SPI_SendByte(dev->currentSteps, &(dev->spi));
@@ -110,6 +114,7 @@ static void localSPICallback(SPI_DATA * spi)
 	}
 	else
 	{
+		/* No writes pending, so de-assert */
 		SPI_AssertCS(false);
 	}
 }
