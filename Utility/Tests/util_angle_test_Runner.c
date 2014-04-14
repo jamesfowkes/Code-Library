@@ -26,8 +26,17 @@
 //=======External Functions This Runner Calls=====
 extern void setUp(void);
 extern void tearDown(void);
-extern void test_integerDegrees(void);
-extern void test_tenthsDegrees(void);
+
+extern void test_recipIntegerDegrees(void);
+extern void test_recipTenthsDegrees(void);
+
+extern void test_mirrorIntegerDegreesAboutZero(void);
+extern void test_mirrorIntegerDegreesAboutNonZero(void);
+
+extern void test_mirrorTenthDegreesAboutZero(void);
+extern void test_mirrorTenthDegreesAboutNonZero(void);
+
+extern void test_mirrorTenthsDegrees(void);
 
 //=======Test Reset Option=====
 void resetTest()
@@ -42,7 +51,14 @@ int main(void)
 {
   Unity.TestFile = "util_angle_test.c";
   UnityBegin();
-  RUN_TEST(test_integerDegrees, 0);
-  RUN_TEST(test_tenthsDegrees, 1);
+  RUN_TEST(test_recipIntegerDegrees, 0);
+  RUN_TEST(test_recipTenthsDegrees, 1);
+  
+  RUN_TEST(test_mirrorIntegerDegreesAboutZero, 2);
+  RUN_TEST(test_mirrorIntegerDegreesAboutNonZero, 3);
+
+  RUN_TEST(test_mirrorTenthDegreesAboutZero, 4);
+  RUN_TEST(test_mirrorTenthDegreesAboutNonZero, 5);
+
   return (UnityEnd());
 }
