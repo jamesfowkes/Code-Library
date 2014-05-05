@@ -34,7 +34,7 @@ ifeq ($(USE_FIX16), 1)
 	SRC_FILES += ../../Utility/libfixmath/libfixmath/fix16.c ../../Utility/libfixmath/libfixmath/fix16_exp.c ../../Utility/libfixmath/libfixmath/fix16_str.c
 endif
 
-.PHONY: thermistor pot_divider
+.PHONY: thermistor pot_divider ds3231
 
 all: default
 
@@ -42,13 +42,15 @@ default:
 	@echo "Available tests:"
 	@echo "thermistor"
 	@echo "pot_divider"
+	@echo "ds3231"
 
 thermistor: SRC_FILES += ../lib_pot_divider.c
 	
-thermistor pot_divider: TEST_NAME=$@
+ds3231: SRC_FILES += ../../Utility/util_time.c ../../Utility/util_bcd.c
 
-thermistor pot_divider:
-	$(CLEANUP)
+thermistor pot_divider ds3231: TEST_NAME=$@
+
+thermistor pot_divider ds3231:
 	$(C_COMPILER) $(INC_DIRS) $(SYMBOLS) $(SRC_FILES) -o $(TARGET) $(LD_SUFFIX)
 	./$(TARGET)
 

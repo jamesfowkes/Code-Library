@@ -24,6 +24,7 @@ void tearDown(void)
 void test_GenerateEmptySequence(void)
 {
 	TEST_ASSERT_NOT_NULL(sequence);
+	SEQGEN_AddConstants(sequence, 0, 1024);
 	
 	for (uint16_t i = 0; i < 1024; ++i)
 	{
@@ -34,14 +35,22 @@ void test_GenerateEmptySequence(void)
 void test_GenerateConstantSequence(void)
 {
 	SEQGEN_AddConstants(sequence, 50, 256);
+	TEST_ASSERT_EQUAL(256, SEQGENspy_GetWriteIndex(sequence));
+	TEST_ASSERT_EQUAL(255, SEQGENspy_GetMaxReadIndex(sequence));
+	
 	SEQGEN_AddConstants(sequence, 50, 256);
+	TEST_ASSERT_EQUAL(512, SEQGENspy_GetWriteIndex(sequence));
+	TEST_ASSERT_EQUAL(511, SEQGENspy_GetMaxReadIndex(sequence));
 	
 	for (uint16_t i = 0; i < 512; ++i)
 	{
+		TEST_ASSERT_EQUAL(i, SEQGENspy_GetReadIndex(sequence));
 		TEST_ASSERT_EQUAL(50, SEQGEN_Read(sequence));
+		TEST_ASSERT_EQUAL(i == 511 ? 0 : i+1, SEQGENspy_GetReadIndex(sequence));
 	}
 	
-	TEST_ASSERT_EQUAL(0, SEQGEN_Read(sequence));
+	TEST_ASSERT_EQUAL(true, SEQGEN_EOS(sequence));
+	TEST_ASSERT_EQUAL(50, SEQGEN_Read(sequence));
 }
 
 void test_GenerateConstantSequenceWithRollover(void)

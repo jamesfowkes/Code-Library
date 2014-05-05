@@ -28,9 +28,11 @@
 struct sequence
 {
 	void * data;
-	uint16_t length;
+	int16_t maxReadIndex;
+	uint16_t maxLength;
 	uint16_t wIndex;
 	uint16_t rIndex;
+	bool eos;
 };
 
 /*
@@ -40,7 +42,9 @@ struct sequence
 static void writeValue(SEQUENCE * seq, int16_t value)
 {
 	((uint16_t*)seq->data)[seq->wIndex] = value;
-	incrementwithrollover(seq->wIndex, seq->length-1);
+	incrementwithrollover(seq->wIndex, seq->maxLength-1);
+	seq->maxReadIndex++;
+	seq->maxReadIndex = min(seq->maxReadIndex, seq->maxLength);
 }
 
 SEQUENCE * SEQGEN_GetNewSequence(uint16_t length)
@@ -51,9 +55,11 @@ SEQUENCE * SEQGEN_GetNewSequence(uint16_t length)
 		seq->data = (void*)MEMPOOL_GetBytes(length * sizeof(uint16_t));
 		if (seq->data)
 		{
-			seq->length = length;
+			seq->maxLength = length;
+			seq->maxReadIndex = -1;
 			seq->wIndex = 0;
 			seq->rIndex = 0;
+			seq->eos = false;
 		}
 		else
 		{
@@ -75,17 +81,43 @@ void SEQGEN_AddConstants(SEQUENCE * seq, int16_t value, uint16_t length)
 	}
 }
 
+void SEQGEN_AddNoise(SEQUENCE * seq, int16_t amplitude)
+{
+	int noise;
+	
+	if (seq)
+	{
+		if (seq->maxReadIndex >= 0)
+		{
+			for (uint16_t i = 0; i < seq->maxReadIndex; ++i)
+			{
+				noise = (rand() % amplitude) - (amplitude / 2);
+				((uint16_t*)seq->data)[i] += noise;
+			}
+		}
+	}	
+}
+
 int16_t SEQGEN_Read(SEQUENCE * seq)
 {
 	uint16_t value = 0;
 	
 	if (seq)
 	{
-		value = ((int16_t*)seq->data)[seq->rIndex];
-		incrementwithrollover(seq->rIndex, seq->length-1);
+		if (seq->maxReadIndex >= 0)
+		{
+			value = ((int16_t*)seq->data)[seq->rIndex];
+			incrementwithrollover(seq->rIndex, seq->maxReadIndex);
+			seq->eos = (seq->rIndex == 0);
+		}
 	}
 	
 	return value;
+}
+
+bool SEQGEN_EOS(SEQUENCE * seq)
+{
+	return seq->eos;
 }
 
 void SEQGEN_AddRamp_StartStepLength(SEQUENCE * seq, int16_t strt, int16_t step, uint16_t length)
@@ -107,6 +139,11 @@ int16_t SEQGENspy_GetFromIndex(SEQUENCE * seq, uint16_t index)
 {
 	return ((int16_t*)seq->data)[index];
 }
+
+int16_t SEQGENspy_GetWriteIndex(SEQUENCE * seq) { return seq->wIndex; }
+int16_t SEQGENspy_GetReadIndex(SEQUENCE * seq) { return seq->rIndex; }
+int16_t SEQGENspy_GetMaxReadIndex(SEQUENCE * seq) { return seq->maxReadIndex; }
+
 #endif
 
 

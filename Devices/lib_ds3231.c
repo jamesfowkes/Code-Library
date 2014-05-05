@@ -25,7 +25,7 @@
  * Generic Library Includes
  */
 
-#ifndef TEST
+#ifndef UNITY_TEST
 #include "lib_i2c_common.h"
 #endif
 
@@ -185,7 +185,7 @@ static volatile DATETIME_REGISTERS s_dt = {
 
 static uint8_t s_temperature[2];
 
-#ifndef TEST
+#ifndef UNITY_TEST
 static I2C_TRANSFER_DATA s_i2c_data;
 static I2C_TRANSFER_DATA s_i2c_setup;
 
@@ -199,7 +199,7 @@ static uint8_t s_WriteArray[19];
 static void write(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb);
 static void read(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb);
 
-#ifndef TEST
+#ifndef UNITY_TEST
 static void rd_callback(I2C_TRANSFER_DATA * transfer);
 static void wr_callback(I2C_TRANSFER_DATA * transfer);
 #endif
@@ -216,7 +216,7 @@ static bool SetAlarm2Mask(ALARM_REGISTERS * alarm, DS3231_ALARM_RPT_ENUM repeat)
 
 bool DS3231_Init(void)
 {
-	#ifdef TEST
+	#ifdef UNITY_TEST
 	return true;
 	#else
 	return I2C_Init(NULL);
@@ -657,10 +657,11 @@ static bool setLocalDate(const TM * tm)
 		s_dt.date.day = to_bcd(tm->tm_wday + 1);
 		s_dt.date.date = to_bcd(tm->tm_mday);
 		s_dt.date.month = to_bcd(tm->tm_mon + 1);
-		if (year > 99)
+		
+		while (year > 99)
 		{
 			year -= 100;
-			s_dt.date.month |= CENTURY_SELECT;
+			s_dt.date.month ^= CENTURY_SELECT;
 		}
 		s_dt.date.year = to_bcd(year);
 	}
@@ -772,7 +773,7 @@ static bool SetAlarm2Mask(ALARM_REGISTERS * alarm, DS3231_ALARM_RPT_ENUM repeat)
 
 static void write(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb)
 {
-	#ifndef TEST
+	#ifndef UNITY_TEST
 	s_busy = true;
 	s_WriteArray[0] = reg;
 	memcpy(&s_WriteArray[1], array, n);
@@ -794,7 +795,7 @@ static void write(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb)
 
 static void read(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb)
 {
-	#ifndef TEST
+	#ifndef UNITY_TEST
 	s_busy = true;
 
 	// Save the read transfer data into s_i2c_data for later.
@@ -821,7 +822,7 @@ static void read(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb)
 	#endif
 }
 
-#ifndef TEST
+#ifndef UNITY_TEST
 static void rd_callback(I2C_TRANSFER_DATA * transfer)
 {
 	if (transfer == &s_i2c_setup)

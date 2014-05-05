@@ -31,22 +31,25 @@ void parseHoursRegister(uint8_t reg, uint8_t expected, bool expectedHoursBit, bo
 void parseDayRegister(uint8_t reg, uint8_t expected);
 void parseDateRegister(uint8_t reg, uint8_t expected);
 void parseMonthRegister(uint8_t reg, uint8_t expected, bool centuryBit);
-void parseYearsRegister(uint8_t reg, uint8_t expected);
+bool parseYearsRegister(uint8_t reg, uint8_t expected);
 
 static uint32_t s = 0;
 
-int main(void)
+void setUp(void) {};
+void tearDown(void) {};
+
+void test_All(void)
 {
-	testMinutesAndSeconds();
-	test12Hours();
-	test24Hours();
-	testDayDate();
-	testMonths();
-	testYears();
-	//testDS3231();
+	//testMinutesAndSeconds();
+	//test12Hours();
+	//test24Hours();
+	//testDayDate();
+	//testMonths();
+	//testYears();
+	testDS3231();
 	//testWR();
 
-	TM tm;
+	/*TM tm;
 	tm.tm_sec = 1;
 	tm.tm_min = 45;
 	tm.tm_hour = 22;
@@ -56,9 +59,9 @@ int main(void)
 	tm.tm_wday = 3;
 	tm.tm_yday = 295;
 	tm.tm_isdst = 0;
-
-	printf("%u\n", time_to_unix_seconds(&tm));
-	return 0;
+	*/
+	
+	//printf("%u\n", time_to_unix_seconds(&tm));
 }
 
 void testMinutesAndSeconds(void)
@@ -173,11 +176,12 @@ void testDS3231(void)
 	
 	int year = 0;
 	
-	s = 946684800; // 30/12/1999 00:00:00
-	uint32_t end = 0xFFFFFFFF;
+	s = 7819200UL;
+	uint32_t end = (131UL*365UL*24UL*60UL*60UL);
 	
-	while (s++ < end)
+	while (s < end)
 	{
+		s = s + (S_PER_DAY * 365);
 		unix_seconds_to_time(s, &tm);
 		
 		DS3231_SetDeviceDateTime(&tm, false, NULL);
@@ -187,8 +191,11 @@ void testDS3231(void)
 		parseHoursRegister(DS3231_GetRegisterValue(2), tm.tm_hour, false, (tm.tm_hour >= 20));
 		parseDayRegister(DS3231_GetRegisterValue(3), tm.tm_wday + 1); // Days 0-6 map to 1-7
 		parseDateRegister(DS3231_GetRegisterValue(4), tm.tm_mday);
-		parseMonthRegister(DS3231_GetRegisterValue(5), tm.tm_mon + 1, (tm.tm_year > 99)); // Months 0-11 map to 1-12
-		parseYearsRegister(DS3231_GetRegisterValue(6), tm.tm_year % 100);
+		parseMonthRegister(DS3231_GetRegisterValue(5), tm.tm_mon + 1, (tm.tm_year / 100) % 2); // Months 0-11 map to 1-12
+		if ( !parseYearsRegister(DS3231_GetRegisterValue(6), tm.tm_year % 100) )
+		{
+			printf("%lu\n", s);
+		}
 		
 		if (year != tm.tm_year)
 		{
@@ -327,7 +334,7 @@ void parseMonthRegister(uint8_t reg, uint8_t expected, bool centuryBit)
 	}
 }
 
-void parseYearsRegister(uint8_t reg, uint8_t expected)
+bool parseYearsRegister(uint8_t reg, uint8_t expected)
 {
 	uint8_t year = (reg & 0x0F);
 	year += (((reg & 0xF0) >> 4) * 10);
@@ -335,4 +342,5 @@ void parseYearsRegister(uint8_t reg, uint8_t expected)
 	{
 		printf("Year 0x%02x = %d, expected %d \n", reg, year, expected);
 	}
+	return (year == expected);
 }
