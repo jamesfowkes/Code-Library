@@ -66,6 +66,18 @@ static const uint8_t s_gain_offset[4] = {
  
 void single_clock(TLC5916_CONTROL * tlc);
 
+void TLC5916_Init(TLC5916_CONTROL * tlc, SR_SHIFT_FN shiftOutFn, SR_IO_FN tlcLatchFn, SR_IO_FN tlcOEFn)
+{
+	if (tlc)
+	{
+		tlc->sr.shiftOutFn = shiftOutFn;
+		tlc->sr.clkFn = NULL;
+		tlc->sr.dataFn = NULL;
+		tlc->latch = tlcLatchFn;
+		tlc->oe = tlcOEFn;
+	}
+}
+
 void TLC5916_ClockOut(uint8_t* data, uint8_t nBytes, TLC5916_CONTROL * tlc)
 {
 	tlc->sr.shiftOutFn(data, nBytes, SR_CLKEDGE_POS, SR_DIR_MSBFIRST);
