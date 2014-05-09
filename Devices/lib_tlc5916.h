@@ -16,6 +16,7 @@ enum tlc5916_mode_enum
 };
 typedef enum tlc5916_mode_enum TLC5916_MODE_ENUM;
 
+void TLC5916_Init(TLC5916_CONTROL * tlc, SR_SHIFT_FN shiftOutFn, SR_IO_FN tlcLatchFn, SR_IO_FN tlcOEFn);
 void TLC5916_ClockOut(uint8_t* data, uint8_t nBytes, TLC5916_CONTROL * tlc);
 void TLC5916_OutputEnable(TLC5916_CONTROL * tlc, bool enable);
 

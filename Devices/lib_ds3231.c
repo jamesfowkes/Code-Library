@@ -170,13 +170,17 @@ static bool s_busy = false;
 static DS3231_ONIDLE_FN s_onidle_cb;
 
 static volatile DATETIME_REGISTERS s_dt = {
-		.time.seconds = 0x59,
-		.time.minutes = 0x59,
-		.time.hours = 0x23,
-		.date.day = 0x03,
-		.date.date = 0x22,
-		.date.month = 0x90,
-		.date.year = 0x13
+	.time = {
+		.seconds = 0x59,
+		.minutes = 0x59,
+		.hours = 0x23,
+		},
+	.date = {
+		.day = 0x03,
+		.date = 0x22,
+		.month = 0x09,
+		.year = 0x13
+		}
 };
 
 static uint8_t s_temperature[2];
@@ -838,6 +842,7 @@ static void rd_callback(I2C_TRANSFER_DATA * transfer)
 
 static void wr_callback(I2C_TRANSFER_DATA * transfer)
 {
+	(void)transfer;
 	s_busy = false;
 	if (s_onidle_cb)
 	{
