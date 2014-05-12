@@ -11,7 +11,7 @@ class LatrineSensor
 {
 public:
 	LatrineSensor(uint8_t pin, LS_START_CB pFnStart, LS_END_CB pFnEnd, bool bEmitDebugInfo = false);
-	void Update(void);
+	uint16_t Update(void);
 	
 private:
 
@@ -40,7 +40,7 @@ private:
 	
 	uint16_t s_flushState;
 	
-	void updateTask(void);
+	uint16_t updateTask(void);
 	void updateCalibration(uint16_t lastCount);
 	void updateStartThreshold(uint16_t lastCount);
 	void updateEndThreshold(uint16_t lastCount);

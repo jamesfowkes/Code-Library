@@ -40,12 +40,15 @@ LatrineSensor::LatrineSensor(uint8_t pin, LS_START_CB pFnStart, LS_END_CB pFnEnd
 	s_LastUpdate = millis();
 }
 
-void LatrineSensor::Update(void)
+uint16_t LatrineSensor::Update(void)
 {
-	if (millis() - s_LastUpdate > UPDATE_TICK_MS)
+	if ((millis() - s_LastUpdate) > UPDATE_TICK_MS)
 	{
-		updateTask();
+		s_LastUpdate = millis();
+		return updateTask();
 	}
+	
+	return 0;
 }
 
 void LatrineSensor::emitDebugInfo(uint16_t lastCount)
@@ -62,7 +65,7 @@ void LatrineSensor::emitDebugInfo(uint16_t lastCount)
 	Serial.println(s_flushState);
 }
 
-void LatrineSensor::updateTask(void)
+uint16_t LatrineSensor::updateTask(void)
 {
 	uint16_t capturedCount = s_intCount;
 	s_intCount = 0;
@@ -81,6 +84,8 @@ void LatrineSensor::updateTask(void)
 	}
 	
 	if (s_bEmitDebugInfo) { emitDebugInfo(capturedCount); }
+	
+	return capturedCount;
 }
 
 void LatrineSensor::updateCalibration(uint16_t lastCount)
@@ -153,14 +158,3 @@ void countISR(void)
 {
 	s_intCount++;  
 }
-
-
-
-
-
-
-
-
-
-
-
