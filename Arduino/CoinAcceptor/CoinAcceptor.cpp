@@ -8,9 +8,6 @@
  * File scope functions
  */
 
-static PULSEVALUEMAP * FindEmptyMapPointer(PULSEVALUEMAP * map);
-static PULSEVALUEMAP * FindMapForPulses(uint8_t pulses, PULSEVALUEMAP * map);
-
 static void pulseISR(void);
 
 /*
@@ -21,45 +18,50 @@ static void pulseISR(void);
 static uint8_t s_intCount = 0UL;
 static bool s_newPulse = true;
 
-CoinAcceptor::CoinAcceptor(uint8_t pin, uint16_t mspulse, COIN_INSERTED pfnOnNewCoin)
+CoinAcceptor::CoinAcceptor(uint8_t intNumber, uint16_t valuePerPulse, COIN_INSERTED pfnOnNewCoin) :
+	updateTask(NULL, 500, INFINITE_TICKS),
+	fakeTask(NULL, 100, INFINITE_TICKS)
 {
-	attachInterrupt(pin, pulseISR, RISING);
+	attachInterrupt(intNumber, pulseISR, RISING);
 	
 	s_pfnOnNewCoin = pfnOnNewCoin;
-	s_mspulse = mspulse * 2;
 	s_LastUpdate = millis();
 	
-	s_state = IDLE;
-	memset(s_pulsestovalues, sizeof(s_pulsestovalues), 0);
-}
+	s_valuePerPulse = valuePerPulse;
 
-void CoinAcceptor::AddValue(uint8_t pulses, uint16_t value)
-{
-	if (pulses > 0)
-	{
-		PULSEVALUEMAP * pEmptyLocation = FindEmptyMapPointer(s_pulsestovalues);
-		
-		if (pEmptyLocation)
-		{
-			pEmptyLocation->pulses = pulses;
-			pEmptyLocation->value = value;
-		}
-	}
+	s_fakePin = -1;
+	s_fakeCount = 0;
+	s_fakeState = LOW;
+	
+	s_state = IDLE;
 }
 
 void CoinAcceptor::Update(void)
 { 
-	if ((millis() - s_LastUpdate) > s_mspulse)
+	if (updateTask.tick(0)) { onUpdate(); }
+	if (fakeTask.tick(0)) { onFake(); }
+}
+
+void CoinAcceptor::Fake(uint8_t count, uint8_t pin)
+{
+	pinMode(pin, OUTPUT);
+	s_fakePin = pin;
+	s_fakeCount = count * 2;
+}
+
+void CoinAcceptor::onFake(void)
+{
+	if (s_fakeCount && (s_fakePin > -1))
 	{
-		s_LastUpdate = millis();
-		updateTask();
+		digitalWrite(s_fakePin, s_fakeState = !s_fakeState);
+		s_fakeCount--;
 	}
 }
 
-void CoinAcceptor::updateTask(void)
+void CoinAcceptor::onUpdate(void)
 {
 	switch(s_state)
-	{
+	{	
 	case IDLE:
 		handleIdle();
 		break;
@@ -88,42 +90,20 @@ void CoinAcceptor::handleCounting(void)
 
 void CoinAcceptor::handlePulsingStopped(void)
 {
-	uint16_t value = 0;
-	PULSEVALUEMAP * map = FindMapForPulses(s_intCount, s_pulsestovalues);
+	uint16_t intCount = s_intCount;
 	
-	if (map) { value = map->value; }
+	/* Reset state and counter so that counting can start again */
+	s_intCount = 0;
+	s_state = IDLE;
 	
 	if (s_pfnOnNewCoin)
 	{
-		s_pfnOnNewCoin(value, s_intCount);
+		s_pfnOnNewCoin(intCount * s_valuePerPulse);
 	}
-	
-	s_intCount = 0;
-	s_state = IDLE;
 }
 
-static void pulseISR(void)
-{
+void pulseISR(void)
+{	
 	s_newPulse = true;
 	s_intCount++;
-}
-
-static PULSEVALUEMAP * FindEmptyMapPointer(PULSEVALUEMAP * map)
-{
-	return FindMapForPulses(0, map);
-}
-
-static PULSEVALUEMAP * FindMapForPulses(uint8_t pulses, PULSEVALUEMAP * map)
-{
-	PULSEVALUEMAP * found = NULL;
-	
-	for (char i = 0; i < 6; i++)
-	{
-		if (map[i].pulses == pulses)
-		{
-			found = map;
-			break;
-		}
-	}
-	return found;
 }

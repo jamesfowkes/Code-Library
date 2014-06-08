@@ -1,6 +1,9 @@
 #ifndef _SERIAL_MESSAGING_H_
 #define _SERIAL_MESSAGING_H_
 
+#include <Arduino.h>
+#include <ArduinoUtil.h>
+
 #define MAX_MESSAGES_PER_HANDLE 2
 #define MSG_BUFFER_LEN 200
 

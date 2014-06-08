@@ -1,6 +1,3 @@
-#include <Arduino.h>
-#include <ArduinoUtil.h>
-
 #include "SerialMessaging.h"
 
 SerialMessaging::SerialMessaging(MESSAGE_HANDLER * pMessageHandlers, uint8_t count)

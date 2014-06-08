@@ -3,43 +3,42 @@
 
 #include <stdint.h>
 #include <Arduino.h>
+#include <TaskAction.h>
 
-typedef void(*COIN_INSERTED)(uint16_t value, uint8_t pulses);
+typedef void(*COIN_INSERTED)(uint16_t value);
 
-enum AcceptorState
-{
-	IDLE,
-	COUNTING
-};
-
-struct pulsevaluemap
-{
-	uint8_t pulses;
-	uint16_t value;
-};
-typedef struct pulsevaluemap PULSEVALUEMAP;
-	
 class CoinAcceptor
 {
 	
 	public:
-		CoinAcceptor(uint8_t pin, uint16_t mspulse, COIN_INSERTED pfnOnNewCoin);
-		void AddValue(uint8_t pulses, uint16_t value);
+		CoinAcceptor(uint8_t intNumber, uint16_t valuePerPulse, COIN_INSERTED pfnOnNewCoin);
 		void Update(void);
-		
+		void Fake(uint8_t count, uint8_t pin);
 	private:
 		
-		void updateTask(void);
+		enum acceptor_state
+		{
+			IDLE,
+			COUNTING
+		};
+	
+		void onUpdate(void);
+		void onFake(void);
 		void handleIdle(void);
 		void handleCounting(void);
 		void handlePulsingStopped(void);
 		
-		enum AcceptorState s_state;
-		
+		enum acceptor_state s_state;
+		uint16_t s_valuePerPulse;
 		COIN_INSERTED s_pfnOnNewCoin;
-		uint16_t s_mspulse;
 		uint32_t s_LastUpdate;
-		struct pulsevaluemap s_pulsestovalues[6];
+		
+		uint8_t s_fakeCount;
+		int s_fakeState;
+		int s_fakePin;
+
+		TaskAction updateTask;
+		TaskAction fakeTask;
 };
 
 #endif
