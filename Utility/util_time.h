@@ -32,6 +32,10 @@ enum month_enum
 	DEC
 };
 
+#ifndef UNIX_TIME_TYPE
+#error "UNIX_TIME_TYPE must be defined!"
+#endif
+
 // Convert between C years and gregorian years
 #define GREGORIAN_TO_C_YEAR(year) (year % 100) 
 #define C_TO_GREGORIAN_YEAR(year) (year + FIRST_C_YEAR_GR) 
@@ -88,7 +92,7 @@ struct tm
 };
 typedef struct tm TM;
 
-typedef uint32_t UNIX_TIMESTAMP;
+typedef UNIX_TIME_TYPE UNIX_TIMESTAMP;
 typedef int C_STRUCT_YEAR;
 typedef int GREGORIAN_YEAR;
 
