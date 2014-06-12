@@ -1,15 +1,17 @@
 #include <LatrineSensor.h>
 
-LatrineSensor sensor = LatrineSensor(0, onFlushStart, onFlushEnd);
+LatrineSensor sensor = LatrineSensor(onFlushStart, onFlushEnd);
 
 void setup(void)
 {
+  sensor.Setup(); // MUST be called to start counting!
   Serial.begin(115200);
 }
 
 void loop(void)
 {
-	sensor.Update(); // Call at least every second
+  delay(1000);
+  sensor.Update(); // Call once every second
 }
 
 /*
@@ -20,15 +22,17 @@ void loop(void)
  */
 void onFlushStart(void)
 {
-	Serial.println("Flush started...");
+  Serial.println("Flush started...");
 }
 
 void onFlushEnd(uint16_t durationinSeconds)
 {
-	Serial.print("Flush ended (");
-	Serial.print(durationinSeconds);
-	Serial.println(" seconds)");
+  Serial.print("Flush ended (");
+  Serial.print(durationinSeconds);
+  Serial.println(" seconds)");
 }
+
+
 
 
 
