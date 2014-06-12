@@ -3,23 +3,17 @@
  */
  
 #include <LatrineSensor.h>
+#include <util/atomic.h>
 
 /*
- * Constants (might become private class variables?
+ * Constants (might become private class variables?)
  */
 
 static const uint16_t MINIMUM_FREQ_DIFF = 200;
 static const unsigned long UPDATE_TICK_MS = 1000;
 
-// Keep outside class: counts interrupts on sensor pin
-static uint32_t s_intCount = 0UL;
-
-static void countISR(void);
-
-LatrineSensor::LatrineSensor(uint8_t pin, LS_START_CB pFnStart, LS_END_CB pFnEnd, bool bEmitDebugInfo)
+LatrineSensor::LatrineSensor(LS_START_CB pFnStart, LS_END_CB pFnEnd, bool bEmitDebugInfo)
 {
-	attachInterrupt(pin, countISR, RISING);
-	
 	s_pFnStart = pFnStart;
 	s_pFnEnd = pFnEnd;
 	s_bEmitDebugInfo = bEmitDebugInfo;
@@ -36,19 +30,21 @@ LatrineSensor::LatrineSensor(uint8_t pin, LS_START_CB pFnStart, LS_END_CB pFnEnd
 	s_flushDurationMs = 0;
 	
 	s_flushState = STATE_CALIBRATING;
-	
-	s_LastUpdate = millis();
+
+}
+
+void LatrineSensor::Setup(void)
+{
+	/* Timer1 (16-bit timer) setup) 
+	- Counts on T1 pin, which is PD5 which is Arduino pin 5 */
+	TCCR1A = 0; // Output compare off, waveform generation off
+	TCCR1B = 0x06; // Input capture off, waveform generation off, clock source external falling edge
+	TCNT1 = 0;
 }
 
 uint16_t LatrineSensor::Update(void)
 {
-	if ((millis() - s_LastUpdate) > UPDATE_TICK_MS)
-	{
-		s_LastUpdate = millis();
-		return updateTask();
-	}
-	
-	return 0;
+	return updateTask();
 }
 
 void LatrineSensor::emitDebugInfo(uint16_t lastCount)
@@ -67,25 +63,30 @@ void LatrineSensor::emitDebugInfo(uint16_t lastCount)
 
 uint16_t LatrineSensor::updateTask(void)
 {
-	uint16_t capturedCount = s_intCount;
-	s_intCount = 0;
+	volatile uint16_t count;
+
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+	{
+		count = TCNT1;
+		TCNT1 = 0;
+	}
 
 	switch(s_flushState)
 	{
 	case STATE_CALIBRATING:
-		updateCalibration(capturedCount);
+		updateCalibration(count);
 		break;
 	case STATE_IDLE:
-		handleIdleFlush(capturedCount);
+		handleIdleFlush(count);
 		break;
 	case STATE_FLUSHING:
-		handleFlushing(capturedCount);
+		handleFlushing(count);
 		break;
 	}
 	
-	if (s_bEmitDebugInfo) { emitDebugInfo(capturedCount); }
+	if (s_bEmitDebugInfo) { emitDebugInfo(count); }
 	
-	return capturedCount;
+	return count;
 }
 
 void LatrineSensor::updateCalibration(uint16_t lastCount)
@@ -154,7 +155,3 @@ uint16_t LatrineSensor::getFlushDurationInSeconds(void)
 	return (s_flushDurationMs + 500) / 1000;
 }
 
-void countISR(void)
-{
-	s_intCount++;  
-}
