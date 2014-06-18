@@ -136,6 +136,14 @@ void TMR16_SetOutputCompareValue(const uint16_t value, const TMR_OCCHAN_ENUM eCh
 	}
 }
 
+void TMR16_SetInputCapture(uint16_t icr)
+{
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+	{
+		ICR1 = icr;
+	}
+}
+
 void TMR16_SetOutputCompareMode(const TMR_OUTPUTMODE_ENUM eOutputMode, const TMR_OCCHAN_ENUM eChannel)
 {
 	assert(eChannel < TMR_OCCHAN_INVALID);
