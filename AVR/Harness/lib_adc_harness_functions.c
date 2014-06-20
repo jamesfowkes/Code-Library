@@ -11,6 +11,13 @@
 #include "lib_adc.h"
 #include "lib_adc_harness_functions.h"
 
+/* ADC Registers */
+uint8_t ADCSRA;
+uint8_t ADMUX;
+
+uint8_t	ADCH;
+uint8_t	ADCL;
+
 static SEQUENCE * seqPtrs[LIB_ADC_CH_MAX];
 
 void ADC_Harness_SetReadingArray(LIB_ADC_CHANNEL_ENUM eChannel, SEQUENCE * seq)
