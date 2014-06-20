@@ -28,7 +28,9 @@ extern void setUp(void);
 extern void tearDown(void);
 extern void test_InitHandler(void);
 extern void test_Update(void);
-extern void testUpdateWithDebouncing(void);
+extern void test_UpdateWithDebouncing(void);
+extern void test_NoRepeatInit(void);
+extern void test_NoRepeatOnlyInvokesCallbacksOnce(void);
 
 
 //=======Test Reset Option=====
@@ -44,9 +46,11 @@ int main(void)
 {
   Unity.TestFile = "lib_btn_test.c";
   UnityBegin();
-  RUN_TEST(test_InitHandler, 57);
-  RUN_TEST(test_Update, 74);
-  RUN_TEST(testUpdateWithDebouncing, 148);
-
+  RUN_TEST(test_InitHandler, 0);
+  RUN_TEST(test_Update, 1);
+  RUN_TEST(test_UpdateWithDebouncing, 2);
+  RUN_TEST(test_NoRepeatInit, 3);
+  RUN_TEST(test_NoRepeatOnlyInvokesCallbacksOnce, 4);
+  
   return (UnityEnd());
 }

@@ -5,7 +5,9 @@
 # ========================================== 
 
 C_COMPILER=gcc
-DEL=@rm -f
+
+LIBS_DIR = $(PROJECTS_PATH)\Libs
+DEL = python $(LIBS_DIR)\del.py
 
 ifeq ($(OS),Windows_NT)
 	TARGET_EXTENSION=.exe

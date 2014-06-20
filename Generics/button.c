@@ -29,9 +29,18 @@ bool BTN_InitHandler(BTN * btn)
 	bool success = true;
 	
 	success &= (btn->change_state_callback != NULL);
-	success &= (btn->repeat_callback != NULL);
+	
+	// If a repeat callback is defined, max_repeat_count must be > 0
+	if (btn->repeat_callback != NULL)
+	{
+		success &= (btn->max_repeat_count > 0);
+	}
+	else
+	{
+		success &= (btn->max_repeat_count == 0);
+	}
+	
 	success &= (btn->max_debounce_count > 0);
-	success &= (btn->max_repeat_count > 0);
 	
 	if (success)
 	{
@@ -104,11 +113,13 @@ static void onSameState(BTN * btn)
 	if (btn->current_state == BTN_STATE_ACTIVE)
 	{
 		// Count how long the active state has persisted
-		
-		if (++btn->repeat_count == btn->max_repeat_count)
+		if (btn->repeat_callback)
 		{
-			btn->repeat_callback();
-			btn->repeat_count = 0;
+			if (++btn->repeat_count == btn->max_repeat_count)
+			{
+				btn->repeat_callback();
+				btn->repeat_count = 0;
+			}
 		}
 	}
 }

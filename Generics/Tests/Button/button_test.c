@@ -146,7 +146,7 @@ void test_Update(void)
 	
 }
 
-void testUpdateWithDebouncing(void)
+void test_UpdateWithDebouncing(void)
 {
 
 	int i;
@@ -207,6 +207,38 @@ void testUpdateWithDebouncing(void)
 	TEST_ASSERT_EQUAL(0, button.debounce_count);
 }
 
+void test_NoRepeatInit(void)
+{
+	button.repeat_callback = NULL;
+	*(uint16_t*)(&button.max_repeat_count) = 1; // Pointer abuse to get round read-only variable
+	TEST_ASSERT_EQUAL(false, BTN_InitHandler(&button));
+	
+	button.repeat_callback = repeatCallback;
+	*(uint16_t*)(&button.max_repeat_count) = 0;
+	TEST_ASSERT_EQUAL(false, BTN_InitHandler(&button));
+	
+	button.repeat_callback = NULL;
+	*(uint16_t*)(&button.max_repeat_count) = 0;
+	TEST_ASSERT_EQUAL(true, BTN_InitHandler(&button));	
+}
+
+void test_NoRepeatOnlyInvokesCallbacksOnce(void)
+{
+	// Clear the repeat variables before test
+	button.repeat_callback = NULL;
+	*(uint16_t*)(&button.max_repeat_count) = 0;
+	
+	//Throw in lots of active presses, should get no repeats and one change
+	for (int i = 0; i < 500; ++i)
+	{
+		BTN_Update(&button, BTN_STATE_ACTIVE);
+	}
+	
+	TEST_ASSERT_EQUAL(0, repeatCount);
+	TEST_ASSERT_EQUAL(1, changeStateCount);
+	
+}
+
 void repeatCallback(void)
 {
 	repeatCount++;
@@ -214,6 +246,7 @@ void repeatCallback(void)
 
 void changeStateCallback(BTN_STATE_ENUM state)
 {
+	(void)state;
 	repeatCount = 0;
 	changeStateCount++;
 }
