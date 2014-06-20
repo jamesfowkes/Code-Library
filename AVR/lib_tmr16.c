@@ -13,6 +13,7 @@
  */
  
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include <util/atomic.h>
 
 /*
@@ -279,7 +280,10 @@ static bool IsPWMMode(const TMR16_COUNTMODE_ENUM eCountMode)
 {
 	assert(eCountMode < TMR16_COUNTMODE_INVALID);
 
-    return !((TMR16_COUNTMODE_NORMAL == eCountMode) || (TMR16_COUNTMODE_CTC == eCountMode));
+	bool isPWMMode = TMR16_COUNTMODE_NORMAL != eCountMode;
+	isPWMMode &= TMR16_COUNTMODE_CTC_OCR != eCountMode;
+	isPWMMode &= TMR16_COUNTMODE_CTC_ICR != eCountMode;
+    return isPWMMode;
 }
 
 /*
