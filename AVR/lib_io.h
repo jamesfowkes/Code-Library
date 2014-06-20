@@ -9,16 +9,16 @@
 
 enum io_port_enum
 {
-	#ifdef PORTA
+	#ifdef PORTA0
 	IO_PORTA,
 	#endif
-	#ifdef PORTB
+	#ifdef PORTB0
 	IO_PORTB,
 	#endif
-	#ifdef PORTC
+	#ifdef PORTC0
 	IO_PORTC,
 	#endif
-	#ifdef PORTD
+	#ifdef PORTD0
 	IO_PORTD
 	#endif
 };

@@ -78,22 +78,22 @@ volatile uint8_t * IO_GetPortDirect(IO_PORT_ENUM ePort)
 
 	switch(ePort)
 	{
-#ifdef DDRA
+#ifdef DDA0
 	case IO_PORTA:
 		port = &PORTA;
 		break;
 #endif
-#ifdef DDRB
+#ifdef DDB0
 	case IO_PORTB:
 		port = &PORTB;
 		break;
 #endif
-#ifdef DDRC
+#ifdef DDC0
 	case IO_PORTC:
 		port = &PORTC;
 		break;
 #endif
-#ifdef DDRD
+#ifdef DDD0
 	case IO_PORTD:
 		port = &PORTD;
 	break;
@@ -111,22 +111,22 @@ void SetDDR(IO_PORT_ENUM ePort, uint8_t pin)
 
 	switch(ePort)
 	{
-#ifdef DDRA
+#ifdef DDA0
 	case IO_PORTA:
 		DDRA |= (1 << pin);
 		break;
 #endif
-#ifdef DDRB
+#ifdef DDB0
 	case IO_PORTB:
 		DDRB |= (1 << pin);
 		break;
 #endif
-#ifdef DDRC
+#ifdef DDC0
 	case IO_PORTC:
 		DDRC |= (1 << pin);
 		break;
 #endif
-#ifdef DDRD
+#ifdef DDD0
 	case IO_PORTD:
 		DDRD |= (1 << pin);
 	break;
@@ -139,22 +139,22 @@ void ClearDDR(IO_PORT_ENUM ePort, uint8_t pin)
 
 	switch(ePort)
 	{
-#ifdef DDRA
+#ifdef DDA0
 	case IO_PORTA:
 		DDRA &= ~(1 << pin);
 		break;
 #endif
-#ifdef DDRB
+#ifdef DDB0
 	case IO_PORTB:
 		DDRB &= ~(1 << pin);
 		break;
 #endif
-#ifdef DDRC
+#ifdef DDC0
 	case IO_PORTC:
 		DDRC &= ~(1 << pin);
 		break;
 #endif
-#ifdef DDRD
+#ifdef DDD0
 	case IO_PORTD:
 		DDRD &= ~(1 << pin);
 		break;
@@ -167,22 +167,22 @@ void SetPORT(IO_PORT_ENUM ePort, uint8_t pin)
 
 	switch(ePort)
 	{
-#ifdef PORTA
+#ifdef PORTA0
 	case IO_PORTA:
 		PORTA |= (1 << pin);
 		break;
 #endif
-#ifdef PORTB
+#ifdef PORTB0
 	case IO_PORTB:
 		PORTB |= (1 << pin);
 		break;
 #endif
-#ifdef DDRC
+#ifdef PORTC0
 	case IO_PORTC:
 		PORTC |= (1 << pin);
 		break;
 #endif
-#ifdef DDRD
+#ifdef PORTD0
 	case IO_PORTD:
 		PORTD |= (1 << pin);
 	break;
@@ -194,22 +194,22 @@ void ClearPORT(IO_PORT_ENUM ePort, uint8_t pin)
 {
 	switch(ePort)
 	{
-#ifdef PORTA
+#ifdef PORTA0
 	case IO_PORTA:
 		PORTA &= ~(1 << pin);
 		break;
 #endif
-#ifdef PORTB
+#ifdef PORTB0
 	case IO_PORTB:
 		PORTB &= ~(1 << pin);
 		break;
 #endif
-#ifdef DDRC
+#ifdef PORTC0
 	case IO_PORTC:
 		PORTC &= ~(1 << pin);
 		break;
 #endif
-#ifdef DDRD
+#ifdef PORTD0
 	case IO_PORTD:
 		PORTD &= ~(1 << pin);
 	break;
@@ -222,22 +222,22 @@ void SetPINS(IO_PORT_ENUM ePort, uint8_t pin)
 
 	switch(ePort)
 	{
-#ifdef PINA
+#ifdef PINA0
 	case IO_PORTA:
 		PINA = (1 << pin);
 		break;
 #endif
-#ifdef PINB
+#ifdef PINB0
 	case IO_PORTB:
 		PINB = (1 << pin);
 		break;
 #endif
-#ifdef DDRC
+#ifdef PINC0
 	case IO_PORTC:
 		PINC = (1 << pin);
 		break;
 #endif
-#ifdef DDRD
+#ifdef PIND0
 	case IO_PORTD:
 		PIND = (1 << pin);
 	break;
@@ -250,22 +250,22 @@ void ClearPINS(IO_PORT_ENUM ePort, uint8_t pin)
 
 	switch(ePort)
 	{
-#ifdef PINA
+#ifdef PINA0
 	case IO_PORTA:
 		PINA &= ~(1 << pin);
 		break;
 #endif
-#ifdef PINB
+#ifdef PINB0
 	case IO_PORTB:
 		PINB &= ~(1 << pin);
 		break;
 #endif
-#ifdef DDRC
+#ifdef PINC0
 	case IO_PORTC:
 		PINC &= ~(1 << pin);
 		break;
 #endif
-#ifdef DDRD
+#ifdef PIND0
 	case IO_PORTD:
 		PIND &= ~(1 << pin);
 	break;
