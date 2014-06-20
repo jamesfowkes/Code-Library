@@ -7,12 +7,13 @@
  * Public Datatypes
  */
 
-#ifdef TMR16_PWM_DEBUG
+#ifdef TEST_HARNESS
 struct tmr16_pwm_debug
 {
 	uint16_t prescaler;
+	uint16_t ocr;
 	uint16_t top;
-}
+};
 typedef struct tmr16_pwm_debug TMR16_PWM_DEBUG;
 #endif
 
@@ -20,7 +21,7 @@ typedef struct tmr16_pwm_debug TMR16_PWM_DEBUG;
  * Public Function Prototypes
  */
 
-#ifdef TMR16_PWM_DEBUG
+#ifdef TEST_HARNESS
 bool TMR16_PWM_Set(uint16_t freq, uint16_t duty, TMR_OCCHAN_ENUM eChannel, TMR16_PWM_DEBUG * pData);
 #else
 bool TMR16_PWM_Set(uint16_t freq, uint16_t duty, TMR_OCCHAN_ENUM eChannel);

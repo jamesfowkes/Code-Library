@@ -37,7 +37,7 @@
 /* TMR16_PWM_Set
  :Sets up PWM with specified frequency and duty
 */
-#ifdef TMR16_PWM_DEBUG
+#ifdef TEST_HARNESS
 bool TMR16_PWM_Set(uint16_t freq, uint16_t duty, TMR_OCCHAN_ENUM eChannel, TMR16_PWM_DEBUG * pData)
 #else
 bool TMR16_PWM_Set(uint16_t freq, uint16_t duty, TMR_OCCHAN_ENUM eChannel)
@@ -52,16 +52,16 @@ bool TMR16_PWM_Set(uint16_t freq, uint16_t duty, TMR_OCCHAN_ENUM eChannel)
 	uint16_t top = 0; // Sets PWM frequency
 	uint16_t ocr = 0; // Sets PWM duty
 	
-	//Start at highest timer frequency (prescaler = 1)
+	//Start at highest timer frequency (prescaler = divide-by-1)
     ftmr = fcpu / prescalers[prescalerIndex];
-    fovf = ftmr / 65535;
+    fovf = ftmr / 65536;
 	
 	//Search for correct prescaler
-    while (freq < fovf && prescalerIndex < 4)
+    while ((freq <= fovf) && (prescalerIndex < 4))
 	{
-		prescalerIndex += 1;
+		prescalerIndex++;
         ftmr = fcpu / prescalers[prescalerIndex];
-        fovf = ftmr / 65535;
+        fovf = ftmr / 65536;
     }
 	
 	if (prescalerIndex == 4) { return false; } // Could not resolve this frequency
@@ -77,10 +77,11 @@ bool TMR16_PWM_Set(uint16_t freq, uint16_t duty, TMR_OCCHAN_ENUM eChannel)
 	TMR16_SetOutputCompareValue(ocr, eChannel);
 	TMR16_SetInputCapture(top);
 	
-	#ifdef TMR16_PWM_DEBUG
+	#ifdef TEST_HARNESS
 	if (pData)
 	{
 		pData->prescaler = prescalers[prescalerIndex];
+		pData->ocr = ocr;
 		pData->top = top;
 	}
 	#endif
