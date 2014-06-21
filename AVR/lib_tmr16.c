@@ -96,7 +96,7 @@ void TMR16_SetCountMode(const TMR16_COUNTMODE_ENUM eMode)
 	
 	// Mode is controlled by b1:0 in TCCR1A and b4:3 in TCCR1B
 
-	if (s_currentCountMode != eMode)
+	//if (s_currentCountMode != eMode)
 	{
 		uint8_t tccr1a = TCCR1A;
 		uint8_t tccr1b = TCCR1B;
@@ -105,8 +105,9 @@ void TMR16_SetCountMode(const TMR16_COUNTMODE_ENUM eMode)
 		tccr1b &= ~((1 << WGM13) | (1 << WGM12));
 
 		//Lower two bits of mode are WGM11:WGM10
+		//Upper two bits are WGM13:WGM12
 		tccr1a |= (((uint8_t)eMode & 0x03) << WGM10);
-		tccr1b |= ((((uint8_t)eMode & 0x04) >> 2) << WGM12);
+		tccr1b |= ((((uint8_t)eMode & 0x0C) >> 2) << WGM12);
 
 		TCCR1A = tccr1a;
 		TCCR1B = tccr1b;

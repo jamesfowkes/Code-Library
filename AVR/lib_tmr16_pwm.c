@@ -35,7 +35,7 @@
  */
 
 /* TMR16_PWM_Set
- :Sets up PWM with specified frequency and duty
+ :Sets up PWM with specified frequency and duty (the user must set the correct pin to be an output!)
 */
 #ifdef TEST_HARNESS
 bool TMR16_PWM_Set(uint16_t freq, uint16_t duty, TMR_OCCHAN_ENUM eChannel, TMR16_PWM_DEBUG * pData)
@@ -57,9 +57,9 @@ bool TMR16_PWM_Set(uint16_t freq, uint16_t duty, TMR_OCCHAN_ENUM eChannel)
     fovf = ftmr / 65536;
 	
 	//Search for correct prescaler
-    while ((freq <= fovf) && (prescalerIndex < 4))
+    while (freq <= fovf)
 	{
-		prescalerIndex++;
+		if(prescalerIndex++ == 4) { break; }
         ftmr = fcpu / prescalers[prescalerIndex];
         fovf = ftmr / 65536;
     }
@@ -68,10 +68,11 @@ bool TMR16_PWM_Set(uint16_t freq, uint16_t duty, TMR_OCCHAN_ENUM eChannel)
 	
     //Find top setting for this frequency (will be set to ICR1)
     top = div_round_pos(ftmr, freq);
-	ocr = ((uint32_t)top * (uint32_t)duty) / 100UL;
+	ocr = (((uint32_t)top * (uint32_t)duty) + 50UL) / 100UL;
 	
 	// This function needs to use FASTPWM_1 mode, which will set ICR1 as TOP
 	// The PWM will be output on the selected channel
+	TMR16_SetSource(TMR_SRC_FCLK + prescalerIndex);
 	TMR16_SetCountMode(TMR16_COUNTMODE_FASTPWM_1);
 	TMR16_SetOutputCompareMode(TMR_OUTPUTMODE_CLEAR, eChannel);
 	TMR16_SetOutputCompareValue(ocr, eChannel);
