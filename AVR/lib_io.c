@@ -71,7 +71,107 @@ void IO_SetMode(IO_PORT_ENUM ePort, uint8_t pin, IO_MODE_ENUM eMode)
 	}
 }
 
+bool IO_ReadPin(IO_PORT_ENUM ePort, uint8_t pin)
+{
+	bool on = false;
+	
+	switch(ePort)
+	{
+#ifdef PORTA0
+	case IO_PORTA:
+		on = IO_Read(PORTA, pin);
+		break;
+#endif
+#ifdef PORTB0
+	case IO_PORTB:
+		on = IO_Read(PORTB, pin);
+		break;
+#endif
+#ifdef PORTC0
+	case IO_PORTC:
+		on = IO_Read(PORTC, pin);
+		break;
+#endif
+#ifdef PORTD0
+	case IO_PORTD:
+		on = IO_Read(PORTD, pin);
+	break;
+#endif
+	default:
+		break;
+	}
+	
+	return on;
+}
+
+uint8_t IO_ReadPort(IO_PORT_ENUM ePort)
+{
+	uint8_t val = 0x00;
+	
+	switch(ePort)
+	{
+#ifdef PORTA0
+	case IO_PORTA:
+		val = PORTA;
+		break;
+#endif
+#ifdef PORTB0
+	case IO_PORTB:
+		val = PORTB;
+		break;
+#endif
+#ifdef PORTC0
+	case IO_PORTC:
+		val = PORTC;
+		break;
+#endif
+#ifdef PORTD0
+	case IO_PORTD:
+		val = PORTD;
+	break;
+#endif
+	default:
+		break;
+	}
+	
+	return val;
+}
+
 volatile uint8_t * IO_GetPortDirect(IO_PORT_ENUM ePort)
+{
+
+	volatile uint8_t * port = NULL;
+
+	switch(ePort)
+	{
+#ifdef PORTA0
+	case IO_PORTA:
+		port = &PORTA;
+		break;
+#endif
+#ifdef PORTB0
+	case IO_PORTB:
+		port = &PORTB;
+		break;
+#endif
+#ifdef PORTC0
+	case IO_PORTC:
+		port = &PORTC;
+		break;
+#endif
+#ifdef PORTD0
+	case IO_PORTD:
+		port = &PORTD;
+	break;
+#endif
+	default:
+		break;
+	}
+
+	return port;
+}
+
+volatile uint8_t * IO_GetDirectionPortDirect(IO_PORT_ENUM ePort)
 {
 
 	volatile uint8_t * port = NULL;
@@ -80,28 +180,31 @@ volatile uint8_t * IO_GetPortDirect(IO_PORT_ENUM ePort)
 	{
 #ifdef DDA0
 	case IO_PORTA:
-		port = &PORTA;
+		port = &DDRA;
 		break;
 #endif
 #ifdef DDB0
 	case IO_PORTB:
-		port = &PORTB;
+		port = &DDRB;
 		break;
 #endif
 #ifdef DDC0
 	case IO_PORTC:
-		port = &PORTC;
+		port = &DDRC;
 		break;
 #endif
 #ifdef DDD0
 	case IO_PORTD:
-		port = &PORTD;
+		port = &DDRD;
 	break;
 #endif
+	default:
+		break;
 	}
 
 	return port;
 }
+
 /*
  * Private Functions
  */
@@ -131,6 +234,8 @@ void SetDDR(IO_PORT_ENUM ePort, uint8_t pin)
 		DDRD |= (1 << pin);
 	break;
 #endif
+	default:
+		break;
 	}
 }
 
@@ -159,6 +264,8 @@ void ClearDDR(IO_PORT_ENUM ePort, uint8_t pin)
 		DDRD &= ~(1 << pin);
 		break;
 #endif
+	default:
+		break;
 	}
 }
 
@@ -187,6 +294,8 @@ void SetPORT(IO_PORT_ENUM ePort, uint8_t pin)
 		PORTD |= (1 << pin);
 	break;
 #endif
+	default:
+		break;
 	}
 }
 
@@ -214,6 +323,8 @@ void ClearPORT(IO_PORT_ENUM ePort, uint8_t pin)
 		PORTD &= ~(1 << pin);
 	break;
 #endif
+	default:
+		break;
 	}
 }
 
@@ -242,6 +353,8 @@ void SetPINS(IO_PORT_ENUM ePort, uint8_t pin)
 		PIND = (1 << pin);
 	break;
 #endif
+	default:
+		break;
 	}
 }
 
@@ -270,5 +383,7 @@ void ClearPINS(IO_PORT_ENUM ePort, uint8_t pin)
 		PIND &= ~(1 << pin);
 	break;
 #endif
+	default:
+		break;
 	}
 }

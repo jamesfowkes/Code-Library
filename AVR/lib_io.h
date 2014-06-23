@@ -19,8 +19,9 @@ enum io_port_enum
 	IO_PORTC,
 	#endif
 	#ifdef PORTD0
-	IO_PORTD
+	IO_PORTD,
 	#endif
+	IO_PORT_MAX
 };
 typedef enum io_port_enum IO_PORT_ENUM;
 
@@ -43,6 +44,9 @@ typedef enum io_mode_enum IO_MODE_ENUM;
 
 typedef void (*EXT_IO_FN)(bool);
 
+#define IO_Output(ddr, pin) (ddr |= (1 << pin))
+#define IO_Input(ddr, pin) (ddr &= ~(1 << pin))
+
 #define IO_On(port, pin) (port |= (1 <<  pin))
 #define IO_Off(port, pin) (port &= ~(1 <<  pin))
 #define IO_Toggle(pins, pin) (pins |= (1 << pin))
@@ -50,7 +54,10 @@ typedef void (*EXT_IO_FN)(bool);
 
 void IO_Control(IO_PORT_ENUM ePort, uint8_t pin, IO_STATE_ENUM state);
 void IO_SetMode(IO_PORT_ENUM ePort, uint8_t pin, IO_MODE_ENUM eMode);
+bool IO_ReadPin(IO_PORT_ENUM ePort, uint8_t pin);
+uint8_t IO_ReadPort(IO_PORT_ENUM ePort);
 
 volatile uint8_t * IO_GetPortDirect(IO_PORT_ENUM ePort);
+volatile uint8_t * IO_GetDirectionPortDirect(IO_PORT_ENUM ePort);
 
 #endif
