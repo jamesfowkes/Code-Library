@@ -1,7 +1,7 @@
 /*
- * app.c
+ * Timer16Example.c
  *
- *  Application file for stroboscope
+ *  Example AVR 16-bit timer application
  *
  *  Created on: 20 June 2014
  *      Author: james
