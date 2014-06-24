@@ -4,8 +4,10 @@
 #   [Released under MIT License. Please refer to license.txt for details]
 # ========================================== 
 
+TEST_NAME=swserial
+
 C_COMPILER=gcc
-DEL=@rm -f
+DEL=python $(LIBS_DIR)/del.py
 
 ifeq ($(OS),Windows_NT)
 	TARGET_EXTENSION=.exe
@@ -15,14 +17,29 @@ else
 	UNITY_FOLDER=/home/james/Documents/Unity
 endif
 
+MMCU = iom328p
+
 LIBS_DIR = $(PROJECTS_PATH)/Libs
 
-TARGET = $(TEST_NAME)/$(TEST_NAME)$(TARGET_EXTENSION)
+AVR_DIR = $(AVR32_HOME)\avr\include\avr
+HARNESS_DIR = $(PROJECTS_PATH)\Libs\AVR\Harness\avr
 
-SRC_FILES=$(UNITY_FOLDER)/src/unity.c ../lib_$(TEST_NAME).c $(TEST_NAME)/$(TEST_NAME)_test.c $(TEST_NAME)/$(TEST_NAME)_test_Runner.c
+TARGET = $(TEST_NAME)$(TARGET_EXTENSION)
 
 INC_DIRS=-I$(UNITY_FOLDER)/src -I$(UNITY_FOLDER)/extras/fixture/src
 
+MAKE_AVR_IO = python $(HARNESS_DIR)/../generate_test_io.py $(MMCU) $(AVR_DIR) $(HARNESS_DIR)
+
+SRC_FILES+= \
+	swserial_test.c \
+	swserial_test_Runner.c \
+	$(UNITY_FOLDER)/src/unity.c \
+	$(LIBS_DIR)/AVR/lib_swserial.c \
+	$(LIBS_DIR)/Format/format.c \
+	$(LIBS_DIR)/AVR/lib_fuses.c \
+	$(LIBS_DIR)/AVR/lib_io.c \
+	$(HARNESS_DIR)/../lib_io_harness.c
+	
 INC_DIRS+= \
 	-I$(LIBS_DIR)/AVR \
 	-I$(LIBS_DIR)/AVR/Harness \
@@ -31,28 +48,17 @@ INC_DIRS+= \
 	-I$(LIBS_DIR)/Generics \
 	-I$(LIBS_DIR)/Protocols \
 	-I$(LIBS_DIR)/Utility \
+	-I$(LIBS_DIR)/Format
 	
-SYMBOLS=-DUNITY_TEST -std=c99 -Wall -Wextra
+SYMBOLS=-DUNITY_TEST -std=c99 -Wall -Wextra -DTEST_HARNESS -DTX_BUFFER_SIZE=32
 
-CLEANUP = $(DEL) $(TARGET)
+OBJDEPS=$(SRC_FILES:.c=.o)
 
-.PHONY: swserial
-
-all: default
-
-default:
-	@echo "Available tests:"
-	@echo "swserial"
-
-## Specific dependencies and defines for each test
-swserial: SYMBOLS += -DTEST_HARNESS -DTX_BUFFER_SIZE=32
-swserial: SRC_FILES+= ../lib_fuses.c ../lib_io.c
-swserial: TEST_NAME=$@
-
-swserial:
+all: clean
 	$(CLEANUP)
+	$(MAKE_AVR_IO)
 	$(C_COMPILER) $(INC_DIRS) $(SYMBOLS) $(SRC_FILES) -o $(TARGET)
 	./$(TARGET)
 
 clean:
-	$(CLEANUP)
+	$(DEL) $(TARGET) $(OBJDEPS)

@@ -16,7 +16,7 @@
 
 void setUp(void)
 {
-	SWS_TxInit(IO_PORTA, 0);
+	SWS_TxInit(IO_PORTB, 0);
 	SWS_SetBaudRate(LIB_SWS_BAUD_4800);
 }
 
