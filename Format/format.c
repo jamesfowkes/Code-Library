@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdio.h>
 
 /*
  * Format Library Includes
@@ -19,6 +20,7 @@
 
 static uint8_t format(char * buf, const char spec, void * pArg);
 static uint8_t getPlaceCount(uint32_t value, uint32_t place);
+static uint8_t valueToString(uint32_t uVal, char * buf);
 
 /*
  * Public Function Definitions
@@ -50,8 +52,8 @@ void TranslateBuffer(char const * const inBuffer, char * outBuffer, uint8_t size
 			}
 		} while (++i < size);
 	}
-	outBuffer[tx++] = '\r';
-	outBuffer[tx++] = '\n';
+	//outBuffer[tx++] = '\r';
+	//outBuffer[tx++] = '\n';
 	outBuffer[tx] = '\0';
 }
 
@@ -70,9 +72,7 @@ static uint8_t format(char * buf, const char spec, void * pArg)
 
 	uint32_t uVal = 0;
 	int32_t sVal = 0;
-	uint8_t digitcount = 0;
-	bool foundSignificantDigit = false;
-
+	
 	switch(spec)
 	{
 	case 'u':// Unsigned 8-bit int
@@ -90,7 +90,8 @@ static uint8_t format(char * buf, const char spec, void * pArg)
 		uVal = labs(sVal);
 		break;
 	case 'L':// Signed 32-bit int
-		uVal = (uint32_t)( *( (uint32_t *)pArg ) );
+		sVal = *( (int32_t *)pArg );
+		uVal = (uint32_t)labs(sVal);
 		break;
 	}
 
@@ -99,9 +100,19 @@ static uint8_t format(char * buf, const char spec, void * pArg)
 		*buf++ = '-';
 		bytesWritten++;
 	}
+	bytesWritten += valueToString(uVal, buf);
+	
+	return bytesWritten;
+}
 
+/* valueToString */
+static uint8_t valueToString(uint32_t uVal, char * buf)
+{
 	uint32_t placevalue = 0;
-
+	uint8_t digitcount = 0;
+	bool foundSignificantDigit = false;
+	uint8_t bytesWritten = 0;
+	
 	for (placevalue = 1000000000; placevalue > 1; placevalue /= 10)
 	{
 		digitcount = getPlaceCount(uVal, placevalue);
@@ -113,11 +124,11 @@ static uint8_t format(char * buf, const char spec, void * pArg)
 			bytesWritten++;
 		}
 	}
-
+	
 	digitcount = uVal;
 	*buf++ = (char)(digitcount + '0');
 	bytesWritten++;
-
+	
 	return bytesWritten;
 }
 
