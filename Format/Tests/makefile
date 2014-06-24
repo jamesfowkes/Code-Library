@@ -31,8 +31,12 @@ INC_DIRS = \
 	-I$(LIBS_DIR)/Generics \
 	-I$(LIBS_DIR)/Format
 	
-SYMBOLS=-DUNITY_TEST -std=c99 -Wall -Wextra
-
+SYMBOLS = \
+	-DUNITY_TEST \
+	-std=c99 \
+	-Wall \
+	-Wextra \
+	-DFORMAT_32_BIT_INTS
 CLEANUP = $(DEL) $(TARGET)
 
 .PHONY: format
