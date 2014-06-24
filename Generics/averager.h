@@ -5,22 +5,9 @@
  * Defines and Typedefs
  */
 
-enum averager_type
-{
-	S8,
-	U8,
-	S16,
-	U16,
-	#ifdef INCLUDE_32BIT_AVERAGER
-	S32,
-	U32
-	#endif
-};
-typedef enum averager_type AVERAGER_TYPE;
-
 typedef struct averager AVERAGER;
 
-AVERAGER * AVERAGER_GetAverager(AVERAGER_TYPE eType, uint8_t size);
+AVERAGER * AVERAGER_GetAverager(INTEGERTYPE eType, uint8_t size);
 
 void AVERAGER_NewData(AVERAGER * pAverager, void * pNewData);
 

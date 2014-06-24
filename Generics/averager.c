@@ -11,6 +11,7 @@
  * Generic Library Includes
  */
 
+#include "integertypeenum.h" 
 #include "memorypool.h"
 #include "ringbuf.h"
 #include "averager.h"
@@ -24,7 +25,7 @@
 struct averager
 {
 	void * data;
-	AVERAGER_TYPE type;
+	INTEGERTYPE type;
 	uint8_t maxIndex;
 	uint8_t iWrite;
 	bool full;
@@ -67,7 +68,7 @@ DEFINE_RESET_AVERAGER_FUNCTION(S32, int32_t)
 DEFINE_RESET_AVERAGER_FUNCTION(U32, uint32_t)
 #endif
 
-static void * allocateDataPointer(AVERAGER_TYPE eType, uint8_t nElements)
+static void * allocateDataPointer(INTEGERTYPE eType, uint8_t nElements)
 {
 	switch(eType)
 	{
@@ -145,7 +146,7 @@ static SUMMING_TYPE getAverage(AVERAGER * pAverager)
  * Public Function Definitions
  */
 
-AVERAGER * AVERAGER_GetAverager(AVERAGER_TYPE eType, uint8_t size)
+AVERAGER * AVERAGER_GetAverager(INTEGERTYPE eType, uint8_t size)
 {
 	AVERAGER* pAverager = NULL;
 	

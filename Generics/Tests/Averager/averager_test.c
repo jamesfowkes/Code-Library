@@ -5,6 +5,7 @@
 
 #include "unity.h"
 
+#include "../../integertypeenum.h"
 #include "../../averager.h"
 #include "../../memorypool.h"
 

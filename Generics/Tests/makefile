@@ -50,7 +50,7 @@ statemachine: INC_DIRS += -I../../Utility
 ringbuf: INC_DIRS += -I../../Utility
 
 averager: SYMBOLS += -DMEMORY_POOL_BYTES=1024 -DINCLUDE_32BIT_AVERAGER
-averager: INC_DIRS += -I../../Utility
+averager: INC_DIRS += -I../../Utility -I../../Generics
 averager: SRC_FILES += ../memorypool.c
 
 memorypool linkedlist statemachine ringbuf averager button: TEST_NAME=$@
