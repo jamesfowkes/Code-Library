@@ -59,7 +59,7 @@ bool TMR16_PWM_Set(uint16_t freq, uint16_t duty, TMR_OCCHAN_ENUM eChannel)
 	//Search for correct prescaler
     while (freq <= fovf)
 	{
-		if(prescalerIndex++ == 4) { break; }
+		if(++prescalerIndex == 4) { break; }
         ftmr = fcpu / prescalers[prescalerIndex];
         fovf = ftmr / 65536;
     }
