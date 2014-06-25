@@ -22,9 +22,9 @@ typedef struct tmr16_pwm_debug TMR16_PWM_DEBUG;
  */
 
 #ifdef TEST_HARNESS
-bool TMR16_PWM_Set(uint16_t freq, uint16_t duty, TMR_OCCHAN_ENUM eChannel, TMR16_PWM_DEBUG * pData);
+bool TMR16_PWM_Set(MILLIHZ freq, uint16_t duty, TMR_OCCHAN_ENUM eChannel, TMR16_PWM_DEBUG * pData);
 #else
-bool TMR16_PWM_Set(uint16_t freq, uint16_t duty, TMR_OCCHAN_ENUM eChannel);
+bool TMR16_PWM_Set(MILLIHZ freq, uint16_t duty, TMR_OCCHAN_ENUM eChannel);
 #endif
 
 #endif

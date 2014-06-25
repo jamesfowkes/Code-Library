@@ -16,6 +16,13 @@
 #include <util/atomic.h>
 
 /*
+ * Utility Library Includes
+ */
+
+#include "util_macros.h"
+#include "util_units.h"
+
+/*
  * AVR Library Includes
  */
 
@@ -25,12 +32,6 @@
 #include "lib_tmr16.h"
 
 /*
- * Utility Library Includes
- */
-
-#include "util_macros.h"
-
-/*
  * Public Function Defintions
  */
 
@@ -38,23 +39,23 @@
  :Sets up PWM with specified frequency and duty (the user must set the correct pin to be an output!)
 */
 #ifdef TEST_HARNESS
-bool TMR16_PWM_Set(uint16_t freq, uint16_t duty, TMR_OCCHAN_ENUM eChannel, TMR16_PWM_DEBUG * pData)
+bool TMR16_PWM_Set(MILLIHZ freq, uint16_t duty, TMR_OCCHAN_ENUM eChannel, TMR16_PWM_DEBUG * pData)
 #else
-bool TMR16_PWM_Set(uint16_t freq, uint16_t duty, TMR_OCCHAN_ENUM eChannel)
+bool TMR16_PWM_Set(MILLIHZ freq, uint16_t duty, TMR_OCCHAN_ENUM eChannel)
 #endif
 {
 	// Valid TMR16 prescalers
 	uint16_t prescalers[4] = {1, 8, 64, 256};
 	uint8_t prescalerIndex = 0;
-	uint32_t fcpu = CLK_GetFcpu();	// CPU output frequency (may be prescaled to ftmr)
-	uint32_t ftmr = 0; // Timer incoming clock frequency
-	uint32_t fovf = 0; // Timer overflow frequency
+	MILLIHZ fcpu = CLK_GetFcpu() * 1000;	// CPU output frequency (may be prescaled to ftmr)
+	MILLIHZ ftmr = 0; // Timer incoming clock frequency
+	MILLIHZ fovf = 0; // Timer overflow frequency
 	uint16_t top = 0; // Sets PWM frequency
 	uint16_t ocr = 0; // Sets PWM duty
 	
 	//Start at highest timer frequency (prescaler = divide-by-1)
     ftmr = fcpu / prescalers[prescalerIndex];
-    fovf = ftmr / 65536;
+    fovf = (ftmr * 1000) / 65536;
 	
 	//Search for correct prescaler
     while (freq <= fovf)

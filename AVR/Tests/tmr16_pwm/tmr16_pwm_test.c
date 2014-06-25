@@ -10,10 +10,13 @@
 
 #include <avr/io.h>
 
+#include "../../../Utility/util_macros.h"
+#include "../../../Utility/util_units.h"
+
 #include "../../lib_io.h"
 #include "../../lib_clk.h"
 #include "../../lib_tmr16_pwm.h"
-#include "../../../Utility/util_macros.h"
+
 
 TMR16_PWM_DEBUG debug;
 
@@ -41,7 +44,7 @@ int main(int argc, char *argv[])
 	
 	setbuf(stdout, NULL);
 	
-	uint16_t freq = 5;
+	uint32_t freq = 5;
 	uint8_t duty = 1;
 	const uint32_t fcpu = CLK_GetFcpu();
 	
@@ -51,7 +54,7 @@ int main(int argc, char *argv[])
 	{
 		for (duty = 1; duty < 101; duty++)
 		{
-			TMR16_PWM_Set(freq, duty, TMR_OCCHAN_A, &debug);
+			TMR16_PWM_Set(freq*1000, duty, TMR_OCCHAN_A, &debug);
 			
 			// Calculate frequency with these settings
 			uint32_t tmrClockFreq = fcpu / debug.prescaler;
@@ -69,6 +72,5 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
-	
 	return 0;
 }

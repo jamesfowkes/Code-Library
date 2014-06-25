@@ -23,3 +23,4 @@ INCLUDES = \
 all:
 	python ..\..\Harness\generate_test_io.py $(MMCU) $(AVR_DIR) $(HARNESS_DIR)
 	$(CC) $(FLAGS) $(INCLUDES) $(CFILES) -o $(NAME).exe
+	$(NAME).exe
