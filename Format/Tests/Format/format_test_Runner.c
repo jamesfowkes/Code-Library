@@ -31,6 +31,11 @@ extern void test_S8Format(void);
 extern void test_U16Format(void);
 extern void test_S16Format(void);
 extern void test_S32Format(void);
+extern void test_RightAlignDoesNotModifyFullString(void);
+extern void test_RightAlignDoesNotModifyRightAlignedString(void);
+extern void test_RightAlignAlignsFromLeft(void);
+extern void test_RightAlignAlignsFromMiddle(void);
+extern void test_RightAlignAlignsWithEmbeddedSpaces(void);
 
 //=======Test Reset Option=====
 void resetTest()
@@ -50,5 +55,10 @@ int main(void)
   RUN_TEST(test_U16Format, 3);
   RUN_TEST(test_S16Format, 4);
   RUN_TEST(test_S32Format, 5);
+  RUN_TEST(test_RightAlignDoesNotModifyFullString, 6);
+  RUN_TEST(test_RightAlignDoesNotModifyRightAlignedString, 7);
+  RUN_TEST(test_RightAlignAlignsFromLeft, 8);
+  RUN_TEST(test_RightAlignAlignsFromMiddle, 9);
+  RUN_TEST(test_RightAlignAlignsWithEmbeddedSpaces, 10);
   return (UnityEnd());
 }

@@ -13,4 +13,6 @@ uint8_t S32ToString(int32_t val, char * buf);
 uint8_t U32ToString(uint32_t val, char * buf);
 #endif
 
+void RightAlign(char * buf);
+
 #endif

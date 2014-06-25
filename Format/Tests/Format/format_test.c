@@ -141,3 +141,74 @@ void test_S32Format(void)
 	TEST_ASSERT_EQUAL_STRING(expectedString, buffer);
 	TEST_ASSERT_EQUAL(strlen(expectedString), count);
 }
+
+void test_RightAlignDoesNotModifyFullString(void)
+{
+	char threeChars[] = "ABC";
+	RightAlign(threeChars);
+	TEST_ASSERT_EQUAL_STRING("ABC", threeChars);
+	
+	char twoChars[] = "AB";
+	RightAlign(twoChars);
+	TEST_ASSERT_EQUAL_STRING("AB", twoChars);
+	
+	char oneChar[] = "A";
+	RightAlign(oneChar);
+	TEST_ASSERT_EQUAL_STRING("A", oneChar);
+}
+
+void test_RightAlignDoesNotModifyRightAlignedString(void)
+{
+	char threeChars[] = " ABC";
+	RightAlign(threeChars);
+	TEST_ASSERT_EQUAL_STRING(" ABC", threeChars);
+	
+	char twoChars[] = " AB";
+	RightAlign(twoChars);
+	TEST_ASSERT_EQUAL_STRING(" AB", twoChars);
+	
+	char oneChar[] = " A";
+	RightAlign(oneChar);
+	TEST_ASSERT_EQUAL_STRING(" A", oneChar);
+}
+
+void test_RightAlignAlignsFromLeft(void)
+{
+	char threeChars[] = "ABC ";
+	RightAlign(threeChars);
+	TEST_ASSERT_EQUAL_STRING(" ABC", threeChars);
+	
+	char twoChars[] = "AB ";
+	RightAlign(twoChars);
+	TEST_ASSERT_EQUAL_STRING(" AB", twoChars);
+	
+	char oneChar[] = "A ";
+	RightAlign(oneChar);
+	TEST_ASSERT_EQUAL_STRING(" A", oneChar);
+}
+
+void test_RightAlignAlignsFromMiddle(void)
+{
+	char threeChars[] = " ABC ";
+	RightAlign(threeChars);
+	TEST_ASSERT_EQUAL_STRING("  ABC", threeChars);
+	
+	char twoChars[] = " AB ";
+	RightAlign(twoChars);
+	TEST_ASSERT_EQUAL_STRING("  AB", twoChars);
+	
+	char oneChar[] = " A ";
+	RightAlign(oneChar);
+	TEST_ASSERT_EQUAL_STRING("  A", oneChar);
+}
+
+void test_RightAlignAlignsWithEmbeddedSpaces(void)
+{
+	char threeChars[] = " A B C ";
+	RightAlign(threeChars);
+	TEST_ASSERT_EQUAL_STRING("  A B C", threeChars);
+	
+	char twoChars[] = " A B ";
+	RightAlign(twoChars);
+	TEST_ASSERT_EQUAL_STRING("  A B", twoChars);
+}

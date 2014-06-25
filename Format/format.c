@@ -146,6 +146,32 @@ uint8_t U32ToString(uint32_t val, char * buf)
 	return toString(1000000000, (CONVERSION_TYPE)val, buf);
 }
 #endif
+ 
+/* RightAlign
+ : Move the text in a character buffer to the end of it, padding with spaces to the left.
+ : Input buffer is assumed to be right-padded with spaces.
+ */
+void RightAlign(char * buf)
+{
+	uint8_t len = strlen(buf);
+	int8_t from = len-1;
+	int8_t to = len-1;
+	
+	// Work from R to L until first non-space char is found
+	while ((buf[from] == ' ') && (from >= 0))
+	{
+		from--;
+	}
+	
+	if (from == to) { return; } // No spaces found before start of string
+	
+	// Copy from L to R, replacing copied chars with spaces
+	while (from >= 0)
+	{
+		buf[to--] = buf[from];
+		buf[from--] = ' ';
+	}
+}
 
 /*
  * Private Function Definitions
