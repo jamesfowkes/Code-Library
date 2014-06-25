@@ -91,7 +91,7 @@ int main(void)
 	setupIO();
 	
 	uint8_t duty = 1;
-	TMR16_PWM_Set(300, duty, TMR_OCCHAN_A);
+	TMR16_PWM_Set((MILLIHZ)300000, duty, TMR_OCCHAN_A);
 
 	/* All processing interrupt based from here*/
 
@@ -102,7 +102,7 @@ int main(void)
 		if (TMR8_Tick_TestAndClear(&heartbeatTick))
 		{
 			IO_Control(IO_PORTB, 5, IO_TOGGLE);
-			if (!TMR16_PWM_Set(300, duty++, TMR_OCCHAN_A))
+			if (!TMR16_PWM_Set((MILLIHZ)300000, duty++, TMR_OCCHAN_A))
 			if (duty == 100) { duty = 0; }
 		}
 	}
