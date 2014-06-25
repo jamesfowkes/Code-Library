@@ -382,6 +382,21 @@ void lcd_puts(const char *s)
 
 }/* lcd_puts */
 
+/*************************************************************************
+Display string without auto linefeed 
+Input:    string to be displayed
+Returns:  none
+*************************************************************************/
+void lcd_putsn(const char *s, char n)
+/* print string on lcd (no auto linefeed) */
+{
+    register char c;
+
+    while ( (c = *s++) && (n-- > 0)) {
+        lcd_putc(c);
+    }
+
+}/* lcd_puts */
 
 /*************************************************************************
 Display string from program memory without auto linefeed 

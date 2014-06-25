@@ -206,6 +206,13 @@ extern void lcd_putc(char c);
 */
 extern void lcd_puts(const char *s);
 
+/**
+ @brief    Display string without auto linefeed
+ @param    s string to be displayed                                        
+ @param    n maximum number of chars to send
+ @return   none
+*/
+extern void lcd_putsn(const char *s, char n);
 
 /**
  @brief    Display string from program memory without auto linefeed
