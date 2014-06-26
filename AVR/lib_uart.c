@@ -372,9 +372,6 @@ bool UART_Init(UART_ENUM eUART, uint16_t baudrate, uint8_t txBufferSize, uint8_t
 	pDataBuffers[TX] = (uint8_t * )MEMPOOL_GetBytes(txBufferSize);
 	pDataBuffers[RX] = (uint8_t * )MEMPOOL_GetBytes(rxBufferSize);
 	
-	Ringbuf_Init((RING_BUFFER*)&s_buffers[eUART][TX], pDataBuffers[TX], sizeof(uint8_t), txBufferSize, true);
-	Ringbuf_Init((RING_BUFFER*)&s_buffers[eUART][RX], pDataBuffers[RX], sizeof(uint8_t), rxBufferSize, true);
-	
 	// Convert standard baudrate to register bitmap
 	uint32_t fcpu = CLK_GetFcpu();
 	if (use2X)
@@ -516,7 +513,7 @@ void UART_PutChar(UART_ENUM eUART, uint8_t c)
 	if (eUART == UART0) // Only one UART, so only process character if for UART0
 	#endif
 	{
-		Ringbuf_Put((RING_BUFFER*)&s_buffers[UART1][TX], &c);
+		Ringbuf_Put((RING_BUFFER*)&s_buffers[eUART][TX], &c);
 		/* Enable UDRE interrupt (ISR will start TX) */
 		EnableTXInterrupt(eUART);
 	}
