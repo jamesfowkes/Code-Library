@@ -4,6 +4,10 @@
 #if defined(__AVR__)
 #include "avr_memory_placement.h"
 
+#elif defined(TEST_HARNESS)
+
+#include "harness_memory_placement.h"
+
 #else
 
 #define IN_PMEM(x) x
