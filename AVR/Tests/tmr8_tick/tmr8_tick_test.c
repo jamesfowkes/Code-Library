@@ -9,7 +9,8 @@
 
 #include "../../lib_tmr8_tick.h"
 
-static TMR8_TICK_CONFIG applicationTick;
+static TMR8_TICK_CONFIG tick1;
+static TMR8_TICK_CONFIG tick2;
 
 int main(int argc, char *argv[])
 {
@@ -18,25 +19,36 @@ int main(int argc, char *argv[])
 	
 	setbuf(stdout, NULL);
 	
-	applicationTick.msTick = 1000;
-	applicationTick.reload = 1000;
-	applicationTick.active = true;
-	applicationTick.triggered = false;
+	tick1.msTick = 1000;
+	tick1.reload = 1000;
+	tick1.active = true;
+	tick1.triggered = false;
 
-	if (TMR8_Tick_Init(1, 0) == false)
+	tick2.msTick = 100;
+	tick2.reload = 100;
+	tick2.active = true;
+	tick2.triggered = false;
+	
+	if (TMR8_Tick_Init(2, 0) == false)
 	{
 		printf("Timer not configured correctly");
 		return -1;
 	}
 	
-	TMR8_Tick_AddTimerConfig(&applicationTick);	
+	TMR8_Tick_AddTimerConfig(&tick1);
+	TMR8_Tick_AddTimerConfig(&tick2);
 
 	while(true)
 	{
 		TMR8_Tick_Kick(50);
-		if (TMR8_Tick_TestAndClear(&applicationTick))
+		if (TMR8_Tick_TestAndClear(&tick1))
 		{
 			printf("%u\n", TMR8_GetSecondsSinceInit());
+		}
+		
+		if (TMR8_Tick_TestAndClear(&tick2))
+		{
+			printf("Tick2!");
 		}
 	}
 	
