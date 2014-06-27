@@ -61,7 +61,9 @@ static uint8_t s_MaxDelayCount = 0;
  * Private Function Prototypes
  */
 
+#ifndef TEST_HARNESS
 static void isrHandler(void);
+#endif
  
 /*
  * Public Functions
@@ -230,6 +232,7 @@ void TMR8_Tick_SetActive(TMR8_TICK_CONFIG * config, bool active)
 	}
 }
 
+#ifndef TEST_HARNESS
 static void isrHandler(void)
 {
 	if (1000 == ++msCounter)
@@ -269,6 +272,7 @@ static void isrHandler(void)
 		}
 	}
 }
+#endif
 
 #ifdef TEST_HARNESS
 void TMR8_Tick_Kick(uint8_t ms)
