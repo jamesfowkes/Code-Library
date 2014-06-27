@@ -20,6 +20,12 @@
 #include "test_harness.h"
 
 /*
+ * Local Variables
+ */
+ 
+static char s_lastResultString[200];
+
+/*
  * Public Function Definitions
  */
  
@@ -32,9 +38,12 @@ bool TestHarnessRunNext(TEST_GROUP * testGroup)
 	{
 		thisTest = &(testGroup->tests[testGroup->lastTestRan]);
 		
-		if (!thisTest->resultFn())
+		thisTest->bResult = true;
+		thisTest->resultFn(thisTest);
+		
+		if (!thisTest->bResult)
 		{
-			printf(" FAIL.\n");
+			printf(" FAIL: %s.\n", s_lastResultString);
 			exit(1);
 		}
 		else
@@ -53,4 +62,14 @@ bool TestHarnessRunNext(TEST_GROUP * testGroup)
 	thisTest->testFn();
 	
 	return true;
+}
+
+void TestAssertEqual(TEST * test, int32_t a, int32_t b, char * pa, char * pb)
+{
+	test->bResult = (a == b);
+	
+	if (!test->bResult)
+	{
+		sprintf(s_lastResultString, "%s != %s (%d != %d)", pa, pb, a, b);
+	}
 }

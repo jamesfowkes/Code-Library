@@ -9,26 +9,31 @@
 #define RESULT_FN_NAME(x) result ## x
 
 #define DECLARE_TEST_FUNC(x) static void TEST_FN_NAME(x)(void)
-#define DECLARE_RESULT_FUNC(x)  static bool RESULT_FN_NAME(x)(void)
-#define DECLARE_TEST_FUNCS(x) DECLARE_TEST_FUNC(x); DECLARE_RESULT_FUNC(x);
+#define DECLARE_RESULT_FUNC(x)  static void RESULT_FN_NAME(x)(TEST * test)
+#define DECLARE_TEST_FUNCS(x) DECLARE_TEST_FUNC(x); DECLARE_RESULT_FUNC(x)
 
 #define TEST_ARRAY_NAME(x) x ## Array
 #define DECLARE_TEST_GROUP(x) TEST TEST_ARRAY_NAME(x)[] = 
-#define END_TEST_GROUP(x) TEST_GROUP x = {TEST_ARRAY_NAME(x), N_ELE( ApplicationTestsArray ), -1}
+#define END_TEST_GROUP(x) TEST_GROUP x = {TEST_ARRAY_NAME(x), N_ELE( ApplicationTestsArray ),  -1}
 
-#define TEST_STRUCT(x) {TEST_FN_NAME(x), RESULT_FN_NAME(x), #x}
+#define TEST_STRUCT(x) {TEST_FN_NAME(x), RESULT_FN_NAME(x), true, #x}
 #define DECLARE_TEST(x) TEST x = TEST_STRUCT(x)
 
+#define RETURN_ON_FAIL(x) if (!x) { return false; }
+#define TEST_ASSERT_EQUAL(a, b) TestAssertEqual(test, a, b, #a, #b)
+
+typedef struct test TEST;
+
 typedef void (*TEST_FN)(void);
-typedef bool (*RESULT_FN)(void);
+typedef void (*RESULT_FN)(TEST * test);
 
 struct test
 {	
 	TEST_FN testFn;
 	RESULT_FN resultFn;
+	bool bResult;
 	char * name;
 };
-typedef struct test TEST;
 
 struct test_group
 {
@@ -43,5 +48,6 @@ typedef struct test_group TEST_GROUP;
  */
 
 bool TestHarnessRunNext(TEST_GROUP * testGroup);
+void TestAssertEqual(TEST * test, int32_t a, int32_t b, char * pa, char * pb);
 
 #endif
