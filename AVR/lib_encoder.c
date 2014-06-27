@@ -81,7 +81,7 @@ int ENC_GetMovement(void)
  */
 void ENC_SetMovement(int movement)
 {
-	s_count = movement;
+	s_count += movement;
 }
 
 #endif
