@@ -3,7 +3,11 @@
 
 #include <util/delay.h>
 
+#ifndef TEST_HARNESS
 #define lcd_e_delay()   __asm__ __volatile__( "rjmp 1f\n 1:" );
+#else
+#define lcd_e_delay() {}
+#endif
 
 /************************************************************************* 
 delay for a minimum of <us> microseconds
