@@ -75,6 +75,17 @@ int ENC_GetMovement(void)
 	return change;
 }
 
+#ifdef TEST_HARNESS
+/* ENC_SetMovement
+ :For test harness only, sets the movement of the encoder so that applications may be tested
+ */
+void ENC_SetMovement(int movement)
+{
+	s_count = movement;
+}
+
+#endif
+
 /*
  * Private Function Definitions
  */
