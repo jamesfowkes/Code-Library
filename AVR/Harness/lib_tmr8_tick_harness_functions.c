@@ -5,9 +5,9 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <assert.h>
-
 #include <pthread.h>
+#include <assert.h>
+#include <time.h>
 
 /*
  * AVR Library Includes
@@ -20,6 +20,13 @@
  * Private Variables
  */
  
+uint8_t TCCR0A;
+uint8_t TCCR0B;
+uint8_t TCNT0;
+uint8_t OCR0A;
+uint8_t OCR0B;
+uint8_t TIMSK0;
+
 pthread_t thread;
 
 static void *delayThread(void*);
