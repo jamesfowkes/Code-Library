@@ -17,6 +17,7 @@
 
 #include "lib_io.h" 
 #include "lib_encoder.h" 
+#include "lib_pcint.h" 
 
 #if !defined(ENCODER_PCINT0)
 #if !defined(ENCODER_PCINT1)
@@ -33,7 +34,7 @@
  */
  
 static volatile uint8_t * s_port;
-static uint8_t s_masks[2];
+static uint8_t s_masks[3];
 static uint8_t s_testValue;
 
 static int s_lastReadCount = 0;
@@ -52,17 +53,21 @@ static volatile int s_count = 0;
 /* ENC_Setup
  :Sets up encoder on a single port, pins A and B
 */
-void ENC_Setup(IO_PORT_ENUM ePort, uint8_t A, uint8_t B)
+void ENC_Setup(IO_PORT_ENUM ePort, uint8_t A, uint8_t B, int interruptA, int interruptB)
 {
-	s_port = IO_GetPortDirect(ePort); // Get a direct pointer to the port register
+	s_port = IO_GetReadPortDirect(ePort); // Get a direct pointer to the port register
 	// Create masks for the encoder channel bits
 	s_masks[0] = (1 << A);
 	s_masks[1] = (1 << B);
-	
+	s_masks[2] = s_masks[0] | s_masks[1];
+
 	// Get the starting encoder value (translate to ABCD format described in updateEncoder)
-	uint8_t newValue = (*s_port) & (s_masks[0] | s_masks[1]);
+	uint8_t newValue = (*s_port) & s_masks[2];
 	s_testValue |= (newValue & s_masks[0]) ? 2 : 0;
 	s_testValue |= (newValue & s_masks[1]) ? 1 : 0;
+
+	PCINT_EnableInterrupt(interruptA, true);
+	PCINT_EnableInterrupt(interruptB, true);
 }
 
 /* ENC_GetMovement
@@ -96,11 +101,11 @@ void ENC_SetMovement(int movement)
  */
 static inline void updateEncoder(void)
 {
-	uint8_t newValue = (*s_port) & (s_masks[0] | s_masks[1]);
+	uint8_t newValue = (*s_port) & s_masks[2];
 	
 	s_testValue <<= 2;
-	s_testValue |= (newValue & s_masks[0]) ? 2 : 0;
-	s_testValue |= (newValue & s_masks[1]) ? 1 : 0;
+	s_testValue |= (newValue & s_masks[0]) ? 2 : 0;//(newValue & s_masks[0]) ? 2 : 0;
+	s_testValue |= (newValue & s_masks[1]) ? 1 : 0;//(newValue & s_masks[1]) ? 1 : 0;
 	
 	/* s_testValue now contains a pattern ABCD in lowest four bits where:
 	A = previous A channel value
@@ -122,6 +127,8 @@ static inline void updateEncoder(void)
 	case 11:
 	case 13:
 		s_count--; // Backwards
+		break;
+	default:
 		break;
 	}
 }

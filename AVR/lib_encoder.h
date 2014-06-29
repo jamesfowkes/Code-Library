@@ -4,7 +4,7 @@
 /*
  * Public Function Prototypes
  */
-void ENC_Setup(IO_PORT_ENUM ePort, uint8_t A, uint8_t B);
+void ENC_Setup(IO_PORT_ENUM ePort, uint8_t A, uint8_t B, int interruptA, int interruptB);
 int ENC_GetMovement(void);
 
 #ifdef TEST_HARNESS
