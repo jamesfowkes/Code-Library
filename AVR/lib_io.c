@@ -137,7 +137,7 @@ uint8_t IO_ReadPort(IO_PORT_ENUM ePort)
 	return val;
 }
 
-volatile uint8_t * IO_GetPortDirect(IO_PORT_ENUM ePort)
+volatile uint8_t * IO_GetWritePortDirect(IO_PORT_ENUM ePort)
 {
 
 	volatile uint8_t * port = NULL;
@@ -162,6 +162,40 @@ volatile uint8_t * IO_GetPortDirect(IO_PORT_ENUM ePort)
 #ifdef PORTD0
 	case IO_PORTD:
 		port = &PORTD;
+	break;
+#endif
+	default:
+		break;
+	}
+
+	return port;
+}
+
+volatile uint8_t * IO_GetReadPortDirect(IO_PORT_ENUM ePort)
+{
+
+	volatile uint8_t * port = NULL;
+
+	switch(ePort)
+	{
+#ifdef PORTA0
+	case IO_PORTA:
+		port = &PINA;
+		break;
+#endif
+#ifdef PORTB0
+	case IO_PORTB:
+		port = &PINB;
+		break;
+#endif
+#ifdef PORTC0
+	case IO_PORTC:
+		port = &PINC;
+		break;
+#endif
+#ifdef PORTD0
+	case IO_PORTD:
+		port = &PIND;
 	break;
 #endif
 	default:

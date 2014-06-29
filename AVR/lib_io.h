@@ -57,7 +57,8 @@ void IO_SetMode(IO_PORT_ENUM ePort, uint8_t pin, IO_MODE_ENUM eMode);
 bool IO_ReadPin(IO_PORT_ENUM ePort, uint8_t pin);
 uint8_t IO_ReadPort(IO_PORT_ENUM ePort);
 
-volatile uint8_t * IO_GetPortDirect(IO_PORT_ENUM ePort);
+volatile uint8_t * IO_GetWritePortDirect(IO_PORT_ENUM ePort);
+volatile uint8_t * IO_GetReadPortDirect(IO_PORT_ENUM ePort);
 volatile uint8_t * IO_GetDirectionPortDirect(IO_PORT_ENUM ePort);
 
 #endif
