@@ -71,6 +71,9 @@ PCINT_VECTOR_ENUM PCINT_EnableInterrupt(uint8_t pin, bool enable)
 		#ifdef PCICR
 		PCMSK2 ? set(PCICR, PCIE2) : clr(PCICR, PCIE2);
 		#endif
+		#ifdef GIMSK
+		enable ? set(GIMSK, PCIE2) : clr(GIMSK, PCIE2); 
+		#endif
 		break;
 	#endif
 	#ifdef PCMSK3
@@ -78,6 +81,9 @@ PCINT_VECTOR_ENUM PCINT_EnableInterrupt(uint8_t pin, bool enable)
 		enable ? set(PCMSK3, pin) : clr(PCMSK3, pin);
 		#ifdef PCICR
 		PCMSK3 ? set(PCICR, PCIE3) : clr(PCICR, PCIE3);
+		#endif
+		#ifdef GIMSK
+		enable ? set(GIMSK, PCIE3) : clr(GIMSK, PCIE3); 
 		#endif
 		break;
 	#endif
