@@ -43,7 +43,7 @@ PCINT_VECTOR_ENUM PCINT_EnableInterrupt(uint8_t pin, bool enable)
 
 	switch (reg)
 	{
-	#ifdef PCMSK0
+	#if defined(PCMSK0) || defined(TEST_HARNESS_PCMSK0)
 	case 0:
 		enable ? set(PCMSK0, pin) : clr(PCMSK0, pin);
 		#ifdef PCICR
@@ -54,7 +54,7 @@ PCINT_VECTOR_ENUM PCINT_EnableInterrupt(uint8_t pin, bool enable)
 		#endif
 		break;
 	#endif
-	#ifdef PCMSK1
+	#if defined(PCMSK1) || defined(TEST_HARNESS_PCMSK1)
 	case 1:
 		enable ? set(PCMSK1, pin) : clr(PCMSK1, pin);
 		#ifdef PCICR
@@ -65,7 +65,7 @@ PCINT_VECTOR_ENUM PCINT_EnableInterrupt(uint8_t pin, bool enable)
 		#endif
 		break;
 	#endif
-	#ifdef PCMSK2
+	#if defined(PCMSK2) || defined(TEST_HARNESS_PCMSK2)
 	case 2:
 		enable ? set(PCMSK2, pin) : clr(PCMSK2, pin);
 		#ifdef PCICR
@@ -76,7 +76,7 @@ PCINT_VECTOR_ENUM PCINT_EnableInterrupt(uint8_t pin, bool enable)
 		#endif
 		break;
 	#endif
-	#ifdef PCMSK3
+	#if defined(PCMSK3) || defined(TEST_HARNESS_PCMSK3)
 	case 3:
 		enable ? set(PCMSK3, pin) : clr(PCMSK3, pin);
 		#ifdef PCICR
