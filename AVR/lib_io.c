@@ -79,22 +79,22 @@ bool IO_ReadPin(IO_PORT_ENUM ePort, uint8_t pin)
 	{
 #ifdef PORTA0
 	case IO_PORTA:
-		on = IO_Read(PORTA, pin);
+		on = IO_Read(PINA, pin);
 		break;
 #endif
 #ifdef PORTB0
 	case IO_PORTB:
-		on = IO_Read(PORTB, pin);
+		on = IO_Read(PINB, pin);
 		break;
 #endif
 #ifdef PORTC0
 	case IO_PORTC:
-		on = IO_Read(PORTC, pin);
+		on = IO_Read(PINC, pin);
 		break;
 #endif
 #ifdef PORTD0
 	case IO_PORTD:
-		on = IO_Read(PORTD, pin);
+		on = IO_Read(PIND, pin);
 	break;
 #endif
 	default:
@@ -112,22 +112,22 @@ uint8_t IO_ReadPort(IO_PORT_ENUM ePort)
 	{
 #ifdef PORTA0
 	case IO_PORTA:
-		val = PORTA;
+		val = PINA;
 		break;
 #endif
 #ifdef PORTB0
 	case IO_PORTB:
-		val = PORTB;
+		val = PINB;
 		break;
 #endif
 #ifdef PORTC0
 	case IO_PORTC:
-		val = PORTC;
+		val = PINC;
 		break;
 #endif
 #ifdef PORTD0
 	case IO_PORTD:
-		val = PORTD;
+		val = PIND;
 	break;
 #endif
 	default:
@@ -238,6 +238,29 @@ volatile uint8_t * IO_GetDirectionPortDirect(IO_PORT_ENUM ePort)
 
 	return port;
 }
+
+#ifdef TEST_HARNESS
+void IO_SetInput(IO_PORT_ENUM ePort, uint8_t pin, IO_STATE_ENUM state)
+{
+	volatile uint8_t * reg = IO_GetReadPortDirect(ePort);
+	
+	switch (state)
+	{
+	case IO_ON:
+		*reg |= (1 << pin);
+		break;
+	case IO_OFF:
+		*reg &= ~(1 << pin);
+		break;
+	case IO_TOGGLE:
+		*reg ^= (1 << pin);
+		break;
+	default:
+		break;
+	}
+}
+
+#endif
 
 /*
  * Private Functions
