@@ -14,14 +14,13 @@ startFound = False
 
 def processSFR(l):
     
-    
     identifier = l.split()
     identifier = identifier[1]
     
     if "_SFR_MEM8" in l or "_SFR_IO8" in l:
-        return "extern uint8_t %s;\n" % identifier
+        return "extern uint8_t %s;\n#define TEST_HARNESS_%s\n" % (identifier, identifier)
     elif "_SFR_MEM16" in l or "_SFR_IO16" in l:
-        return "extern uint16_t %s;\n" % identifier
+        return "extern uint16_t %s;\n#define TEST_HARNESS_%s\n" % (identifier, identifier)
     else:
         return ""
         
