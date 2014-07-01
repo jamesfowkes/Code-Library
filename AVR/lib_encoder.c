@@ -104,8 +104,8 @@ static inline void updateEncoder(void)
 	uint8_t newValue = (*s_port) & s_masks[2];
 	
 	s_testValue <<= 2;
-	s_testValue |= (newValue & s_masks[0]) ? 2 : 0;//(newValue & s_masks[0]) ? 2 : 0;
-	s_testValue |= (newValue & s_masks[1]) ? 1 : 0;//(newValue & s_masks[1]) ? 1 : 0;
+	s_testValue |= (newValue & s_masks[0]) ? 2 : 0;
+	s_testValue |= (newValue & s_masks[1]) ? 1 : 0;
 	
 	/* s_testValue now contains a pattern ABCD in lowest four bits where:
 	A = previous A channel value

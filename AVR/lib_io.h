@@ -61,4 +61,8 @@ volatile uint8_t * IO_GetWritePortDirect(IO_PORT_ENUM ePort);
 volatile uint8_t * IO_GetReadPortDirect(IO_PORT_ENUM ePort);
 volatile uint8_t * IO_GetDirectionPortDirect(IO_PORT_ENUM ePort);
 
+#ifdef TEST_HARNESS
+void IO_SetInput(IO_PORT_ENUM ePort, uint8_t pin, IO_STATE_ENUM state);
+#endif
+
 #endif

@@ -1,12 +1,12 @@
 #ifndef _LIB_PCINT_H_
 #define _LIB_PCINT_H_
 
-#if defined(GIMSK)
+#if defined(GIMSK) || defined (TEST_HARNESS_GIMSK)
 #define enablePCInterrupts(mask)		(GIMSK |= (mask))
 #define disablePCInterrupts(mask)		(GIMSK &= (~(mask)))
 #endif
 
-#if defined(PCICR)
+#if defined(PCICR) || defined (TEST_HARNESS_PCICR)
 #define enablePCInterrupts(mask)		(PCICR |= (1 << PCIE))
 #define disablePCInterrupts(mask)		(PCICR &= (~(1 << PCIE)))
 #endif
