@@ -14,8 +14,9 @@ OPT_LEVEL=3
 INCLUDE_DIRS = \
 	-I$(LIBS_DIR)/AVR \
 	-I$(LIBS_DIR)/Devices \
+	-I$(LIBS_DIR)/Generics \
 	-I$(LIBS_DIR)/Utility \
-
+	-I$(LIBS_DIR)/Format/
 CFILES = \
 	LCDExample.c \
 	$(LIBS_DIR)/AVR/lib_clk.c \
@@ -24,14 +25,15 @@ CFILES = \
 	$(LIBS_DIR)/AVR/lib_tmr8.c \
 	$(LIBS_DIR)/AVR/lib_tmr8_tick.c \
 	$(LIBS_DIR)/Devices/lcd/lcd.c \
-	$(LIBS_DIR)/Generics/memorypool.c
+	$(LIBS_DIR)/Generics/memorypool.c \
+	$(LIBS_DIR)/Format/format.c
 	
 OPTS = \
 	-g \
 	-std=c99 \
 	-Wall \
 	-Wextra \
-	-DF_CPU=16000000
+	-DF_CPU=16000000 \
 	-DMEMORY_POOL_BYTES=512
 	
 LDFLAGS =
@@ -52,3 +54,4 @@ upload:
 clean:
 	$(DEL) $(NAME).elf
 	$(DEL) $(OBJDEPS)
+

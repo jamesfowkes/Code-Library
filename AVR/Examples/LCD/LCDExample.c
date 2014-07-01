@@ -43,7 +43,7 @@
  * Generic Library Includes
  */
 
-// None
+#include "format.h"
 
 /*
  * AVR Library Includes
@@ -83,6 +83,8 @@ static LCD_PORT lcdDirectionPorts;
 static LCD_PIN lcdPins;
 static LCD_CONFIG lcdConfig;
 
+static char count = 120;
+
 int main(void)
 {
 
@@ -99,7 +101,19 @@ int main(void)
 
 	while (true)
 	{
+		if (TMR8_Tick_TestAndClear(&heartbeatTick))
+		{
+			count++;
+			lcd_gotoxy(0,0);
+			lcd_puts("LCD Example");
 
+			char buf[10];
+			lcd_gotoxy(0,1);
+			S8ToString(count, buf);
+			lcd_puts(buf);
+
+			IO_Control(IO_PORTB, 5, IO_TOGGLE);
+		}
 	}
 
 	return 0;
@@ -110,29 +124,34 @@ int main(void)
  */
 static void setupIO(void)
 {
-	lcdDataPorts.port0 = IO_GetPortDirect(IO_PORTB);
-	lcdDataPorts.port1 = IO_GetPortDirect(IO_PORTB);
-	lcdDataPorts.port2 = IO_GetPortDirect(IO_PORTB);
-	lcdDataPorts.port3 = IO_GetPortDirect(IO_PORTB);
-	lcdDataPorts.rsPort = IO_GetPortDirect(IO_PORTB);
-	lcdDataPorts.rwPort = IO_GetPortDirect(IO_PORTB);
-	lcdDataPorts.enPort = IO_GetPortDirect(IO_PORTB);
+	lcdDataPorts.port0.w = IO_GetWritePortDirect(IO_PORTD);
+	lcdDataPorts.port1.w = IO_GetWritePortDirect(IO_PORTD);
+	lcdDataPorts.port2.w = IO_GetWritePortDirect(IO_PORTD);
+	lcdDataPorts.port3.w = IO_GetWritePortDirect(IO_PORTD);
+	lcdDataPorts.port0.r = IO_GetReadPortDirect(IO_PORTD);
+	lcdDataPorts.port1.r = IO_GetReadPortDirect(IO_PORTD);
+	lcdDataPorts.port2.r = IO_GetReadPortDirect(IO_PORTD);
+	lcdDataPorts.port3.r = IO_GetReadPortDirect(IO_PORTD);
+
+	lcdDataPorts.rsPort = IO_GetWritePortDirect(IO_PORTB);
+	lcdDataPorts.rwPort = IO_GetWritePortDirect(IO_PORTB);
+	lcdDataPorts.enPort = IO_GetWritePortDirect(IO_PORTB);
 	
-	lcdDirectionPorts.port0 = IO_GetDirectionPortDirect(IO_PORTB);
-	lcdDirectionPorts.port1 = IO_GetDirectionPortDirect(IO_PORTB);
-	lcdDirectionPorts.port2 = IO_GetDirectionPortDirect(IO_PORTB);
-	lcdDirectionPorts.port3 = IO_GetDirectionPortDirect(IO_PORTB);
+	lcdDirectionPorts.port0.w = IO_GetDirectionPortDirect(IO_PORTD);
+	lcdDirectionPorts.port1.w = IO_GetDirectionPortDirect(IO_PORTD);
+	lcdDirectionPorts.port2.w = IO_GetDirectionPortDirect(IO_PORTD);
+	lcdDirectionPorts.port3.w = IO_GetDirectionPortDirect(IO_PORTD);
 	lcdDirectionPorts.rsPort = IO_GetDirectionPortDirect(IO_PORTB);
 	lcdDirectionPorts.rwPort = IO_GetDirectionPortDirect(IO_PORTB);
 	lcdDirectionPorts.enPort = IO_GetDirectionPortDirect(IO_PORTB);
 	
-	lcdPins.pin0 = 0;
-	lcdPins.pin1 = 1;
-	lcdPins.pin2 = 2;
-	lcdPins.pin3 = 3;
-	lcdPins.rsPin = 4;
-	lcdPins.rwPin = 5;
-	lcdPins.enPin = 6;
+	lcdPins.pin0 = 2;
+	lcdPins.pin1 = 3;
+	lcdPins.pin2 = 4;
+	lcdPins.pin3 = 5;
+	lcdPins.rsPin = 0;
+	lcdPins.rwPin = 1;
+	lcdPins.enPin = 2;
 	
 	lcdConfig.type = LCD_CONTROLLER_HD44780;
 	lcdConfig.lines = 2;
@@ -145,6 +164,8 @@ static void setupIO(void)
 	lcdConfig.wrapLines = false;
 
 	lcd_init(LCD_DISP_ON, &lcdDataPorts, &lcdDirectionPorts, &lcdPins, &lcdConfig);
+
+	IO_SetMode(IO_PORTB, 5, IO_MODE_OUTPUT);
 }
 
 static void setupTimer(void)

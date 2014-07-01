@@ -84,16 +84,16 @@ static void setIOState(LCD_IO_STATE eState)
 		switch(eState)
 		{
 		case LCD_OUTPUT:
-			IO_Output(*s_pDirection->port0, s_pPins->pin0);
-			IO_Output(*s_pDirection->port1, s_pPins->pin1);
-			IO_Output(*s_pDirection->port2, s_pPins->pin2);
-			IO_Output(*s_pDirection->port3, s_pPins->pin3);
+			IO_Output(*(s_pDirection->port0.w), s_pPins->pin0);
+			IO_Output(*(s_pDirection->port1.w), s_pPins->pin1);
+			IO_Output(*(s_pDirection->port2.w), s_pPins->pin2);
+			IO_Output(*(s_pDirection->port3.w), s_pPins->pin3);
 			break;
 		case LCD_INPUT:
-			IO_Input(*s_pDirection->port0, s_pPins->pin0);
-			IO_Input(*s_pDirection->port1, s_pPins->pin1);
-			IO_Input(*s_pDirection->port2, s_pPins->pin2);
-			IO_Input(*s_pDirection->port3, s_pPins->pin3);
+			IO_Input(*(s_pDirection->port0.w), s_pPins->pin0);
+			IO_Input(*(s_pDirection->port1.w), s_pPins->pin1);
+			IO_Input(*(s_pDirection->port2.w), s_pPins->pin2);
+			IO_Input(*(s_pDirection->port3.w), s_pPins->pin3);
 			break;
 		default:
 			break;
@@ -123,25 +123,25 @@ static void lcd_write(uint8_t data,uint8_t rs)
 	setIOState(LCD_OUTPUT);
 	
 	/* output high nibble first */
-	if (data & 0x80) { IO_On(*s_pData->port0, s_pPins->pin0); } else { IO_Off(*s_pData->port0, s_pPins->pin0); }
-	if (data & 0x40) { IO_On(*s_pData->port1, s_pPins->pin1); } else { IO_Off(*s_pData->port1, s_pPins->pin1); }
-	if (data & 0x20) { IO_On(*s_pData->port2, s_pPins->pin2); } else { IO_Off(*s_pData->port2, s_pPins->pin2); }
-	if (data & 0x10) { IO_On(*s_pData->port3, s_pPins->pin3); } else { IO_Off(*s_pData->port3, s_pPins->pin3); }
+	if (data & 0x10) { IO_On(*(s_pData->port0.w), s_pPins->pin0); } else { IO_Off(*(s_pData->port0.w), s_pPins->pin0); }
+	if (data & 0x20) { IO_On(*(s_pData->port1.w), s_pPins->pin1); } else { IO_Off(*(s_pData->port1.w), s_pPins->pin1); }
+	if (data & 0x40) { IO_On(*(s_pData->port2.w), s_pPins->pin2); } else { IO_Off(*(s_pData->port2.w), s_pPins->pin2); }
+	if (data & 0x80) { IO_On(*(s_pData->port3.w), s_pPins->pin3); } else { IO_Off(*(s_pData->port3.w), s_pPins->pin3); }
 	
 	lcd_e_toggle();
 	
 	/* output low nibble */
-	if (data & 0x08) { IO_On(*s_pData->port0, s_pPins->pin0); } else { IO_Off(*s_pData->port0, s_pPins->pin0); }
-	if (data & 0x04) { IO_On(*s_pData->port1, s_pPins->pin1); } else { IO_Off(*s_pData->port1, s_pPins->pin1); }
-	if (data & 0x02) { IO_On(*s_pData->port2, s_pPins->pin2); } else { IO_Off(*s_pData->port2, s_pPins->pin2); }
-	if (data & 0x01) { IO_On(*s_pData->port3, s_pPins->pin3); } else { IO_Off(*s_pData->port3, s_pPins->pin3); }
+	if (data & 0x01) { IO_On(*(s_pData->port0.w), s_pPins->pin0); } else { IO_Off(*(s_pData->port0.w), s_pPins->pin0); }
+	if (data & 0x02) { IO_On(*(s_pData->port1.w), s_pPins->pin1); } else { IO_Off(*(s_pData->port1.w), s_pPins->pin1); }
+	if (data & 0x04) { IO_On(*(s_pData->port2.w), s_pPins->pin2); } else { IO_Off(*(s_pData->port2.w), s_pPins->pin2); }
+	if (data & 0x08) { IO_On(*(s_pData->port3.w), s_pPins->pin3); } else { IO_Off(*(s_pData->port3.w), s_pPins->pin3); }
 	lcd_e_toggle();        
 	
 	/* all data pins high (inactive) */
-	IO_On(*s_pData->port0, s_pPins->pin0);
-	IO_On(*s_pData->port1, s_pPins->pin1);
-	IO_On(*s_pData->port2, s_pPins->pin2);
-	IO_On(*s_pData->port3, s_pPins->pin3);
+	IO_On(*(s_pData->port0.w), s_pPins->pin0);
+	IO_On(*(s_pData->port1.w), s_pPins->pin1);
+	IO_On(*(s_pData->port2.w), s_pPins->pin2);
+	IO_On(*(s_pData->port3.w), s_pPins->pin3);
 }
 
 /*************************************************************************
@@ -152,13 +152,18 @@ Returns:  byte read from LCD controller
 *************************************************************************/
 static uint8_t lcd_read(uint8_t rs) 
 {
-    uint8_t data;
+    uint8_t data = 0;
     
     
     if (rs)
+    {
         lcd_rs_high();                       /* RS=1: read data      */
+    }
     else
+    {
         lcd_rs_low();                        /* RS=0: read busy flag */
+    }
+    
     lcd_rw_high();                           /* RW=1  read mode      */
     
 	/* configure data pins as input */
@@ -166,24 +171,23 @@ static uint8_t lcd_read(uint8_t rs)
 	
 	/* read high nibble first */
 	lcd_e_high();
-	lcd_e_delay();        
-	data = 0;
-	data |= IO_Read(*s_pData->port0, s_pPins->pin0) ? 0x10 : 0;
-	data |= IO_Read(*s_pData->port1, s_pPins->pin1) ? 0x20 : 0;
-	data |= IO_Read(*s_pData->port2, s_pPins->pin2) ? 0x40 : 0;
-	data |= IO_Read(*s_pData->port3, s_pPins->pin3) ? 0x80 : 0;
+	delay(50);
+	data |= IO_Read(*(s_pData->port0.r), s_pPins->pin0) ? 0x10 : 0x00;
+	data |= IO_Read(*(s_pData->port1.r), s_pPins->pin1) ? 0x20 : 0x00;
+	data |= IO_Read(*(s_pData->port2.r), s_pPins->pin2) ? 0x40 : 0x00;
+	data |= IO_Read(*(s_pData->port3.r), s_pPins->pin3) ? 0x80 : 0x00;
 		
 	lcd_e_low();
-
 	lcd_e_delay();                       /* Enable 500ns low       */
 
 	/* read low nibble */    
 	lcd_e_high();
-	lcd_e_delay();
-	data |= IO_Read(*s_pData->port0, s_pPins->pin0) ? 0x01 : 0;
-	data |= IO_Read(*s_pData->port1, s_pPins->pin1) ? 0x02 : 0;
-	data |= IO_Read(*s_pData->port2, s_pPins->pin2) ? 0x04 : 0;
-	data |= IO_Read(*s_pData->port3, s_pPins->pin3) ? 0x08 : 0;      
+	delay(50);
+	data |= IO_Read(*(s_pData->port0.r), s_pPins->pin0) ? 0x01 : 0x00;
+	data |= IO_Read(*(s_pData->port1.r), s_pPins->pin1) ? 0x02 : 0x00;
+	data |= IO_Read(*(s_pData->port2.r), s_pPins->pin2) ? 0x04 : 0x00;
+	data |= IO_Read(*(s_pData->port3.r), s_pPins->pin3) ? 0x08 : 0x00;
+
 	lcd_e_low();
 
     return data;
@@ -198,7 +202,7 @@ static uint8_t lcd_waitbusy(void)
     /* wait until busy flag is cleared */
 	#ifndef TEST_HARNESS
 	register uint8_t c;
-    while ( (c=lcd_read(0)) & (1<<LCD_BUSY)) {}
+    while ( (c=lcd_read(0)) & (1<<LCD_BUSY)) {PINB |= (1 << 5);}
     #endif
 	
     /* the address counter is updated 4us after the busy flag is cleared */
@@ -216,7 +220,7 @@ is already on the last line.
 *************************************************************************/
 static inline void lcd_newline(uint8_t pos)
 {
-    register uint8_t addressCounter;
+    register uint8_t addressCounter = 0;
 
 	switch(s_pConfig->lines)
 	{
@@ -395,7 +399,7 @@ void lcd_putc(char c)
 			}
 			lcd_waitbusy();
 		}
-        lcd_write(c, 1);
+		lcd_write(c, 1);
     }
 
 }/* lcd_putc */
@@ -478,15 +482,15 @@ void lcd_init(uint8_t dispAttr, LCD_PORT * pData, LCD_PORT * pDirection, LCD_PIN
 	/* configure all port bits as output */
 	setIOState(LCD_OUTPUT);
 	
-	IO_Output(*s_pDirection->rsPort, s_pPins->rsPin);
-	IO_Output(*s_pDirection->rwPort, s_pPins->rwPin);
-	IO_Output(*s_pDirection->enPort, s_pPins->enPin);
-	
+	IO_Output(*(s_pDirection->rsPort), s_pPins->rsPin);
+	IO_Output(*(s_pDirection->rwPort), s_pPins->rwPin);
+	IO_Output(*(s_pDirection->enPort), s_pPins->enPin);
+
     delay(16000);        /* wait 16ms or more after power-on       */
     
     /* initial write to lcd is 8bit */
-	IO_On(*s_pData->port0, s_pPins->pin0);
-	IO_On(*s_pData->port1, s_pPins->pin1);
+	IO_On(*(s_pData->port0.w), s_pPins->pin0);
+	IO_On(*(s_pData->port1.w), s_pPins->pin1);
 
     lcd_e_toggle();
     delay(4992);         /* delay, busy flag can't be checked here */
@@ -500,7 +504,7 @@ void lcd_init(uint8_t dispAttr, LCD_PORT * pData, LCD_PORT * pDirection, LCD_PIN
     delay(64);           /* delay, busy flag can't be checked here */
 
     /* now configure for 4bit mode */
-	IO_Off(*s_pData->port0, s_pPins->pin0);
+	IO_Off(*(s_pData->port0.w), s_pPins->pin0);
     lcd_e_toggle();
     delay(64);           /* some displays need this additional delay */
     
