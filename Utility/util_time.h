@@ -60,12 +60,12 @@ enum month_enum
 
 // Minutes to other times
 #define MINS_PER_HOUR (60)
-#define MINS_PER_DAY (MINS_PER_HOUR * HOURS_PER_DAY)
+#define MINS_PER_DAY ((uint16_t)MINS_PER_HOUR * (uint16_t)HOURS_PER_DAY)
 
 // Seconds to other times
 #define S_PER_MIN (60)
-#define S_PER_HOUR (S_PER_MIN * MINS_PER_HOUR)
-#define S_PER_DAY (S_PER_HOUR * HOURS_PER_DAY)
+#define S_PER_HOUR ((uint16_t)S_PER_MIN * (uint16_t)MINS_PER_HOUR)
+#define S_PER_DAY ((uint16_t)S_PER_HOUR * (uint16_t)HOURS_PER_DAY)
 
 // Milliseconds to other times
 #define MS_PER_S (1000UL)
