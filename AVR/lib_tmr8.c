@@ -30,6 +30,26 @@
 #define SECOND_OCR_CHANNEL
 #endif
 
+#if defined(OCR0A)
+#define OCR OCR0A
+#else
+#define OCR OCR0
+#endif
+
+#if defined(TCCR0)
+#define TCCR TCCR0
+#elif defined(TCCR0A)
+#define TCCR TCCR0A
+#endif
+
+#if !defined(COM0A0)
+#define COM0A0 COM00
+#endif
+
+#if !defined(COM0A1)
+#define COM0A1 COM01
+#endif
+
 /*
  * Private Variables
  */
@@ -62,15 +82,15 @@ static bool IsPWMMode(const TMR8_COUNTMODE_ENUM eCountMode);
 void TMR8_SetSource(TMR_SRC_ENUM eSource)
 {
 	uint8_t temp = 0;
-	temp = TCCR0B;
+	temp = TCCR;
 	temp &= ~((1 << CS02) | (1 << CS01) | (1 << CS00));
 	temp |= (uint8_t)eSource;
-	TCCR0B = temp;
+	TCCR = temp;
 }
 
 TMR_SRC_ENUM TMR8_GetSource(void)
 {
-	uint8_t temp = TCCR0B;
+	uint8_t temp = TCCR;
 	temp &= ((1 << CS02) | (1 << CS01) | (1 << CS00));
 	return (TMR_SRC_ENUM)temp;
 }
@@ -89,12 +109,12 @@ void TMR8_SetCountMode(const TMR8_COUNTMODE_ENUM eMode)
 
 	assert(eMode < TMR8_COUNTMODE_INVALID);
 
-	// Mode is controlled by b1:0 in TCCR0A and b3 in TCCR0B
+	// Mode is controlled by b1:0 in TCCRn and b3 in TCCRnB, if present
 
 	if (eMode != TMR8_GetCountMode())
 	{
-		uint8_t tccr0a = TCCR0A;
-		tccr0a &= ~((1 << WGM01) | (1 << WGM00));
+		uint8_t tccr = TCCR;
+		tccr &= ~((1 << WGM01) | (1 << WGM00));
 		
 		#ifdef EXTRA_WGM_MODES
 		uint8_t tccr0b = TCCR0B;
@@ -107,24 +127,24 @@ void TMR8_SetCountMode(const TMR8_COUNTMODE_ENUM eMode)
 			// Clear all bits - nothing to do
 			break;
 		case TMR8_COUNTMODE_PCPWM1: // Mode 1
-			tccr0a |= (1 << WGM00);
+			tccr |= (1 << WGM00);
 			break;
 		case TMR8_COUNTMODE_CTC: // Mode 2
-			tccr0a |= (1 << WGM01);
+			tccr |= (1 << WGM01);
 			break;
 		case TMR8_COUNTMODE_FASTPWM1: // Mode 3
-			tccr0a |= ((1 << WGM01) | (1 << WGM00));
+			tccr |= ((1 << WGM01) | (1 << WGM00));
 			break;
 			// Mode 4 reserved
 		#ifdef EXTRA_WGM_MODES
 		case TMR8_COUNTMODE_PCPWM2: // Mode 5
 			tccr0b |= (1 << WGM02);
-			tccr0a |= (1 << WGM00);
+			tccr |= (1 << WGM00);
 			break;
 			// Mode 6 reserved
 		case TMR8_COUNTMODE_FASTPWM2: // Mode 7
 			tccr0b |= (1 << WGM02);
-			tccr0a |= ((1 << WGM01) | (1 << WGM00));
+			tccr |= ((1 << WGM01) | (1 << WGM00));
 			break;
 		#else
 		case TMR8_COUNTMODE_PCPWM2: // Mode 5 invalid if WGM02 not present
@@ -134,7 +154,7 @@ void TMR8_SetCountMode(const TMR8_COUNTMODE_ENUM eMode)
 			assert(false);
 		}
 
-		TCCR0A = tccr0a;
+		TCCR = tccr;
 		#ifdef EXTRA_WGM_MODES
 		TCCR0B = tccr0b;
 		#endif
@@ -143,8 +163,8 @@ void TMR8_SetCountMode(const TMR8_COUNTMODE_ENUM eMode)
 
 TMR8_COUNTMODE_ENUM TMR8_GetCountMode(void)
 {
-	// Mode is controlled by b1:0 in TCCR0A and b3 in TCCR0B (if present)
-	uint8_t tccr0a = TCCR0A;
+	// Mode is controlled by b1:0 in TCCR and b3 in TCCR0B (if present)
+	uint8_t tccr = TCCR;
 	uint8_t modeNumber = 0;
 
 	#ifdef EXTRA_WGM_MODES
@@ -152,8 +172,8 @@ TMR8_COUNTMODE_ENUM TMR8_GetCountMode(void)
 	if (tccr0b & (1 << WGM02)) { modeNumber += 4; }
 	#endif
 	
-	if (tccr0a & (1 << WGM01)) { modeNumber += 2; }
-	if (tccr0a & (1 << WGM00)) { modeNumber += 1; }
+	if (tccr & (1 << WGM01)) { modeNumber += 2; }
+	if (tccr & (1 << WGM00)) { modeNumber += 1; }
 
 	TMR8_COUNTMODE_ENUM eMode = countModeMap[modeNumber];
 
@@ -170,7 +190,7 @@ void TMR8_SetOutputCompareValue(const uint8_t value, const TMR_OCCHAN_ENUM eChan
 	switch (eChannel)
 	{
 	case TMR_OCCHAN_A:
-		OCR0A = value;
+		OCR = value;
 		break;
 	case TMR_OCCHAN_B:
 		#ifdef SECOND_OCR_CHANNEL
@@ -191,10 +211,10 @@ void TMR8_SetOutputCompareMode(const TMR_OUTPUTMODE_ENUM eOutputMode, const TMR_
 
 	bool bValid = true;
 
-	uint8_t tccr0a = TCCR0A;
+	uint8_t tccr = TCCR;
 
 	// Map output mode selections to register values
-	uint8_t newValuesA[] = { 0, (1 << COM0A0), (1 << COM0A1), (1 << COM0A0) | (1 << COM0A1) };
+	uint8_t newValuesA[] = { 0, (1 << COM00), (1 << COM01), (1 << COM00) | (1 << COM01) };
 	#ifdef SECOND_OCR_CHANNEL
 	uint8_t newValuesB[] = { 0, (1 << COM0B0), (1 << COM0B1), (1 << COM0B0) | (1 << COM0B1) };
 	#endif
@@ -218,13 +238,13 @@ void TMR8_SetOutputCompareMode(const TMR_OUTPUTMODE_ENUM eOutputMode, const TMR_
 		switch (eChannel)
 		{
 		case TMR_OCCHAN_A:
-			tccr0a &= ~((1 << COM0A1) | (1 << COM0A0));
-			tccr0a |= newValuesA[eOutputMode];
+			tccr &= ~((1 << COM0A1) | (1 << COM0A0));
+			tccr |= newValuesA[eOutputMode];
 			break;
 		case TMR_OCCHAN_B:
 			#ifdef SECOND_OCR_CHANNEL
-			tccr0a &= ~((1 << COM0B1) | (1 << COM0B0));
-			tccr0a |= newValuesB[eOutputMode];
+			tccr &= ~((1 << COM0B1) | (1 << COM0B0));
+			tccr |= newValuesB[eOutputMode];
 			#endif
 			break;
 		default:
@@ -232,11 +252,12 @@ void TMR8_SetOutputCompareMode(const TMR_OUTPUTMODE_ENUM eOutputMode, const TMR_
 		}
 	}
 
-	TCCR0A = tccr0a;
+	TCCR = tccr;
 }
 
 void TMR8_ForceOutputCompare(const TMR_OCCHAN_ENUM eChannel)
 {
+	#ifdef TCCR0B
 	assert(eChannel <= TMR_OCCHAN_B);
 
 	uint8_t tccr0b = TCCR0B;
@@ -269,11 +290,14 @@ void TMR8_ForceOutputCompare(const TMR_OCCHAN_ENUM eChannel)
 	}
 
 	TCCR0B = tccr0b;
+	#else
+	(void)eChannel;
+	#endif
 }
 
 void TMR8_InterruptControl(TMR8_INTMASK_ENUM eMask, bool enable)
 {
-	#ifdef TOIE0
+	#ifdef TIMSK0
 	uint8_t timsk = TIMSK0;
 	#else
 	uint8_t timsk = TIMSK;
@@ -288,7 +312,7 @@ void TMR8_InterruptControl(TMR8_INTMASK_ENUM eMask, bool enable)
 		timsk &= ~((uint8_t)eMask);
 	}
 
-	#ifdef TOIE0
+	#ifdef TIMSK0
 	TIMSK0 = timsk;
 	#else
 	TIMSK = timsk;
