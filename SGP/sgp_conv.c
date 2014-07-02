@@ -229,10 +229,16 @@ void Convert_Sat_State (struct vector *p, struct vector *v)
 	for (i=0;(i<3);i++)
 	{
 		p->v[i] = p->v[i] * xkmper;
-		v->v[i] = v->v[i] * xkmper / 60;
+		if (v)
+		{
+			v->v[i] = v->v[i] * xkmper / 60;
+		}
 	}
 	Magnitude (p);
-	Magnitude (v);
+	if (v)
+	{
+		Magnitude (v);
+	}
 }
 
 

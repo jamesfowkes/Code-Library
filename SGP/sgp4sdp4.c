@@ -477,15 +477,21 @@ void sdp4 (double tsince, struct vector *pos, struct vector *vel, struct sgp_dat
 	for (i=0;(i<3);i++)
 	{
 		UV.v[i] = MV.v[i] * sin(uk) + NV.v[i] * cos(uk);
-		VV.v[i] = MV.v[i] * cos(uk) - NV.v[i] * sin(uk);
-        }
+		if (vel)
+		{
+			VV.v[i] = MV.v[i] * cos(uk) - NV.v[i] * sin(uk);
+		}
+    }
 
         /* position + velocity */
 	for (i=0;(i<3);i++)
 	{
 		pos->v[i] = rk * UV.v[i];
-		vel->v[i] = rdotk * UV.v[i] + rfdotk * VV.v[i];
-        }
+		if (vel)
+		{
+			vel->v[i] = rdotk * UV.v[i] + rfdotk * VV.v[i];
+		}
+    }
 }
 
 
