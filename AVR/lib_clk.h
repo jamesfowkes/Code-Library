@@ -7,6 +7,20 @@
 
 #include <avr/power.h>
 
+// Some AVR devices do not have a prescaler, so clock_div_t is not a type
+#ifdef clock_prescale_set
+
+#define AVR_HAS_PRESCALER
+
+#else
+
+typedef enum
+{
+    clock_div_1 = 0,
+} clock_div_t;
+
+#endif
+
 enum lib_clk_src_enum
 {
 	LIB_CLK_SRC_RC,

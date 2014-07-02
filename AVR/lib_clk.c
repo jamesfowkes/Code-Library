@@ -22,7 +22,10 @@
  */
 static uint32_t fExt = 0UL;
 
+#ifdef AVR_HAS_PRESCALER
 static clock_div_t ePrescaler = clock_div_8;
+#endif
+
 FUSE_SETTINGS * pFuses = NULL;
 
 /*
@@ -31,20 +34,30 @@ FUSE_SETTINGS * pFuses = NULL;
 bool CLK_Init(const uint32_t fExtSet)
 {
 	fExt = fExtSet;
+	#ifdef AVR_HAS_PRESCALER
 	ePrescaler = FUS_IsClockDiv8Enabled() ? clock_div_8 : clock_div_1;
-
+	#endif
+	
 	return true;
 }
 
 void CLK_SetPrescaler(const clock_div_t eSetPrescaler)
 {
+	#ifdef AVR_HAS_PRESCALER
 	ePrescaler = eSetPrescaler;
 	clock_prescale_set(ePrescaler);
+	#else
+	(void)eSetPrescaler;
+	#endif
 }
 
 clock_div_t CLK_GetPrescaler(void)
 {
+	#ifdef AVR_HAS_PRESCALER
 	return ePrescaler;
+	#else
+	return 0;
+	#endif
 }
 
 bool CLK_IsSourceRunning(LIB_CLK_SRC_ENUM eSource)
@@ -83,7 +96,9 @@ uint32_t CLK_GetFcpu(void)
 		base = fExt;
 	}
 
+	#ifdef AVR_HAS_PRESCALER
 	base /= (1 << (uint8_t) ePrescaler);
-
+	#endif
+	
 	return base;
 }
