@@ -37,9 +37,11 @@
 #endif
 
 #if defined(TCCR0)
-#define TCCR TCCR0
-#elif defined(TCCR0A)
-#define TCCR TCCR0A
+#define TCCRA TCCR0
+#define TCCRB TCCR0
+#elif defined(TCCR0B)
+#define TCCRA TCCR0A
+#define TCCRB TCCR0B
 #endif
 
 #if !defined(COM0A0)
@@ -82,15 +84,15 @@ static bool IsPWMMode(const TMR8_COUNTMODE_ENUM eCountMode);
 void TMR8_SetSource(TMR_SRC_ENUM eSource)
 {
 	uint8_t temp = 0;
-	temp = TCCR;
+	temp = TCCRB;
 	temp &= ~((1 << CS02) | (1 << CS01) | (1 << CS00));
 	temp |= (uint8_t)eSource;
-	TCCR = temp;
+	TCCRB = temp;
 }
 
 TMR_SRC_ENUM TMR8_GetSource(void)
 {
-	uint8_t temp = TCCR;
+	uint8_t temp = TCCRB;
 	temp &= ((1 << CS02) | (1 << CS01) | (1 << CS00));
 	return (TMR_SRC_ENUM)temp;
 }
@@ -113,12 +115,12 @@ void TMR8_SetCountMode(const TMR8_COUNTMODE_ENUM eMode)
 
 	if (eMode != TMR8_GetCountMode())
 	{
-		uint8_t tccr = TCCR;
+		uint8_t tccr = TCCRA;
 		tccr &= ~((1 << WGM01) | (1 << WGM00));
 		
 		#ifdef EXTRA_WGM_MODES
-		uint8_t tccr0b = TCCR0B;
-		tccr0b &= ~((1 << WGM02));
+		uint8_t tccrb = TCCRB;
+		tccrb &= ~((1 << WGM02));
 		#endif
 
 		switch (eMode)
@@ -138,12 +140,12 @@ void TMR8_SetCountMode(const TMR8_COUNTMODE_ENUM eMode)
 			// Mode 4 reserved
 		#ifdef EXTRA_WGM_MODES
 		case TMR8_COUNTMODE_PCPWM2: // Mode 5
-			tccr0b |= (1 << WGM02);
+			tccrb |= (1 << WGM02);
 			tccr |= (1 << WGM00);
 			break;
 			// Mode 6 reserved
 		case TMR8_COUNTMODE_FASTPWM2: // Mode 7
-			tccr0b |= (1 << WGM02);
+			tccrb |= (1 << WGM02);
 			tccr |= ((1 << WGM01) | (1 << WGM00));
 			break;
 		#else
@@ -154,9 +156,9 @@ void TMR8_SetCountMode(const TMR8_COUNTMODE_ENUM eMode)
 			assert(false);
 		}
 
-		TCCR = tccr;
+		TCCRA = tccr;
 		#ifdef EXTRA_WGM_MODES
-		TCCR0B = tccr0b;
+		TCCRB = tccrb;
 		#endif
 	}
 }
@@ -164,12 +166,12 @@ void TMR8_SetCountMode(const TMR8_COUNTMODE_ENUM eMode)
 TMR8_COUNTMODE_ENUM TMR8_GetCountMode(void)
 {
 	// Mode is controlled by b1:0 in TCCR and b3 in TCCR0B (if present)
-	uint8_t tccr = TCCR;
+	uint8_t tccr = TCCRA;
 	uint8_t modeNumber = 0;
 
 	#ifdef EXTRA_WGM_MODES
-	uint8_t tccr0b = TCCR0B;
-	if (tccr0b & (1 << WGM02)) { modeNumber += 4; }
+	uint8_t tccrb = TCCRB;
+	if (tccrb & (1 << WGM02)) { modeNumber += 4; }
 	#endif
 	
 	if (tccr & (1 << WGM01)) { modeNumber += 2; }
@@ -211,10 +213,10 @@ void TMR8_SetOutputCompareMode(const TMR_OUTPUTMODE_ENUM eOutputMode, const TMR_
 
 	bool bValid = true;
 
-	uint8_t tccr = TCCR;
+	uint8_t tccr = TCCRA;
 
 	// Map output mode selections to register values
-	uint8_t newValuesA[] = { 0, (1 << COM00), (1 << COM01), (1 << COM00) | (1 << COM01) };
+	uint8_t newValuesA[] = { 0, (1 << COM0A0), (1 << COM0A1), (1 << COM0A0) | (1 << COM0A1) };
 	#ifdef SECOND_OCR_CHANNEL
 	uint8_t newValuesB[] = { 0, (1 << COM0B0), (1 << COM0B1), (1 << COM0B0) | (1 << COM0B1) };
 	#endif
@@ -252,15 +254,15 @@ void TMR8_SetOutputCompareMode(const TMR_OUTPUTMODE_ENUM eOutputMode, const TMR_
 		}
 	}
 
-	TCCR = tccr;
+	TCCRA = tccr;
 }
 
 void TMR8_ForceOutputCompare(const TMR_OCCHAN_ENUM eChannel)
 {
-	#ifdef TCCR0B
+	#ifdef TCCRB
 	assert(eChannel <= TMR_OCCHAN_B);
 
-	uint8_t tccr0b = TCCR0B;
+	uint8_t tccrb = TCCRB;
 
 	// Check that mode is non-PWM
 	if ( !IsPWMMode( TMR8_GetCountMode() ) )
@@ -268,11 +270,11 @@ void TMR8_ForceOutputCompare(const TMR_OCCHAN_ENUM eChannel)
 		switch(eChannel)
 		{
 		case TMR_OCCHAN_A:
-			tccr0b |= (1 << FOC0A);
+			tccrb |= (1 << FOC0A);
 			break;
 		case TMR_OCCHAN_B:
 			#ifdef SECOND_OCR_CHANNEL
-			tccr0b |= (1 << FOC0B);
+			tccrb |= (1 << FOC0B);
 			#endif
 			break;
 		default:
@@ -283,13 +285,13 @@ void TMR8_ForceOutputCompare(const TMR_OCCHAN_ENUM eChannel)
 	{
 		// Ensure both FOC bits cleared in PWM modes
 		#ifdef SECOND_OCR_CHANNEL
-		tccr0b &= ~((1<< FOC0A) | (1 << FOC0B));
+		tccrb &= ~((1<< FOC0A) | (1 << FOC0B));
 		#else
-		tccr0b &= ~(1<< FOC0A);
+		tccrb &= ~(1<< FOC0A);
 		#endif
 	}
 
-	TCCR0B = tccr0b;
+	TCCRB = tccrb;
 	#else
 	(void)eChannel;
 	#endif
