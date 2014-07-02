@@ -55,6 +55,9 @@ static volatile int s_count = 0;
 */
 void ENC_Setup(IO_PORT_ENUM ePort, uint8_t A, uint8_t B, int interruptA, int interruptB)
 {
+	IO_SetMode(ePort, A, IO_MODE_PULLUPINPUT);
+	IO_SetMode(ePort, B, IO_MODE_PULLUPINPUT);
+
 	s_port = IO_GetReadPortDirect(ePort); // Get a direct pointer to the port register
 	// Create masks for the encoder channel bits
 	s_masks[0] = (1 << A);
