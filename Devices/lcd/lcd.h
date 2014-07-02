@@ -111,12 +111,19 @@ typedef enum lcd_controller_type LCD_CONTROLLER_TYPE;
  * @name Structures
  */
 
+struct lcd_rw_struct
+{
+	volatile uint8_t * r;
+	volatile uint8_t * w;
+};
+typedef struct lcd_rw_struct LCD_RW_STRUCT;
+
 struct lcd_port_struct
 {
-	volatile uint8_t * port0;
-	volatile uint8_t * port1;
-	volatile uint8_t * port2;
-	volatile uint8_t * port3;
+	LCD_RW_STRUCT port0;
+	LCD_RW_STRUCT port1;
+	LCD_RW_STRUCT port2;
+	LCD_RW_STRUCT port3;
 	volatile uint8_t * rsPort;
 	volatile uint8_t * rwPort;
 	volatile uint8_t * enPort;

@@ -91,7 +91,7 @@ void SWS_SetBaudRate(LIB_SWS_BAUDRATE_ENUM eBaudrate)
 
 void SWS_RxInit(IO_PORT_ENUM ePort, uint8_t pin)
 {
-	s_pPort[RX] = IO_GetPortDirect(ePort);
+	s_pPort[RX] = IO_GetReadPortDirect(ePort);
 	s_pin[RX] = pin;
 	
 	IO_On(*s_pPort[RX], s_pin[RX]);
@@ -99,7 +99,7 @@ void SWS_RxInit(IO_PORT_ENUM ePort, uint8_t pin)
 
 void SWS_TxInit(IO_PORT_ENUM ePort, uint8_t pin)
 {
-	s_pPort[TX] = IO_GetPortDirect(ePort);
+	s_pPort[TX] = IO_GetWritePortDirect(ePort);
 	s_pin[TX] = pin;
 	IO_SetMode(ePort, pin, IO_MODE_OUTPUT);
 	IO_On(*s_pPort[TX], s_pin[TX]);

@@ -1,4 +1,4 @@
-NAME=LCDExample
+NAME=EncoderExample
 
 MCU_TARGET=atmega328p
 AVRDUDE_PART=m328p
@@ -13,20 +13,21 @@ OPT_LEVEL=3
 
 INCLUDE_DIRS = \
 	-I$(LIBS_DIR)/AVR \
+	-I$(LIBS_DIR)/Common \
 	-I$(LIBS_DIR)/Devices \
 	-I$(LIBS_DIR)/Generics \
-	-I$(LIBS_DIR)/Utility \
-	-I$(LIBS_DIR)/Format/
+	-I$(LIBS_DIR)/Utility
+
 CFILES = \
-	LCDExample.c \
+	EncoderExample.c \
 	$(LIBS_DIR)/AVR/lib_clk.c \
 	$(LIBS_DIR)/AVR/lib_fuses.c \
 	$(LIBS_DIR)/AVR/lib_io.c \
 	$(LIBS_DIR)/AVR/lib_tmr8.c \
 	$(LIBS_DIR)/AVR/lib_tmr8_tick.c \
-	$(LIBS_DIR)/Devices/lcd/lcd.c \
-	$(LIBS_DIR)/Generics/memorypool.c \
-	$(LIBS_DIR)/Format/format.c
+	$(LIBS_DIR)/AVR/lib_encoder.c \
+	$(LIBS_DIR)/AVR/lib_pcint.c \
+	$(LIBS_DIR)/Generics/memorypool.c
 	
 OPTS = \
 	-g \
@@ -34,7 +35,9 @@ OPTS = \
 	-Wall \
 	-Wextra \
 	-DF_CPU=16000000 \
-	-DMEMORY_POOL_BYTES=512
+	-DMEMORY_POOL_BYTES=512 \
+	-DENCODER_PCINT2 \
+	-DSUPPRESS_PCINT2
 	
 LDFLAGS =
 
@@ -54,4 +57,3 @@ upload:
 clean:
 	$(DEL) $(NAME).elf
 	$(DEL) $(OBJDEPS)
-
