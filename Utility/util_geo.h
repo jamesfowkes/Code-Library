@@ -1,6 +1,10 @@
 #ifndef _UTIL_GEO_H_
 #define _UTIL_GEO_H_
 
+#ifndef PI
+#define PI 3.14159265359f
+#endif
+
 struct coord_2d
 {
 	float x;
@@ -32,10 +36,15 @@ struct line_3d
 };
 typedef struct line_3d LINE_3D;
 
+float Length_3DVector(VECTOR_3D * v);
+
 float AngleBetween_3DVectors(VECTOR_3D * v1, VECTOR_3D * v2);
 void Difference_3DVectors(VECTOR_3D * v1, VECTOR_3D * v2, VECTOR_3D * result);
 
 float Azimuth_3DVector(VECTOR_3D * v1);
 float Elevation_3DVector(VECTOR_3D * v1);
+
+float radians(float deg);
+float degrees(float rad);
 
 #endif

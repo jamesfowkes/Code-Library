@@ -1,1 +1,1 @@
-include $(TEST_NAME)_test.mk
+include $(TEST_NAME)/$(TEST_NAME)_test.mk
