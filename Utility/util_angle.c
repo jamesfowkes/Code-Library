@@ -8,6 +8,7 @@
  * Utility Library Includes
  */
 
+#include "util_geo.h"
 #include "util_angle.h"
 #include "util_macros.h"
 
@@ -48,6 +49,9 @@ uint16_t mirror_tdeg(int16_t a, int16_t mirror)
 	
 	return sanitiseAngleTdeg(3600 + sanitised_mirror - sanitised_a);
 }
+
+float radians(float deg) { return deg * 2 * PI / 360.0f; }
+float degrees(float rad) { return rad * 360.0f / 2 * PI; }
 
 /*
  * Private Functions

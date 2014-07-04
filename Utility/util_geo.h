@@ -44,7 +44,4 @@ void Difference_3DVectors(VECTOR_3D * v1, VECTOR_3D * v2, VECTOR_3D * result);
 float Azimuth_3DVector(VECTOR_3D * v1);
 float Elevation_3DVector(VECTOR_3D * v1);
 
-float radians(float deg);
-float degrees(float rad);
-
 #endif

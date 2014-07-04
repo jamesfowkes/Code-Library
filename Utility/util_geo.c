@@ -75,9 +75,6 @@ float Elevation_3DVector(VECTOR_3D * v1)
 	}
 }
 
-float radians(float deg) { return deg * 2 * PI / 360.0f; }
-float degrees(float rad) { return rad * 360.0f / 2 * PI; }
-
 /*
  * Private Functions
  */
