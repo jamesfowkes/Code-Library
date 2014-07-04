@@ -6,6 +6,7 @@
 
 #include "unity.h"
 
+#include "util_angle.h"
 #include "util_geo.h"
 
 VECTOR_3D vectorX = {1, 0, 0};

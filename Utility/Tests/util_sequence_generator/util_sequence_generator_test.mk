@@ -9,7 +9,7 @@
 #   [Released under MIT License. Please refer to license.txt for details]
 # ========================================== 
 
-C_COMPILER=gcc
+CC=gcc
 UNITY_FOLDER=E:/WorkDir/Unity
 LIBS_DIR=$(PROJECTS_PATH)/Libs
 UTIL_DIR=$(LIBS_DIR)/Utility
@@ -32,19 +32,24 @@ $(TEST_DIR)/$(TEST_NAME)_test.c \
 $(TEST_DIR)/$(TEST_NAME)_test_Runner.c \
 $(LIBS_DIR)/Generics/memorypool.c
 
-INC_DIRS=-I$(UNITY_FOLDER)/src -I$(UNITY_FOLDER)/extras/fixture/src -I$(UTIL_DIR) -I$(LIBS_DIR)/Generics
-SYMBOLS=-DTEST_HARNESS -DUNITY_TEST -std=c99 -DMEMORY_POOL_BYTES=5096
+OBJS = $(SRC_FILES:.c=.o)
 
-CLEANUP = $(DEL) $(TARGET)
+INCLUDES=-I$(UNITY_FOLDER)/src -I$(UNITY_FOLDER)/extras/fixture/src -I$(UTIL_DIR) -I$(LIBS_DIR)/Generics
+CCFLAGS=-DTEST_HARNESS -DUNITY_TEST -std=c99 -DMEMORY_POOL_BYTES=5096
 
-all: clean default
+CLEANUP = $(DEL) $(TARGET) $(OBJS)
 
-default:
-	$(C_COMPILER) $(INC_DIRS) $(SYMBOLS) $(SRC_FILES) -o $(TARGET)
+%.o:%.c
+	$(CC) $(INCLUDES) $(CCFLAGS) -c $< -o $@
 	
+all: clean $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(CC) $(CCFLAGS) $(LDFLAGS) -o ./$(TARGET) $^
 	./$(TARGET)
 
 clean:
 	$(CLEANUP)
 	
+
 

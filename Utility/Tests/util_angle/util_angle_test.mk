@@ -4,7 +4,7 @@
 #   [Released under MIT License. Please refer to license.txt for details]
 # ========================================== 
 
-C_COMPILER=gcc
+CC=gcc
 UNITY_FOLDER=E:/WorkDir/Unity
 LIBS_DIR=$(PROJECTS_PATH)/Libs
 UTIL_DIR=$(LIBS_DIR)/Utility
@@ -22,16 +22,20 @@ TARGET = $(TEST_NAME)$(TARGET_EXTENSION)
 
 SRC_FILES=$(UNITY_FOLDER)/src/unity.c $(UTIL_DIR)/$(TEST_NAME).c $(TEST_DIR)/$(TEST_NAME)_test.c $(TEST_DIR)/$(TEST_NAME)_test_Runner.c
 
-INC_DIRS=-I$(UNITY_FOLDER)/src -I$(UNITY_FOLDER)/extras/fixture/src -I$(UTIL_DIR)
-SYMBOLS=-DTEST_HARNESS -DUNITY_TEST -std=c99
+OBJS = $(SRC_FILES:.c=.o)
 
-CLEANUP = $(DEL) $(TARGET)
+INCLUDES = -I$(UNITY_FOLDER)/src -I$(UNITY_FOLDER)/extras/fixture/src -I$(UTIL_DIR)
+CCFLAGS = -Wall -Wextra -DTEST_HARNESS -DUNITY_TEST -std=c99
 
-all: clean default
+CLEANUP = $(DEL) $(TARGET) $(OBJS)
 
-default:
-	$(C_COMPILER) $(INC_DIRS) $(SYMBOLS) $(SRC_FILES) -o $(TARGET)
+%.o:%.c
+	$(CC) $(INCLUDES) $(CCFLAGS) -c $< -o $@
 	
+all: clean $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(CC) $(CCFLAGS) $(LDFLAGS) -o ./$(TARGET) $^
 	./$(TARGET)
 
 clean:
