@@ -1,0 +1,1 @@
+LIBS_DIR = $(PROJECTS_PATH)/Libs
