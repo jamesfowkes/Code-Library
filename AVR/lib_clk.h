@@ -14,10 +14,14 @@
 
 #else
 
+#ifndef TEST_HARNESS
+
 typedef enum
 {
     clock_div_1 = 0,
 } clock_div_t;
+
+#endif
 
 #endif
 

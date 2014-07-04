@@ -30,18 +30,22 @@
 #define SECOND_OCR_CHANNEL
 #endif
 
-#if defined(OCR0A)
+#if defined(OCR0A) || defined(TEST_HARNESS_OCR0A)
 #define OCR OCR0A
-#else
+#elif defined(OCR0) || defined(TEST_HARNESS_OCR0)
 #define OCR OCR0
 #endif
 
-#if defined(TCCR0)
+#if defined(TCCR0) || defined(TEST_HARNESS_TCCR0)
 #define TCCRA TCCR0
 #define TCCRB TCCR0
-#elif defined(TCCR0B)
+#elif defined(TCCR0B) || defined(TEST_HARNESS_TCCR0B)
 #define TCCRA TCCR0A
 #define TCCRB TCCR0B
+#endif
+
+#if defined(TIMSK0) || defined (TEST_HARNESS_TIMSK0)
+#define TIMSK TIMSK0
 #endif
 
 #if !defined(FOC0A)
@@ -303,11 +307,7 @@ void TMR8_ForceOutputCompare(const TMR_OCCHAN_ENUM eChannel)
 
 void TMR8_InterruptControl(TMR8_INTMASK_ENUM eMask, bool enable)
 {
-	#ifdef TIMSK0
-	uint8_t timsk = TIMSK0;
-	#else
 	uint8_t timsk = TIMSK;
-	#endif
 
 	if (enable)
 	{
@@ -318,12 +318,7 @@ void TMR8_InterruptControl(TMR8_INTMASK_ENUM eMask, bool enable)
 		timsk &= ~((uint8_t)eMask);
 	}
 
-	#ifdef TIMSK0
-	TIMSK0 = timsk;
-	#else
 	TIMSK = timsk;
-	#endif
-
 }
 
 /*
