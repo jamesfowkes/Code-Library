@@ -2,6 +2,7 @@
 #include <stdint.h>
 
 #include "util_time.h"
+#include "util_macros.h"
 
 // For non-leap years ONLY!
 static const uint16_t s_days_in_month[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
@@ -118,4 +119,52 @@ UNIX_TIMESTAMP time_to_unix_seconds(TM const * const tm)
 	secs += tm->tm_sec;
 	
 	return secs;
+}
+
+void time_increment_seconds(TM * tm)
+{
+	if (!tm) { return; }
+	
+	incrementwithrollover(tm->tm_sec, 59);
+	
+	if (tm->tm_sec == 0)
+	{
+		incrementwithrollover(tm->tm_min, 59);
+	}
+	else
+	{
+		return;
+	}
+	
+	if (tm->tm_min == 0)
+	{
+		incrementwithrollover(tm->tm_hour, 23);
+	}
+	else
+	{
+		return;
+	}
+	
+	bool bIsLeapYear = is_leap_year(tm->tm_year);
+	
+	if (tm->tm_hour == 0)
+	{
+		incrementwithrollover(tm->tm_wday, SAT);
+		incrementwithrollover(tm->tm_mday, days_in_month(tm->tm_mon, bIsLeapYear));
+		incrementwithrollover(tm->tm_yday, bIsLeapYear ? 365 : 364);
+	}
+	else
+	{
+		return;
+	}
+	
+	if (tm->tm_mday == 0)
+	{
+		tm->tm_mday = 1; // Month starts at 1, not 0
+		incrementwithrollover(tm->tm_mon, 11);
+	}
+	else
+	{
+		return;
+	}	
 }

@@ -107,4 +107,6 @@ uint16_t calculate_days_into_year(const TM * tm);
 void unix_seconds_to_time(UNIX_TIMESTAMP sec, TM * tm);
 UNIX_TIMESTAMP time_to_unix_seconds(TM const * const tm);
 
+void time_increment_seconds(TM * tm);
+
 #endif

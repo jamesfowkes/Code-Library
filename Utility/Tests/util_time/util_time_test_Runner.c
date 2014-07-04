@@ -30,6 +30,7 @@ extern void test_UnixSecondsToTime(void);
 extern void test_LeapYears(void);
 extern void test_DaysInMonth(void);
 extern void test_TimeToUnixSeconds(void);
+extern void test_IncrementSeconds(void);
 
 //=======Test Reset Option=====
 void resetTest()
@@ -44,9 +45,10 @@ int main(void)
 {
   Unity.TestFile = "util_time_test.c";
   UnityBegin();
-  RUN_TEST(test_LeapYears, 57);
-  RUN_TEST(test_DaysInMonth, 58);
-  RUN_TEST(test_UnixSecondsToTime, 59);
-  RUN_TEST(test_TimeToUnixSeconds, 60);
+  RUN_TEST(test_LeapYears, 1);
+  RUN_TEST(test_DaysInMonth, 2);
+  RUN_TEST(test_UnixSecondsToTime, 3);
+  RUN_TEST(test_TimeToUnixSeconds, 4);
+  RUN_TEST(test_IncrementSeconds, 5); 
   return (UnityEnd());
 }

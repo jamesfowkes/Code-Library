@@ -127,3 +127,22 @@ void test_TimeToUnixSeconds(void)
 		++dd;
 	} while ((seconds += 86400) < 1379969817);
 }
+
+void test_IncrementSeconds(void)
+{
+	TM time;
+	UNIX_TIMESTAMP seconds;
+	unix_seconds_to_time(seconds = 0, &time); // 23:59:58 on 30DEC99
+	
+	time_increment_seconds(&time);
+	TEST_ASSERT_EQUAL(time_to_unix_seconds(&time), seconds = 1);  // 23:59:59 on 30DEC99
+	
+	time_increment_seconds(&time);
+	TEST_ASSERT_EQUAL(time_to_unix_seconds(&time), seconds = 2);  // 00:00:00 on 01JAN00
+	
+	for (int i = 0; i < 1379969817; ++i)
+	{
+		time_increment_seconds(&time);
+		TEST_ASSERT_EQUAL(time_to_unix_seconds(&time), ++seconds);
+	}
+}
