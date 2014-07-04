@@ -66,7 +66,6 @@ float Elevation_3DVector(VECTOR_3D * v1)
 	
 	if (v1->x || v1->y)
 	{
-		float xy = Length_2DVector(&xyProjection);
 		return atan(v1->z/Length_2DVector(&xyProjection));
 	}
 	else
