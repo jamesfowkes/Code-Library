@@ -44,6 +44,10 @@
 #define TCCRB TCCR0B
 #endif
 
+#if !defined(FOC0A)
+#define FOC0A FOC0
+#endif
+
 #if !defined(COM0A0)
 #define COM0A0 COM00
 #endif
