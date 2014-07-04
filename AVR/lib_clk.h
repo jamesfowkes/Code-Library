@@ -8,7 +8,7 @@
 #include <avr/power.h>
 
 // Some AVR devices do not have a prescaler, so clock_div_t is not a type
-#ifdef clock_prescale_set
+#ifdef clock_prescale_get
 
 #define AVR_HAS_PRESCALER
 
