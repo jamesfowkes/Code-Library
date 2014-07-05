@@ -39,6 +39,9 @@ static uint8_t s_testValue;
 
 static int s_lastReadCount = 0;
 static volatile int s_count = 0;
+static volatile int s_debouncedCount = 0;
+
+static uint8_t s_debounce = 1;
 
 /*
  * Private Function Prototypes
@@ -53,8 +56,10 @@ static volatile int s_count = 0;
 /* ENC_Setup
  :Sets up encoder on a single port, pins A and B
 */
-void ENC_Setup(IO_PORT_ENUM ePort, uint8_t A, uint8_t B, int interruptA, int interruptB)
+void ENC_Setup(IO_PORT_ENUM ePort, uint8_t A, uint8_t B, uint8_t interruptA, uint8_t interruptB, uint8_t debounceCount)
 {
+
+	s_debounce = debounceCount;
 	IO_SetMode(ePort, A, IO_MODE_PULLUPINPUT);
 	IO_SetMode(ePort, B, IO_MODE_PULLUPINPUT);
 
@@ -78,8 +83,8 @@ void ENC_Setup(IO_PORT_ENUM ePort, uint8_t A, uint8_t B, int interruptA, int int
  */
 int ENC_GetMovement(void)
 {
-	int change = s_count - s_lastReadCount;
-	s_lastReadCount = s_count;
+	int change = s_debouncedCount - s_lastReadCount;
+	s_lastReadCount = s_debouncedCount;
 	return change;
 }
 
@@ -124,12 +129,14 @@ static inline void updateEncoder(void)
 	case 8:
 	case 14:
 		s_count++; // Forwards
+		if (s_count >= s_debounce) {s_debouncedCount++; s_count = 0;}
 		break;
 	case 2:
 	case 4:
 	case 11:
 	case 13:
 		s_count--; // Backwards
+		if (s_count <= -s_debounce) {s_debouncedCount--; s_count = 0;}
 		break;
 	default:
 		break;

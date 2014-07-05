@@ -64,7 +64,7 @@
  * Private Defines and Datatypes
  */
 
-#define BLINK_TICK_MS 50
+#define BLINK_TICK_MS 500
  
 /*
  * Function Prototypes
@@ -99,18 +99,25 @@ int main(void)
 	{
 		if (TMR8_Tick_TestAndClear(&heartbeatTick))
 		{
-			int move = ENC_GetMovement();
+			IO_Control(IO_PORTB, 5, IO_TOGGLE);
+		}
 
-			n += move;
-
-			if (n < 0) { n = 0; }
-			if (n > 7) { n = 7; }
-
-			for (int i = 0; i < move; ++i)
+		int move = ENC_GetMovement();
+		
+		if (move > 0)
+		{
+			while(move--)
 			{
-				IO_Control(IO_PORTB, 5, IO_TOGGLE);
+				IO_Control(IO_PORTC, 5, IO_TOGGLE);
 			}
 		}
+		else if (move < 0)
+		{
+			while(move++)
+			{
+				IO_Control(IO_PORTC, 4, IO_TOGGLE);
+			}
+		}		
 	}
 
 	return 0;
@@ -124,10 +131,10 @@ static void setupIO(void)
 
 	IO_SetMode(IO_PORTB, 5, IO_MODE_OUTPUT);
 
-	IO_SetMode(IO_PORTD, 2, IO_MODE_INPUT);
-	IO_SetMode(IO_PORTD, 3, IO_MODE_INPUT);
+	IO_SetMode(IO_PORTC, 4, IO_MODE_OUTPUT);
+	IO_SetMode(IO_PORTC, 5, IO_MODE_OUTPUT);
 
-	ENC_Setup(IO_PORTD, 2, 3, 18, 19);
+	ENC_Setup(IO_PORTC, 0, 1, 8, 9, 4);
 }
 
 static void setupTimer(void)
