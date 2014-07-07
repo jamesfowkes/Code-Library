@@ -1,9 +1,9 @@
 /*
- * EncoderExample.c
+ * ADCExample.c
  *
- *  Example AVR encoder application
+ *  Example AVR ADC application
  *
- *  Created on: 20 June 2014
+ *  Created on: 06 July 2014
  *      Author: james
  *
  *		Target: ATMEGA328P
@@ -21,7 +21,7 @@
  * Utility Includes
  */
 
-#include "util_macros.h"
+// None
 
 /*
  * AVR Includes (Defines and Primitives)
@@ -37,22 +37,22 @@
  * Device Includes
  */
 
-// None
+#include "lcd/lcd.h"
 
 /*
  * Generic Library Includes
  */
 
-// None
+//none
 
 /*
  * AVR Library Includes
  */
 
 #include "lib_clk.h"
-#include "lib_tmr8_tick.h"
 #include "lib_io.h"
-#include "lib_encoder.h"
+#include "lib_tmr8_tick.h"
+#include "lib_adc.h"
 
 /*
  * Local Application Includes
@@ -65,7 +65,7 @@
  */
 
 #define BLINK_TICK_MS 500
- 
+
 /*
  * Function Prototypes
  */
@@ -78,6 +78,7 @@ static void setupIO(void);
  */
 
 static TMR8_TICK_CONFIG heartbeatTick;
+static ADC_CONTROL_ENUM adc;
 
 int main(void)
 {
@@ -89,6 +90,13 @@ int main(void)
 	setupTimer();
 	setupIO();
 	
+	adc.channel = LIB_ADC_CH_0;
+
+	ADC_SelectReference(LIB_ADC_REF_VCC);
+	ADC_SelectPrescaler(LIB_ADC_PRESCALER_DIV2);
+	ADC_Enable(true);
+	ADC_EnableInterrupts(true);
+
 	/* All processing interrupt based from here*/
 
 	sei();
@@ -98,24 +106,14 @@ int main(void)
 		if (TMR8_Tick_TestAndClear(&heartbeatTick))
 		{
 			IO_Control(IO_PORTB, 5, IO_TOGGLE);
+			ADC_GetReading(&adc);
 		}
 
-		int move = ENC_GetMovement();
-		
-		if (move > 0)
+		if (ADC_TestAndClear(&adc))
 		{
-			while(move--)
-			{
-				IO_Control(IO_PORTC, 5, IO_TOGGLE);
-			}
+			uint16_t reading = adc.reading;
+			(void)reading;
 		}
-		else if (move < 0)
-		{
-			while(move++)
-			{
-				IO_Control(IO_PORTC, 4, IO_TOGGLE);
-			}
-		}		
 	}
 
 	return 0;
@@ -128,11 +126,6 @@ static void setupIO(void)
 {
 
 	IO_SetMode(IO_PORTB, 5, IO_MODE_OUTPUT);
-
-	IO_SetMode(IO_PORTC, 4, IO_MODE_OUTPUT);
-	IO_SetMode(IO_PORTC, 5, IO_MODE_OUTPUT);
-
-	ENC_Setup(IO_PORTC, 0, 1, 8, 9, 4);
 }
 
 static void setupTimer(void)

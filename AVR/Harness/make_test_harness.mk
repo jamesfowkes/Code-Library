@@ -5,8 +5,6 @@ AVR_DIR = $(AVR32_HOME)\avr\include\avr
 HARNESS_ROOT_DIR = $(PROJECTS_PATH)\Libs\AVR\Harness
 HARNESS_AVR_DIR = $(HARNESS_ROOT_DIR)/AVR
 
-DEL = python $(LIBS_DIR)/del.py
-
 INCLUDE_DIRS = \
 	-I$(HARNESS_ROOT_DIR) \
 	-I$(LIBS_DIR)/TestHarness \

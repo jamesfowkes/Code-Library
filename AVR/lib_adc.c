@@ -36,9 +36,9 @@
  * Private Variables
  */
 
-static LIB_ADC_CHANNEL_ENUM currentChannel;
-static volatile uint16_t lastReading;
-static volatile ADC_CONTROL_ENUM *pControl = NULL;
+static LIB_ADC_CHANNEL_ENUM s_currentChannel;
+static volatile uint16_t s_lastReading;
+static volatile ADC_CONTROL_ENUM *s_pControl = NULL;
 
 /*
  * Private Function Prototypes
@@ -104,9 +104,9 @@ void ADC_GetReading(ADC_CONTROL_ENUM * control)
 {
 	control->conversionComplete = false;
 	SetChannel(control->channel);
-	pControl = control;
+	s_pControl = control;
 	
-	pControl->busy = true;
+	s_pControl->busy = true;
 	#ifndef TEST_HARNESS
 	ADCSRA |= (1 << ADSC); // Start conversion
 	#endif
@@ -145,8 +145,8 @@ void ADC_SelectPrescaler(LIB_ADC_PRESCALER_ENUM ePrescaler)
 
 void ADC_GetLastReading(uint16_t *reading, LIB_ADC_CHANNEL_ENUM *eChannel)
 {
-	*eChannel = currentChannel;
-	*reading = lastReading;
+	*eChannel = s_currentChannel;
+	*reading = s_lastReading;
 }
 
 /*
@@ -157,7 +157,7 @@ static void SetChannel(LIB_ADC_CHANNEL_ENUM eChannel)
 {
 	uint8_t admux = ADMUX;
 
-	currentChannel = eChannel;
+	s_currentChannel = eChannel;
 
 	admux &= ~CHANNEL_MASK;
 
@@ -173,8 +173,8 @@ ISR(ADC_vect)
 	result = ADCL;
 	result |= ADCH << 8;
 
-	lastReading = result;
-	pControl->reading = lastReading;
-	pControl->conversionComplete = true;
-	pControl->busy = false;
+	s_lastReading = result;
+	s_pControl->reading = s_lastReading;
+	s_pControl->conversionComplete = true;
+	s_pControl->busy = false;
 }

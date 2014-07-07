@@ -286,6 +286,12 @@ void TMR8_Tick_Kick(uint8_t ms)
 #endif
 
 #ifndef TEST_HARNESS
+#ifdef TIMER0_COMP_vect
+ISR(TIMER0_COMP_vect)
+{
+	isrHandler();
+}
+#endif
 #ifdef TIMER0_COMPA_vect
 ISR(TIMER0_COMPA_vect)
 {

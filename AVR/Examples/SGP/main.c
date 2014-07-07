@@ -97,69 +97,12 @@ inline void clrscr (void)
 
 void sgp_test (void)
 {
-	struct vector pos[5], vel[5];
-	struct sgp_data sgpdata;
-
-	int satnumber=0, interval, j;
-	double delta, tsince;
-
-	delta = 360.0;
-	for (j=0;(j<5);j++)
-	{
-		int model=0;
-		printf("\n\n\n");
-		switch (j)
-		{
-		case 0 : 
-			model = _SGP0;
-			satnumber = 0;
-			break;
-		case 1 :
-			model = _SGP4;
-			satnumber = 0;
-			break;
-		case 2 :
-			model = _SDP4;
-			satnumber = 1;
-			break;
-		case 3 :
-			model = _SGP8;
-			satnumber = 0;
-			break;
-		case 4 :
-			model = _SDP8;
-			satnumber = 1;
-			break;
-		}
-
-		Convert_Satellite_Data(sat_data, &sgpdata);
-		for (interval=0;(interval<=4);interval++)
-		{
-			tsince = interval * delta;
-			#if defined(SGP_MODEL_SGP0)
-				sgp0(tsince,&pos[interval],&vel[interval],&sgpdata);
-			#elif defined(SGP_MODEL_SGP4)
-				sgp4(tsince,&pos[interval],&vel[interval],&sgpdata);
-			#elif defined(SGP_MODEL_SDP4)
-				sdp4(tsince,&pos[interval],&vel[interval],&sgpdata);
-			#elif defined(SGP_MODEL_SGP8)
-				sgp8(tsince,&pos[interval],&vel[interval],&sgpdata);
-			#elif defined(SGP_MODEL_SGP0)		
-				sdp8(tsince,&pos[interval],&vel[interval],&sgpdata);
-			#else
-				#error "No SGP model was specified!"
-			#endif
-			Convert_Sat_State(&pos[interval],&vel[interval]);
-			pos[interval].v[3]=tsince;
-		}
-	}
 }
 
 int main(void)
 {
 
 	/* Disable watchdog: not required for this application */
-	MCUSR &= ~(1 << WDRF);
 	wdt_disable();
 
 	setupTimer();
@@ -189,8 +132,4 @@ static void setupTimer(void)
 	heartbeatTick.active = true;
 	TMR8_Tick_AddTimerConfig(&heartbeatTick);
 }
-
-
-
-
 
