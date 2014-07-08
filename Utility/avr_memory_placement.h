@@ -9,4 +9,7 @@ Use the generic util_memory_placement.h instead! */
 #define IN_PMEM(x) x PROGMEM
 #define	PMEM_STRNCPY strncpy_P
 #define STRNCMP strncmp_P
+
+#define IN_EEPROM(x) EEMEM x
+
 #endif

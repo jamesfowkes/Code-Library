@@ -14,6 +14,8 @@
 #define	PMEM_STRNCPY strncpy
 #define STRNCMP strncmp
 
+#define IN_EEPROM(x) x
+
 #endif
 
 #endif /* _UTIL_MEMORY_PLACEMENT_H_ */
