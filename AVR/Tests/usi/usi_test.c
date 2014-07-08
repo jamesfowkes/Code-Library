@@ -15,7 +15,7 @@
 #include <avr/io.h>
 
 #include "../../lib_usi.h"
-#include "../../Harness/lib_usi_harness_functions.h"
+#include "../../Harness/lib_usi_harness.h"
 
 int main(int argc, char *argv[])
 {

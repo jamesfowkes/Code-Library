@@ -5,7 +5,7 @@ FLAGS = -Wall -Wextra -lpthread -DTEST_HARNESS -DMEMORY_POOL_BYTES=1024
 CFILES = \
 tmr8_tick_test.c \
 ../../lib_tmr8_tick.c \
-../../Harness/lib_tmr8_tick_harness_functions.c \
+../../Harness/lib_tmr8_tick_harness.c \
 ../../../Generics/memorypool.c
 
 INCLUDES = \

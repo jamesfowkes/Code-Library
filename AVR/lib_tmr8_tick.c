@@ -25,7 +25,7 @@
 #include "lib_tmr8_tick.h"
 
 #ifdef TEST_HARNESS
-#include "lib_tmr8_tick_harness_functions.h"
+#include "lib_tmr8_tick_harness.h"
 #endif
 
 /*

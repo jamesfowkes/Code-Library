@@ -5,7 +5,7 @@ FLAGS = -Wall -Wextra -lpthread -DTEST_HARNESS
 CFILES = \
 usi_test.c \
 ../../lib_usi.c \
-../../Harness/lib_usi_harness_functions.c \
+../../Harness/lib_usi_harness.c \
 
 INCLUDES = \
 -I../../../AVR \

@@ -7,7 +7,7 @@ HARNESS_DIR = $(PROJECTS_PATH)\Libs\AVR\Harness\avr
 
 CFILES = \
 tmr16_pwm_test.c \
-../../Harness/lib_tmr16_harness_functions.c \
+../../Harness/lib_tmr16_harness.c \
 ../../Harness/lib_io_harness.c \
 ../../lib_tmr16_pwm.c \
 ../../lib_tmr16.c \
