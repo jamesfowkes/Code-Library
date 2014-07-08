@@ -9,16 +9,16 @@
 
 enum io_port_enum
 {
-	#ifdef PORTA0
+	#if defined(PORTA0) || defined(TEST_HARNESS_PORTA)
 	IO_PORTA,
 	#endif
-	#ifdef PORTB0
+	#if defined(PORTB0) || defined(TEST_HARNESS_PORTB)
 	IO_PORTB,
 	#endif
-	#ifdef PORTC0
+	#if defined(PORTC0) || defined(TEST_HARNESS_PORTC)
 	IO_PORTC,
 	#endif
-	#ifdef PORTD0
+	#if defined(PORTD0) || defined(TEST_HARNESS_PORTD)
 	IO_PORTD,
 	#endif
 	IO_PORT_MAX

@@ -77,22 +77,22 @@ bool IO_ReadPin(IO_PORT_ENUM ePort, uint8_t pin)
 	
 	switch(ePort)
 	{
-#ifdef PORTA0
+#if defined(PORTA0) || defined(TEST_HARNESS_PORTA)
 	case IO_PORTA:
 		on = IO_Read(PINA, pin);
 		break;
 #endif
-#ifdef PORTB0
+#if defined(PORTB0) || defined(TEST_HARNESS_PORTB)
 	case IO_PORTB:
 		on = IO_Read(PINB, pin);
 		break;
 #endif
-#ifdef PORTC0
+#if defined(PORTC0) || defined(TEST_HARNESS_PORTC)
 	case IO_PORTC:
 		on = IO_Read(PINC, pin);
 		break;
 #endif
-#ifdef PORTD0
+#if defined(PORTD0) || defined(TEST_HARNESS_PORTD)
 	case IO_PORTD:
 		on = IO_Read(PIND, pin);
 	break;
@@ -110,22 +110,22 @@ uint8_t IO_ReadPort(IO_PORT_ENUM ePort)
 	
 	switch(ePort)
 	{
-#ifdef PORTA0
+#if defined(PORTA0) || defined(TEST_HARNESS_PORTA)
 	case IO_PORTA:
 		val = PINA;
 		break;
 #endif
-#ifdef PORTB0
+#if defined(PORTB0) || defined(TEST_HARNESS_PORTB)
 	case IO_PORTB:
 		val = PINB;
 		break;
 #endif
-#ifdef PORTC0
+#if defined(PORTC0) || defined(TEST_HARNESS_PORTC)
 	case IO_PORTC:
 		val = PINC;
 		break;
 #endif
-#ifdef PORTD0
+#if defined(PORTD0) || defined(TEST_HARNESS_PORTD)
 	case IO_PORTD:
 		val = PIND;
 	break;
@@ -144,22 +144,22 @@ volatile uint8_t * IO_GetWritePortDirect(IO_PORT_ENUM ePort)
 
 	switch(ePort)
 	{
-#ifdef PORTA0
+#if defined(PORTA0) || defined(TEST_HARNESS_PORTA)
 	case IO_PORTA:
 		port = &PORTA;
 		break;
 #endif
-#ifdef PORTB0
+#if defined(PORTB0) || defined(TEST_HARNESS_PORTB)
 	case IO_PORTB:
 		port = &PORTB;
 		break;
 #endif
-#ifdef PORTC0
+#if defined(PORTC0) || defined(TEST_HARNESS_PORTC)
 	case IO_PORTC:
 		port = &PORTC;
 		break;
 #endif
-#ifdef PORTD0
+#if defined(PORTD0) || defined(TEST_HARNESS_PORTD)
 	case IO_PORTD:
 		port = &PORTD;
 	break;
@@ -178,22 +178,22 @@ volatile uint8_t * IO_GetReadPortDirect(IO_PORT_ENUM ePort)
 
 	switch(ePort)
 	{
-#ifdef PORTA0
+#if defined(PORTA0) || defined(TEST_HARNESS_PORTA)
 	case IO_PORTA:
 		port = &PINA;
 		break;
 #endif
-#ifdef PORTB0
+#if defined(PORTB0) || defined(TEST_HARNESS_PORTB)
 	case IO_PORTB:
 		port = &PINB;
 		break;
 #endif
-#ifdef PORTC0
+#if defined(PORTC0) || defined(TEST_HARNESS_PORTC)
 	case IO_PORTC:
 		port = &PINC;
 		break;
 #endif
-#ifdef PORTD0
+#if defined(PORTD0) || defined(TEST_HARNESS_PORTD)
 	case IO_PORTD:
 		port = &PIND;
 	break;
@@ -212,22 +212,22 @@ volatile uint8_t * IO_GetDirectionPortDirect(IO_PORT_ENUM ePort)
 
 	switch(ePort)
 	{
-#ifdef DDA0
+#if defined(DDA0) || defined(TEST_HARNESS_DDRA)
 	case IO_PORTA:
 		port = &DDRA;
 		break;
 #endif
-#ifdef DDB0
+#if defined(DDB0) || defined(TEST_HARNESS_DDRB)
 	case IO_PORTB:
 		port = &DDRB;
 		break;
 #endif
-#ifdef DDC0
+#if defined(DDC0) || defined(TEST_HARNESS_DDRC)
 	case IO_PORTC:
 		port = &DDRC;
 		break;
 #endif
-#ifdef DDD0
+#if defined(DDD0) || defined(TEST_HARNESS_DDRD)
 	case IO_PORTD:
 		port = &DDRD;
 	break;
@@ -271,22 +271,22 @@ void SetDDR(IO_PORT_ENUM ePort, uint8_t pin)
 
 	switch(ePort)
 	{
-#ifdef DDA0
+#if defined(DDA0) || defined(TEST_HARNESS_DDRA)
 	case IO_PORTA:
 		DDRA |= (1 << pin);
 		break;
 #endif
-#ifdef DDB0
+#if defined(DDB0) || defined(TEST_HARNESS_DDRB)
 	case IO_PORTB:
 		DDRB |= (1 << pin);
 		break;
 #endif
-#ifdef DDC0
+#if defined(DDC0) || defined(TEST_HARNESS_DDRC)
 	case IO_PORTC:
 		DDRC |= (1 << pin);
 		break;
 #endif
-#ifdef DDD0
+#if defined(DDD0) || defined(TEST_HARNESS_DDRD)
 	case IO_PORTD:
 		DDRD |= (1 << pin);
 	break;
@@ -301,22 +301,22 @@ void ClearDDR(IO_PORT_ENUM ePort, uint8_t pin)
 
 	switch(ePort)
 	{
-#ifdef DDA0
+#if defined(DDA0) || defined(TEST_HARNESS_DDRA)
 	case IO_PORTA:
 		DDRA &= ~(1 << pin);
 		break;
 #endif
-#ifdef DDB0
+#if defined(DDB0) || defined(TEST_HARNESS_DDRB)
 	case IO_PORTB:
 		DDRB &= ~(1 << pin);
 		break;
 #endif
-#ifdef DDC0
+#if defined(DDC0) || defined(TEST_HARNESS_DDRC)
 	case IO_PORTC:
 		DDRC &= ~(1 << pin);
 		break;
 #endif
-#ifdef DDD0
+#if defined(DDD0) || defined(TEST_HARNESS_DDRD)
 	case IO_PORTD:
 		DDRD &= ~(1 << pin);
 		break;
@@ -331,22 +331,22 @@ void SetPORT(IO_PORT_ENUM ePort, uint8_t pin)
 
 	switch(ePort)
 	{
-#ifdef PORTA0
+#if defined(PORTA0) || defined(TEST_HARNESS_PORTA)
 	case IO_PORTA:
 		PORTA |= (1 << pin);
 		break;
 #endif
-#ifdef PORTB0
+#if defined(PORTB0) || defined(TEST_HARNESS_PORTB)
 	case IO_PORTB:
 		PORTB |= (1 << pin);
 		break;
 #endif
-#ifdef PORTC0
+#if defined(PORTC0) || defined(TEST_HARNESS_PORTC)
 	case IO_PORTC:
 		PORTC |= (1 << pin);
 		break;
 #endif
-#ifdef PORTD0
+#if defined(PORTD0) || defined(TEST_HARNESS_PORTD)
 	case IO_PORTD:
 		PORTD |= (1 << pin);
 	break;
@@ -360,22 +360,22 @@ void ClearPORT(IO_PORT_ENUM ePort, uint8_t pin)
 {
 	switch(ePort)
 	{
-#ifdef PORTA0
+#if defined(PORTA0) || defined(TEST_HARNESS_PORTA)
 	case IO_PORTA:
 		PORTA &= ~(1 << pin);
 		break;
 #endif
-#ifdef PORTB0
+#if defined(PORTB0) || defined(TEST_HARNESS_PORTB)
 	case IO_PORTB:
 		PORTB &= ~(1 << pin);
 		break;
 #endif
-#ifdef PORTC0
+#if defined(PORTC0) || defined(TEST_HARNESS_PORTC)
 	case IO_PORTC:
 		PORTC &= ~(1 << pin);
 		break;
 #endif
-#ifdef PORTD0
+#if defined(PORTD0) || defined(TEST_HARNESS_PORTD)
 	case IO_PORTD:
 		PORTD &= ~(1 << pin);
 	break;
@@ -390,22 +390,22 @@ void SetPINS(IO_PORT_ENUM ePort, uint8_t pin)
 
 	switch(ePort)
 	{
-#ifdef PINA0
+#if defined(PINA0) || defined(TEST_HARNESS_PIND)
 	case IO_PORTA:
 		PINA = (1 << pin);
 		break;
 #endif
-#ifdef PINB0
+#if defined(PINB0) || defined(TEST_HARNESS_PINB)
 	case IO_PORTB:
 		PINB = (1 << pin);
 		break;
 #endif
-#ifdef PINC0
+#if defined(PINC0) || defined(TEST_HARNESS_PINC)
 	case IO_PORTC:
 		PINC = (1 << pin);
 		break;
 #endif
-#ifdef PIND0
+#if defined(PIND0) || defined(TEST_HARNESS_PIND)
 	case IO_PORTD:
 		PIND = (1 << pin);
 	break;
@@ -420,22 +420,22 @@ void ClearPINS(IO_PORT_ENUM ePort, uint8_t pin)
 
 	switch(ePort)
 	{
-#ifdef PINA0
+#if defined(PINA0) || defined(TEST_HARNESS_PIND)
 	case IO_PORTA:
 		PINA &= ~(1 << pin);
 		break;
 #endif
-#ifdef PINB0
+#if defined(PINB0) || defined(TEST_HARNESS_PINB)
 	case IO_PORTB:
 		PINB &= ~(1 << pin);
 		break;
 #endif
-#ifdef PINC0
+#if defined(PINC0) || defined(TEST_HARNESS_PINC)
 	case IO_PORTC:
 		PINC &= ~(1 << pin);
 		break;
 #endif
-#ifdef PIND0
+#if defined(PIND0) || defined(TEST_HARNESS_PIND)
 	case IO_PORTD:
 		PIND &= ~(1 << pin);
 	break;

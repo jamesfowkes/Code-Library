@@ -20,10 +20,10 @@ CFILES = \
 	
 OBJDEPS=$(CFILES:.c=.o)
 
-all: io $(NAME).exe
+all: io $(OTHER_TARGETS) $(NAME).exe
 	
 $(NAME).exe: $(OBJDEPS)
-	$(CC) $(CCFLAGS) $(INCLUDE_DIRS) $(OPTS) $^ -o $(NAME).exe
+	$(CC) $(CCFLAGS) $(INCLUDE_DIRS) $(OPTS) $^ $(OTHER_OBJS) -o $(NAME).exe
 	$(NAME).exe
 	
 io:
