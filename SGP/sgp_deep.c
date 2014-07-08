@@ -363,7 +363,6 @@ void deep(int ideep, struct sgp_data *satdata)
 	static double ze      = 0; 
 	static double zf      = 0;   
 	static double zm      = 0;
-	static double zmo     = 0; 
 	static double zmol    = 0;  
 	static double zmos    = 0;
 	static double zn      = 0;  
@@ -424,7 +423,6 @@ void deep(int ideep, struct sgp_data *satdata)
 		cc = c1ss;
 		zn = zns;
 		ze = zes;
-		zmo = zmos;
 		xnoi = 1/xnq;
 		ls = 30; /*assign 30 to ls -- 20:*/
 		for (i=0;i<2;i++)
@@ -515,7 +513,6 @@ void deep(int ideep, struct sgp_data *satdata)
 				zn = znl;
 				cc = c1l;
 				ze = zel;
-				zmo = zmol;
 				ls = 40; /*assign 40 to ls*/
 			}
 		}
