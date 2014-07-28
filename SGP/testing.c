@@ -83,10 +83,22 @@ void sgp_test (void)
 	struct vector pos[5], vel[5];
 	struct sgp_data satdata;
 
+	char l1[2][24];
+	char l2[2][70];
+	char l3[2][70];
+
 	int satnumber=0, interval, j;
 	double delta, tsince;
 	struct tle_ascii sat_data[2];
 	char c;
+
+	sat_data[0].l[0] = l1[0];
+	sat_data[0].l[1] = l2[0];
+	sat_data[0].l[2] = l3[0];
+	sat_data[1].l[0] = l1[1];
+	sat_data[1].l[1] = l2[2];
+	sat_data[1].l[2] = l3[3];
+
 	gettestdata(&sat_data[0],&sat_data[1]);
 	delta = 360.0;
 	for (j=0;(j<5);j++)

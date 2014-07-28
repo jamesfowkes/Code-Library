@@ -20,7 +20,10 @@ AVR_FILES = \
 	$(LIBS_DIR)/AVR/lib_tmr8_tick.c \
 	$(LIBS_DIR)/Devices/lcd/lcd.c \
 	$(LIBS_DIR)/Generics/memorypool.c
-	
+
+LDFLAGS = \
+	--gc-sections --relax
+
 CFILES = main.c $(SGP_FILES) $(AVR_FILES)
 
 EXTRA_INCLUDES = \

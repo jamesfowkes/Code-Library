@@ -30,8 +30,8 @@ SGP_MODEL_OBJ = $(SGP_MODEL_C:.c=.o)
 SGP_OBJS = $(SGP_FILES:.c=.o)
 
 SGP:
-	$(CC) $(OPTS) $(LDFLAGS) -DSGP_MODEL_$(SGP_MODEL) -c $(SGP_MODEL_C) -o $(SGP_MODEL_OBJ) $(LD_SUFFIX)
-	$(CC) $(OPTS) $(LDFLAGS) -DSGP_MODEL_$(SGP_MODEL) -c $(SGP_DIR)/sgp_conv.c -o $(SGP_DIR)/sgp_conv.o $(LD_SUFFIX)
-	$(CC) $(OPTS) $(LDFLAGS) -DSGP_MODEL_$(SGP_MODEL) -c $(SGP_DIR)/sgp_deep.c -o $(SGP_DIR)/sgp_deep.o $(LD_SUFFIX)
-	$(CC) $(OPTS) $(LDFLAGS) -DSGP_MODEL_$(SGP_MODEL) -c $(SGP_DIR)/sgp_math.c -o $(SGP_DIR)/sgp_math.o $(LD_SUFFIX)
-	$(CC) $(OPTS) $(LDFLAGS) -DSGP_MODEL_$(SGP_MODEL) -c $(SGP_DIR)/sgp_time.c -o $(SGP_DIR)/sgp_time.o $(LD_SUFFIX)
+	$(CC) $(CCFLAGS) $(LDFLAGS) -DSGP_MODEL_$(SGP_MODEL) -c $(SGP_MODEL_C) -o $(SGP_MODEL_OBJ) $(LD_SUFFIX)
+	$(CC) $(CCFLAGS) $(LDFLAGS) -DSGP_MODEL_$(SGP_MODEL) -c $(SGP_DIR)/sgp_conv.c -o $(SGP_DIR)/sgp_conv.o $(LD_SUFFIX)
+	$(CC) $(CCFLAGS) $(LDFLAGS) -DSGP_MODEL_$(SGP_MODEL) -c $(SGP_DIR)/sgp_deep.c -o $(SGP_DIR)/sgp_deep.o $(LD_SUFFIX)
+	$(CC) $(CCFLAGS) $(LDFLAGS) -DSGP_MODEL_$(SGP_MODEL) -c $(SGP_DIR)/sgp_math.c -o $(SGP_DIR)/sgp_math.o $(LD_SUFFIX)
+	$(CC) $(CCFLAGS) $(LDFLAGS) -DSGP_MODEL_$(SGP_MODEL) -c $(SGP_DIR)/sgp_time.c -o $(SGP_DIR)/sgp_time.o $(LD_SUFFIX)

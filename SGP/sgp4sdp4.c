@@ -247,7 +247,7 @@ void sgp4 (double tsince, struct vector *pos, struct vector *vel, struct sgp_dat
 	for (i=0;(i<3);i++)
 	{
 		pos->v[i] = rk * UV.v[i];
-		vel->v[i] = rdotk * UV.v[i] + rfdotk * VV.v[i];
+		if (vel) {vel->v[i] = rdotk * UV.v[i] + rfdotk * VV.v[i];}
         }
 }
 
