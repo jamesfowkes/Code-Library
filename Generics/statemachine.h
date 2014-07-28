@@ -46,6 +46,7 @@ typedef struct state_machine STATE_MACHINE;
 #define DEFINE_STATE_TRANSITIONS(x) static const SM_ENTRY x ## TransitionTable[]
 #define DEFINE_STATES(x) static SM_STATE x ## States[]
 #define STATE_TRANSITION(x, old, event, fn, new) {&x##States[old], event, fn, &x##States[new]}
+
 /* State machine template:
 	Copy-and-paste this into a .c file to define a state machine.
 	Replace items in < > brackets with application specific identifiers
@@ -60,13 +61,23 @@ DEFINE_STATES(<stateTableName>) = {
 };
 
 DEFINE_STATE_TRANSITIONS(<stateMachineName>) = {
-	STATE_TRANSITION(sm, <currentStateID>, <eventID>, <handlerFunction>, <newStateID>),
-	STATE_TRANSITION(sm, <currentStateID>, <eventID>, <handlerFunction>, <newStateID>),
+	STATE_TRANSITION(<stateMachineName>, <currentStateID>, <eventID>, <handlerFunction>, <newStateID>),
+	STATE_TRANSITION(<stateMachineName>, <currentStateID>, <eventID>, <handlerFunction>, <newStateID>),
 	...
 };
 
-DEFINE_STATE_MACHINE(<stateMachineName, <firstStateID>]);
+DEFINE_STATE_MACHINE(<stateMachineName>, <firstStateID>]);
 
+To initialise this state machine, make the following call:
+	SM_Init(&<stateMachineName>);
+
+To pass events to this state machine, make the following call:
+	SM_Event(&<stateMachineName>);
+	
+To get the current state ID of this state machine, make the following call:
+	SM_GetState(&<stateMachineName>);
+	or use
+	<stateMachineName>.CurrentState->ID, but this is not advised, as changes to internal structure may break application code.
 */
 
 #ifdef SM_PRIVATE_ACCESS
@@ -88,6 +99,7 @@ void SM_Init(STATE_MACHINE * sm);
 void SM_Event(STATE_MACHINE * sm, SM_EVENT event);
 void SM_Kick(STATE_MACHINE * sm);
 void SM_SetActive(STATE_MACHINE * sm, bool active);
-SM_STATEID SM_GetState(STATE_MACHINE * sm);
+//SM_STATEID SM_GetState(STATE_MACHINE * sm);
+#define SM_GetState(sm) ((sm)->CurrentState->ID)
 
 #endif

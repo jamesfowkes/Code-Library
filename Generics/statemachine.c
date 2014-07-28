@@ -68,10 +68,11 @@ void SM_SetActive(STATE_MACHINE * sm, bool active)
 	}
 }
 
-SM_STATEID SM_GetState(STATE_MACHINE * sm)
+/*SM_STATEID SM_GetState(STATE_MACHINE * sm)
 {
 	return sm->CurrentState->ID;
 }
+*/
 
 void SM_Kick(STATE_MACHINE * sm)
 {
