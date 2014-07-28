@@ -62,32 +62,20 @@ bool SMM_Config(uint8_t nMachines, uint8_t nEventsInQueue)
 	return ((StateMachines != NULL)&& (EventBuffers != NULL));
 }
 
-int8_t SMM_GetNextMachine(STATE_MACHINE_INTERNAL **NewMachine, SM_EVENT **NewEventQueue)
+void SMM_GetNextMachine(STATE_MACHINE_INTERNAL **NewMachine, SM_EVENT **NewEventQueue)
 {
-	int8_t index = -1;
 	if (s_StateMachineCount < s_MaxStateMachineCount)
 	{
-		index = s_StateMachineCount;
-		
-		*NewMachine = &StateMachines[index];
-		*NewEventQueue = &EventBuffers[index];
+		*NewMachine = &StateMachines[s_StateMachineCount];
+		*NewEventQueue = &EventBuffers[s_StateMachineCount];
 		
 		s_StateMachineCount++;
 	}
-
-	return index;
-}
-
-STATE_MACHINE_INTERNAL * SMM_GetMachine(uint8_t idx)
-{
-	if (idx < s_StateMachineCount)
-	{
-		return &StateMachines[idx];
-	}
 	else
 	{
-		return NULL;
-	}
+		*NewMachine = NULL;
+		*NewEventQueue = NULL;
+	}	
 }
 
 uint8_t SMM_GetMaxEventQueue(void)
