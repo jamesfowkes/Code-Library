@@ -149,8 +149,8 @@ void time_increment_seconds(TM * tm)
 	
 	if (tm->tm_hour == 0)
 	{
-		incrementwithrollover(tm->tm_wday, SAT);
-		incrementwithrollover(tm->tm_mday, days_in_month(tm->tm_mon, bIsLeapYear));
+		incrementwithrollover(tm->tm_wday, (int)SAT);
+		incrementwithrollover(tm->tm_mday, (int)days_in_month(tm->tm_mon, bIsLeapYear));
 		incrementwithrollover(tm->tm_yday, bIsLeapYear ? 365 : 364);
 	}
 	else

@@ -179,7 +179,7 @@ static volatile DATETIME_REGISTERS s_dt = {
 		.day = 0x03,
 		.date = 0x22,
 		.month = 0x09,
-		.year = 0x13
+		.year = 0x10
 		}
 };
 

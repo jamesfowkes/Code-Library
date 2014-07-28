@@ -10,20 +10,11 @@
 #include <stdint.h>
 
 /*
- * AVR Includes (Defines and Primitives)
- */
-
-#include "avr/io.h"
-#include "util/twi.h"
-
-/*
  * Common and Generic Includes
  */
 #include "lib_i2c_common.h"
 #include "lib_i2c_private.h"
 #include "lib_i2c_defs.h"
-
-#include "lib_io.h"
 
 static void sendAddress(void);
 static void errorCondition(void);
@@ -32,21 +23,21 @@ static void finish(void);
 
 static const I2C_STATEMACHINEENTRY sm_entries[] =
 {
-	{I2CS_IDLE,			TW_START,			sendAddress,	I2CS_ADDRESSING		},
-	{I2CS_IDLE,			TW_REP_START,		sendAddress,	I2CS_ADDRESSING		},
-	{I2CS_IDLE,			TW_BUS_ERROR,		errorCondition,	I2CS_IDLE			},
+	{I2CS_IDLE,			I2C_START,			sendAddress,	I2CS_ADDRESSING		},
+	{I2CS_IDLE,			I2C_REP_START,		sendAddress,	I2CS_ADDRESSING		},
+	{I2CS_IDLE,			I2C_BUS_ERROR,		errorCondition,	I2CS_IDLE			},
 	
-	{I2CS_ADDRESSING,	TW_MT_SLA_ACK,		txNextByte,		I2CS_TRANSFERRING	},
-	{I2CS_ADDRESSING,	TW_MT_SLA_NACK,		errorCondition,	I2CS_IDLE			},
+	{I2CS_ADDRESSING,	I2C_SLA_ACK,		txNextByte,		I2CS_TRANSFERRING	},
+	{I2CS_ADDRESSING,	I2C_SLA_NACK,		errorCondition,	I2CS_IDLE			},
 	
-	{I2CS_ADDRESSING,	TW_BUS_ERROR,		errorCondition,	I2CS_IDLE			},
+	{I2CS_ADDRESSING,	I2C_BUS_ERROR,		errorCondition,	I2CS_IDLE			},
 	
-	{I2CS_TRANSFERRING,	TW_MT_DATA_ACK,		txNextByte,		I2CS_TRANSFERRING	},
-	{I2CS_TRANSFERRING,	TW_MT_DATA_NACK,	errorCondition,	I2CS_IDLE			},
-	{I2CS_TRANSFERRING,	TW_MT_ARB_LOST,		errorCondition,	I2CS_IDLE			},
-	{I2CS_TRANSFERRING, TW_REP_START,		finish,			I2CS_IDLE			},
+	{I2CS_TRANSFERRING,	I2C_DATA_ACK,		txNextByte,		I2CS_TRANSFERRING	},
+	{I2CS_TRANSFERRING,	I2C_DATA_NACK,		errorCondition,	I2CS_IDLE			},
+	{I2CS_TRANSFERRING,	I2C_ARB_LOST,		errorCondition,	I2CS_IDLE			},
+	{I2CS_TRANSFERRING, I2C_REP_START,		finish,			I2CS_IDLE			},
 
-	{I2CS_TRANSFERRING,	TW_BUS_ERROR,		errorCondition,	I2CS_IDLE			},
+	{I2CS_TRANSFERRING,	I2C_BUS_ERROR,		errorCondition,	I2CS_IDLE			},
 };
 
 static I2C_STATEMACHINE sm = {false, 0, I2CS_IDLE, sm_entries};
@@ -75,7 +66,7 @@ void I2C_MT_SetRepeatStart(bool repeatStart)
 static void sendAddress(void)
 {
 	uint8_t address = (pTransfer->address << 1);
-	TWDR = address;
+	setData(address);
 	send();
 }
 
@@ -83,11 +74,11 @@ static void errorCondition(void)
 {
 	switch(sm.currentEvent)
 	{
-	case TW_MT_SLA_NACK:
-	case TW_MT_DATA_NACK:
+	case I2C_SLA_NACK:
+	case I2C_DATA_NACK:
 		stop();
 		break;
-	case TW_MT_ARB_LOST: // also TW_MR_ARB_LOST
+	case I2C_ARB_LOST:
 		release();
 		break;
 	default:
@@ -101,7 +92,7 @@ static void txNextByte(void)
 {
 	if (!I2C_TxBufferUsed())
 	{
-		TWDR = pTransfer->buffer[pTransfer->bytesTransferred]; // More data to send
+		setData(pTransfer->buffer[pTransfer->bytesTransferred]); // More data to send
 		(pTransfer->bytesTransferred)++;
 		send();
 	}

@@ -10,13 +10,6 @@
 #include <stdint.h>
 
 /*
- * AVR Includes (Defines and Primitives)
- */
-
-#include "avr/io.h"
-#include "util/twi.h"
-
-/*
  * Common and Generic Includes
  */
 
@@ -33,21 +26,21 @@ static void errorCondition(void);
 
 static const I2C_STATEMACHINEENTRY sm_entries[] =
 {
-	{I2CS_IDLE,			TW_START,			sendAddress,	I2CS_ADDRESSING		},
-	{I2CS_IDLE,			TW_REP_START,		sendAddress,	I2CS_ADDRESSING		},
-	{I2CS_IDLE,			TW_BUS_ERROR,		errorCondition,	I2CS_IDLE			},
+	{I2CS_IDLE,			I2C_START,		sendAddress,	I2CS_ADDRESSING		},
+	{I2CS_IDLE,			I2C_REP_START,	sendAddress,	I2CS_ADDRESSING		},
+	{I2CS_IDLE,			I2C_BUS_ERROR,	errorCondition,	I2CS_IDLE			},
 	
-	{I2CS_ADDRESSING,	TW_MR_SLA_ACK,		sendFirstAck,	I2CS_TRANSFERRING	},
-	{I2CS_ADDRESSING,	TW_MR_SLA_NACK,		errorCondition,	I2CS_IDLE			},
+	{I2CS_ADDRESSING,	I2C_SLA_ACK,	sendFirstAck,	I2CS_TRANSFERRING	},
+	{I2CS_ADDRESSING,	I2C_SLA_NACK,	errorCondition,	I2CS_IDLE			},
 	
-	{I2CS_ADDRESSING,	TW_BUS_ERROR,		errorCondition,	I2CS_IDLE			},
+	{I2CS_ADDRESSING,	I2C_BUS_ERROR,	errorCondition,	I2CS_IDLE			},
 	
-	{I2CS_TRANSFERRING,	TW_MR_DATA_ACK,		getNextByte,	I2CS_TRANSFERRING	},
-	{I2CS_TRANSFERRING,	TW_MR_DATA_NACK,	done,			I2CS_IDLE			},
-	{I2CS_TRANSFERRING, TW_REP_START, 		finish,			I2CS_IDLE			},
-	{I2CS_TRANSFERRING,	TW_MR_ARB_LOST,		errorCondition,	I2CS_IDLE			},
+	{I2CS_TRANSFERRING,	I2C_DATA_ACK,	getNextByte,	I2CS_TRANSFERRING	},
+	{I2CS_TRANSFERRING,	I2C_DATA_NACK,	done,			I2CS_IDLE			},
+	{I2CS_TRANSFERRING, I2C_REP_START, 	finish,			I2CS_IDLE			},
+	{I2CS_TRANSFERRING,	I2C_ARB_LOST,	errorCondition,	I2CS_IDLE			},
 	
-	{I2CS_TRANSFERRING,	TW_BUS_ERROR,		errorCondition,	I2CS_IDLE			},
+	{I2CS_TRANSFERRING,	I2C_BUS_ERROR,		errorCondition,	I2CS_IDLE			},
 };
 
 static I2C_STATEMACHINE sm = {false, 0, I2CS_IDLE, sm_entries};
@@ -77,7 +70,7 @@ static void sendAddress(void)
 {
 	uint8_t address = (pTransfer->address << 1);
 	address |= 0x01; // For reading
-	TWDR = address;
+	setData(address);
 	send();
 }
 
@@ -88,10 +81,11 @@ static void sendFirstAck(void)
 
 static void getNextByte(void)
 {
-	pTransfer->buffer[pTransfer->bytesTransferred] = TWDR;
+	readData(pTransfer->buffer[pTransfer->bytesTransferred]);
+	
 	(pTransfer->bytesTransferred)++;
 	// More bytes to receive
-	if (!I2C_RxBufferFull()) { ack(); } else { nack(); }
+	if (!I2C_RxBufferFull()) { ack(); } else { nack();}
 }
 
 static void done(void)

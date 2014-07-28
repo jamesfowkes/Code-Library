@@ -10,13 +10,6 @@
 #include <stdint.h>
 
 /*
- * AVR Includes (Defines and Primitives)
- */
-
-#include "avr/io.h"
-#include "util/twi.h"
-
-/*
  * Common and Generic Includes
  */
 #include "lib_i2c_common.h"
@@ -31,20 +24,20 @@ static void errorCondition(void);
 
 static I2C_STATEMACHINEENTRY sm_entries[] = 
 {
-	{I2CS_IDLE,			TW_SR_SLA_ACK,				startSR,		I2CS_TRANSFERRING	},
-	{I2CS_IDLE,			TW_SR_GCALL_ACK,			startSR,		I2CS_TRANSFERRING	},
-	{I2CS_IDLE,			TW_SR_ARB_LOST_SLA_ACK,		startSR,		I2CS_TRANSFERRING	},
-	{I2CS_IDLE,			TW_SR_ARB_LOST_GCALL_ACK,	startSR,		I2CS_TRANSFERRING	},
+	{I2CS_IDLE,			I2C_SLA_ACK,			startSR,		I2CS_TRANSFERRING	},
+	{I2CS_IDLE,			I2C_GCALL_ACK,			startSR,		I2CS_TRANSFERRING	},
+	{I2CS_IDLE,			I2C_ARB_LOST_SLA_ACK,	startSR,		I2CS_TRANSFERRING	},
+	{I2CS_IDLE,			I2C_ARB_LOST_GCALL_ACK,	startSR,		I2CS_TRANSFERRING	},
 	
-	{I2CS_IDLE,			TW_BUS_ERROR,				errorCondition,	I2CS_IDLE			},
+	{I2CS_IDLE,			I2C_BUS_ERROR,				errorCondition,	I2CS_IDLE			},
 	
-	{I2CS_TRANSFERRING,	TW_SR_DATA_ACK,				getNextByte,	I2CS_TRANSFERRING	},
-	{I2CS_TRANSFERRING,	TW_SR_GCALL_DATA_ACK,		getNextByte,	I2CS_TRANSFERRING	},
-	{I2CS_TRANSFERRING,	TW_SR_DATA_NACK,			sendNack,		I2CS_TRANSFERRING	},
-	{I2CS_TRANSFERRING,	TW_SR_GCALL_DATA_NACK,		sendNack,		I2CS_TRANSFERRING	},
-	{I2CS_TRANSFERRING,	TW_SR_STOP,					finish,			I2CS_IDLE			},
+	{I2CS_TRANSFERRING,	I2C_DATA_ACK,			getNextByte,	I2CS_TRANSFERRING	},
+	{I2CS_TRANSFERRING,	I2C_GCALL_DATA_ACK,		getNextByte,	I2CS_TRANSFERRING	},
+	{I2CS_TRANSFERRING,	I2C_DATA_NACK,			sendNack,		I2CS_TRANSFERRING	},
+	{I2CS_TRANSFERRING,	I2C_GCALL_DATA_NACK,		sendNack,		I2CS_TRANSFERRING	},
+	{I2CS_TRANSFERRING,	I2C_STOP,				finish,			I2CS_IDLE			},
 	
-	{I2CS_TRANSFERRING,	TW_BUS_ERROR,				errorCondition,	I2CS_IDLE			},
+	{I2CS_TRANSFERRING,	I2C_BUS_ERROR,				errorCondition,	I2CS_IDLE			},
 };
 
 static I2C_STATEMACHINE sm = {false, 0, I2CS_IDLE, sm_entries};
@@ -61,7 +54,7 @@ static void getNextByte(void)
 	// Store the data, then ack or just nack
 	if (!I2C_BufferFull())
 	{
-		data()->buffer[data()->bytesTransferred++] = TWDR;
+		readData(data()->buffer[data()->bytesTransferred++]);
 		ack();
 	}
 	else

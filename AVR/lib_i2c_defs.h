@@ -1,6 +1,8 @@
 #ifndef _LIB_I2C_DEFS_H
 #define _LIB_I2C_DEFS_H
 
+#include <util/twi.h>
+
 #define start()		{ TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN)  | (1<<TWIE); }
 #define ack()		{ TWCR = (1<<TWINT) | (1<<TWEN)  | (1<<TWEA)  | (1<<TWIE); }
 #define send()		{ TWCR = (1<<TWINT) | (1<<TWEN)  | (1<<TWIE); }
@@ -8,4 +10,8 @@
 #define stop()		{ TWCR = (1<<TWINT) | (1<<TWEN)  | (1<<TWSTO) | (1<<TWIE); }
 #define release()	{ TWCR = (1<<TWEN)  | (1<<TWIE)  | (1<<TWEA)  | (1<<TWINT); }
 
+#define setData(x)	{ TWDR = x; }
+#define readData(x) { x = TWDR; }
+
+#define setAddress(x) { TWAR &= 0x01; TWAR |= (x << 1); }
 #endif

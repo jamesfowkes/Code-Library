@@ -1,8 +1,8 @@
 CC = gcc 
 CCFLAGS = -Wall -Wextra -lpthread -DTEST_HARNESS -std=c99 -Wfatal-errors $(EXTRA_FLAGS)
 
-AVR_DIR = $(AVR32_HOME)\avr\include\avr
-HARNESS_ROOT_DIR = $(PROJECTS_PATH)\Libs\AVR\Harness
+AVR_DIR = $(AVR32_HOME)/avr/include/avr
+HARNESS_ROOT_DIR = $(PROJECTS_PATH)/Libs/AVR/Harness
 HARNESS_AVR_DIR = $(HARNESS_ROOT_DIR)/AVR
 
 INCLUDE_DIRS = \
@@ -21,14 +21,19 @@ CFILES = \
 	
 OBJDEPS=$(CFILES:.c=.o)
 
-all: io $(OTHER_TARGETS) $(NAME).exe
+.PRECIOUS: $(NAME).exe
+
+all: update_compile_time io $(OTHER_TARGETS) $(NAME).exe
 	
+update_compile_time:
+	python $(LIBS_DIR)/compiletime.py
+
 $(NAME).exe: $(OBJDEPS)
-	$(CC) $(CCFLAGS) $(INCLUDE_DIRS) $(OPTS) $^ $(OTHER_OBJS) -o $(NAME).exe
-	$(NAME).exe
+	$(CC) $(CCFLAGS) $(INCLUDE_DIRS) $(OPTS) $^ $(OTHER_OBJS) -o $(NAME).exe $(LINKER_SUFFIX)
+	./$(NAME).exe
 	
 io:
-	python $(HARNESS_ROOT_DIR)/generate_test_io.py $(MMCU) $(AVR_DIR) $(HARNESS_ROOT_DIR)\avr	
+	python $(HARNESS_ROOT_DIR)/generate_test_io.py $(MMCU) $(AVR_DIR) $(HARNESS_ROOT_DIR)/avr	
 
 %.o:%.c
 	$(CC) $(INCLUDE_DIRS) $(CCFLAGS) -c $< -o $@
