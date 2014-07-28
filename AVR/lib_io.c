@@ -390,7 +390,7 @@ void SetPINS(IO_PORT_ENUM ePort, uint8_t pin)
 
 	switch(ePort)
 	{
-#if defined(PINA0) || defined(TEST_HARNESS_PIND)
+#if defined(PINA0) || defined(TEST_HARNESS_PINA)
 	case IO_PORTA:
 		PINA = (1 << pin);
 		break;
@@ -420,7 +420,7 @@ void ClearPINS(IO_PORT_ENUM ePort, uint8_t pin)
 
 	switch(ePort)
 	{
-#if defined(PINA0) || defined(TEST_HARNESS_PIND)
+#if defined(PINA0) || defined(TEST_HARNESS_PINA)
 	case IO_PORTA:
 		PINA &= ~(1 << pin);
 		break;
