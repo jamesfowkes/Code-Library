@@ -34,32 +34,39 @@ bool TestHarnessRunNext(TEST_GROUP * testGroup)
 
 	TEST * thisTest;
 	
-	if (testGroup->lastTestRan >= 0)
-	{
-		thisTest = &(testGroup->tests[testGroup->lastTestRan]);
-		
-		thisTest->bResult = true;
-		thisTest->resultFn(thisTest);
-		
-		if (!thisTest->bResult)
-		{
-			printf(" FAIL: %s.\n", s_lastResultString);
-			exit(1);
-		}
-		else
-		{
-			printf(" PASS.\n");
-		}
-	}
-		
-	testGroup->lastTestRan++;
-	
-	if (testGroup->testCount == (uint32_t)testGroup->lastTestRan) { return false; }
-	
 	thisTest = &(testGroup->tests[testGroup->lastTestRan]);
 	
-	printf("Running test '%s'...", thisTest->name);
-	thisTest->testFn();
+	if (thisTest->n == 0)
+	{
+		if (testGroup->lastTestRan >= 0)
+		{
+			thisTest->bResult = true;
+			thisTest->resultFn(thisTest);
+			
+			if (!thisTest->bResult)
+			{
+				printf(" FAIL: %s.\n", s_lastResultString);
+				exit(1);
+			}
+			else
+			{
+				printf(" PASS.\n");
+			}
+		}
+			
+		testGroup->lastTestRan++;
+		
+		if (testGroup->testCount == (uint32_t)testGroup->lastTestRan) { return false; }
+		
+		thisTest = &(testGroup->tests[testGroup->lastTestRan]);
+		
+		printf("Running test '%s'...", thisTest->name);
+	}
+	else
+	{
+		thisTest->n--;
+		thisTest->testFn();
+	}
 	
 	return true;
 }

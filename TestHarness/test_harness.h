@@ -16,11 +16,12 @@
 #define DECLARE_TEST_GROUP(x) TEST TEST_ARRAY_NAME(x)[] = 
 #define END_TEST_GROUP(x) TEST_GROUP x = {TEST_ARRAY_NAME(x), N_ELE( ApplicationTestsArray ),  -1}
 
-#define TEST_STRUCT(x) {TEST_FN_NAME(x), RESULT_FN_NAME(x), true, #x}
+#define TEST_STRUCT(x) {TEST_FN_NAME(x), 1, RESULT_FN_NAME(x), true, #x}
+#define TEST_STRUCT_N(x, n) {TEST_FN_NAME(x), n, RESULT_FN_NAME(x), true, #x}
 #define DECLARE_TEST(x) TEST x = TEST_STRUCT(x)
 
 #define RETURN_ON_FAIL(x) if (!x) { return false; }
-#define TEST_ASSERT_EQUAL(a, b) TestAssertEqual(test, a, b, #a, #b)
+#define TEST_ASSERT_EQUAL(a, b) TestAssertEqual(test, a, b, #a, #b); if(!test->bResult) { return; }
 
 typedef struct test TEST;
 
@@ -30,6 +31,7 @@ typedef void (*RESULT_FN)(TEST * test);
 struct test
 {	
 	TEST_FN testFn;
+	uint8_t n;
 	RESULT_FN resultFn;
 	bool bResult;
 	char * name;
