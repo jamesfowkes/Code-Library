@@ -20,5 +20,5 @@ EXTRA_FLAGS = \
 	-DF_CPU=16000000 \
 	-DMEMORY_POOL_BYTES=512
 
-include $(PROJECTS_PATH)/make_avr.mk
+include $(LIBS_DIR)/AVR/make_avr.mk
 
