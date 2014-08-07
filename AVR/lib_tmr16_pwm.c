@@ -47,15 +47,15 @@ bool TMR16_PWM_Set(MILLIHZ freq, uint16_t duty, TMR_OCCHAN_ENUM eChannel)
 	// Valid TMR16 prescalers
 	uint16_t prescalers[4] = {1, 8, 64, 256};
 	uint8_t prescalerIndex = 0;
-	MILLIHZ fcpu = CLK_GetFcpu() * 1000;	// CPU output frequency (may be prescaled to ftmr)
-	MILLIHZ ftmr = 0; // Timer incoming clock frequency
-	MILLIHZ fovf = 0; // Timer overflow frequency
+	uint64_t fcpu = CLK_GetFcpu() * 1000ULL;	// CPU output frequency (may be prescaled to ftmr)
+	uint64_t ftmr = 0; // Timer incoming clock frequency
+	uint64_t fovf = 0; // Timer overflow frequency
 	uint16_t top = 0; // Sets PWM frequency
 	uint16_t ocr = 0; // Sets PWM duty
 	
 	//Start at highest timer frequency (prescaler = divide-by-1)
     ftmr = fcpu / prescalers[prescalerIndex];
-    fovf = (ftmr * 1000) / 65536;
+    fovf = ftmr / 65536;
 	
 	//Search for correct prescaler
     while (freq <= fovf)
