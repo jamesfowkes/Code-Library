@@ -44,8 +44,7 @@ void resetTest()
 //=======MAIN=====
 int main(void)
 {
-  Unity.TestFile = "lib_btn_test.c";
-  UnityBegin();
+  UNITY_BEGIN();
   RUN_TEST(test_InitHandler, 0);
   RUN_TEST(test_Update, 1);
   RUN_TEST(test_UpdateWithDebouncing, 2);

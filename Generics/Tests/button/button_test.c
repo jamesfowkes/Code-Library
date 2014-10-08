@@ -5,7 +5,7 @@
 
 #include "unity.h"
 
-#include "..\..\button.h"
+#include "button.h"
 
 void repeatCallback(void);
 void changeStateCallback(BTN_STATE_ENUM state);

@@ -6,22 +6,15 @@
 
 C_COMPILER=gcc
 
-LIBS_DIR = $(PROJECTS_PATH)\Libs
-DEL = python $(LIBS_DIR)\del.py
+LIBS_DIR = $(PROJECTS_PATH)/Libs
+DEL = python $(LIBS_DIR)/del.py
 
-ifeq ($(OS),Windows_NT)
-	TARGET_EXTENSION=.exe
-	UNITY_FOLDER=E:/WorkDir/Unity
-else
-	TARGET_EXTENSION=.out
-	UNITY_FOLDER=/home/james/Documents/Unity
-endif
-
-TARGET = $(TEST_NAME)/$(TEST_NAME)$(TARGET_EXTENSION)
+TARGET = $(TEST_NAME)/$(TEST_NAME)
 
 SRC_FILES=$(UNITY_FOLDER)/src/unity.c ../$(TEST_NAME).c $(TEST_NAME)/$(TEST_NAME)_test.c $(TEST_NAME)/$(TEST_NAME)_test_Runner.c
 
-INC_DIRS=-I$(UNITY_FOLDER)/src -I$(UNITY_FOLDER)/extras/fixture/src
+INC_DIRS= -I$(LIBS_DIR)/Generics -I$(LIBS_DIR)/Utility -I$(UNITY_FOLDER)/src -I$(UNITY_FOLDER)/extras/fixture/src
+
 SYMBOLS=-DUNITY_TEST -std=c99 -Wall -Wextra
 
 CLEANUP = $(DEL) $(TARGET)
@@ -46,11 +39,8 @@ statemachine: SYMBOLS += -DMEMORY_POOL_BYTES=1024
 statemachine: SRC_FILES += ../statemachinemanager.c
 statemachine: SRC_FILES += ../ringbuf.c
 statemachine: SRC_FILES += ../memorypool.c
-statemachine: INC_DIRS += -I../../Utility
-ringbuf: INC_DIRS += -I../../Utility
 
 averager: SYMBOLS += -DMEMORY_POOL_BYTES=1024 -DINCLUDE_32BIT_AVERAGER
-averager: INC_DIRS += -I../../Utility -I../../Generics
 averager: SRC_FILES += ../memorypool.c
 
 memorypool linkedlist statemachine ringbuf averager button: TEST_NAME=$@
