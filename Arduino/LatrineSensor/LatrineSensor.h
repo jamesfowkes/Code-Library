@@ -2,7 +2,10 @@
 #define _LATRINE_SENSOR_H_
 
 #include <stdint.h>
+
+#ifndef UNITY_TEST
 #include <Arduino.h>
+#endif
 
 typedef void(*LS_START_CB)(void);
 typedef void(*LS_END_CB)(uint16_t durationInSeconds);
@@ -11,8 +14,17 @@ class LatrineSensor
 {
 public:
 	LatrineSensor(LS_START_CB pFnStart, LS_END_CB pFnEnd, bool bEmitDebugInfo = false);
+	#ifndef UNITY_TEST
 	uint16_t Update(void);
+	#else
+	uint16_t Update(uint16_t count);
+	#endif
 	void Setup(void);
+	bool IsCalibrating(void);
+	bool IsFlushing(void);
+	
+	uint16_t GetFlushStartThreshold(void);
+	uint16_t GetFlushEndThreshold(void);
 private:
 
 	enum application_states
@@ -40,7 +52,12 @@ private:
 	
 	uint16_t s_flushState;
 
+	#ifndef UNITY_TEST
 	uint16_t updateTask(void);
+	#else
+	uint16_t updateTask(uint16_t count);
+	#endif
+	
 	void updateCalibration(uint16_t lastCount);
 	void updateStartThreshold(uint16_t lastCount);
 	void updateEndThreshold(uint16_t lastCount);
