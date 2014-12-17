@@ -15,7 +15,7 @@ def check(module):
     module_score = 0.0
 
     print("CHECKING %s" % module)
-    pout = os.popen('pylint --rcfile=pylintrc %s'% module, 'r')
+    pout = os.popen('pylint %s'% module, 'r')
     for line in pout:
         if  re.match("E....:.", line):
             print(line)
