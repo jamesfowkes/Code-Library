@@ -1,6 +1,10 @@
 /*
  * Includes
  */
+
+#ifdef UNITY_TEST
+#include <iostream>
+#endif
  
 #include <LatrineSensor.h>
 
@@ -11,6 +15,7 @@
 #ifndef min
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #endif
+
 
 /*
  * Constants (might become private class variables?)
@@ -74,8 +79,8 @@ void LatrineSensor::emitDebugInfo(uint16_t lastCount)
 	Serial.print(", S=");
 	Serial.println(s_flushState);
 	#else
-	(void)lastCount;
-	#endif
+	std::cout << "A=" << s_averageHigh << ", C=" << lastCount << ", FS=" << s_flushStartThreshold << ", FE=" << s_flushEndThreshold << ", S=" << s_flushState << std::endl;
+    #endif
 }
 
 #ifndef UNITY_TEST
@@ -169,6 +174,9 @@ void LatrineSensor::handleFlushing(uint16_t count)
 	if (count > s_flushEndThreshold)
 	{
 		if (s_pFnEnd) { s_pFnEnd( getFlushDurationInSeconds() ); }
+        // Update the flush start threshold to be (this flush end threshold- minimum diff)
+        s_flushStartThreshold = s_flushEndThreshold - MINIMUM_FREQ_DIFF;
+        s_averageHigh = s_flushStartThreshold;
 		s_flushState = STATE_IDLE;
 	}
 }

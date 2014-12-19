@@ -31,6 +31,7 @@ extern void test_FiveUpdatesCalibrateUnit(void);
 extern void test_ConstantInputProducesNoFlush(void);
 extern void test_ReducingInputProducesFlush(void);
 extern void test_IncreasingInputProducesFlushEnd(void);
+
 //=======Test Reset Option=====
 void resetTest()
 {
@@ -47,5 +48,6 @@ int main(void)
   RUN_TEST(test_ConstantInputProducesNoFlush, 1);
   RUN_TEST(test_ReducingInputProducesFlush, 2);
   RUN_TEST(test_IncreasingInputProducesFlushEnd, 3);
+
   return (UnityEnd());
 }
