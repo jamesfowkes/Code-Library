@@ -145,8 +145,8 @@ void ADC_SelectPrescaler(LIB_ADC_PRESCALER_ENUM ePrescaler)
 
 void ADC_GetLastReading(uint16_t *reading, LIB_ADC_CHANNEL_ENUM *eChannel)
 {
-	*eChannel = s_currentChannel;
-	*reading = s_lastReading;
+	if (eChannel != NULL) { *eChannel = s_currentChannel; }
+	if (reading != NULL) {*reading = s_lastReading; }
 }
 
 /*
