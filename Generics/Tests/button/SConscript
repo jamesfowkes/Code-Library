@@ -1,0 +1,6 @@
+Import('cpppath')
+objects = [
+	Object('button.test.cpp', CPPPATH=cpppath),
+	Object('../../button.c', CPPPATH=cpppath, CC='g++'),
+]
+Return('objects')

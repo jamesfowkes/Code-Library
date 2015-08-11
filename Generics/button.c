@@ -74,7 +74,7 @@ void BTN_Update(BTN * btn, BTN_STATE_ENUM state)
 static BTN_STATE_ENUM debounce(BTN * btn, BTN_STATE_ENUM state)
 {
 
-	bool new_state = btn->current_state;
+	BTN_STATE_ENUM new_state = btn->current_state;
 	
 	if (state == BTN_STATE_ACTIVE)
 	{
