@@ -2,6 +2,7 @@
 #include <stdint.h>
 
 #include "util_time.h"
+#include "util_simple_compare.h"
 #include "util_macros.h"
 
 // For non-leap years ONLY!
@@ -167,4 +168,127 @@ void time_increment_seconds(TM * tm)
 	{
 		return;
 	}	
+}
+
+void time_cpy(TM* dst, TM* src)
+{
+	if (dst && src)
+	{
+		dst->tm_year = src->tm_year;
+		dst->tm_mon = src->tm_mon;
+		dst->tm_mday = src->tm_mday;
+		dst->tm_hour = src->tm_hour;
+		dst->tm_min = src->tm_min;
+		dst->tm_sec = src->tm_sec;
+		dst->tm_wday = src->tm_wday;
+	}
+}
+
+bool days_in_month_valid(int days, uint8_t month, int year)
+{
+	// Validate month, date, hour, minute and second
+    GREGORIAN_YEAR fourDigitYear = 2000 + year;
+    int _days_in_month = days_in_month(month, is_leap_year(fourDigitYear));
+    return (days > 0) && (days <= _days_in_month); // Date between 1 and <days in month>
+}
+
+/*
+ * time_to_datetime_string
+ *
+ * Simple conversion from time struct to 
+ * time string in the format YY-MM-DD DDD HH:MM:SS
+ */
+
+bool time_to_datetime_string(TM* pTime, DT_FORMAT_STRING * dt_string)
+{
+    if (!pTime) { return false; }
+    if (!dt_string) { return false; }
+
+    dt_string->hyphen1 = '-';
+    dt_string->hyphen2 = '-';
+    dt_string->space1 = ' ';
+    dt_string->space2 = ' ';
+    dt_string->colon1 = ':';
+    dt_string->colon2 = ':';
+
+    weekday_to_chars(pTime->tm_wday, dt_string->day);
+
+    dt_string->year[0] = (pTime->tm_year / 10) + '0';
+    dt_string->year[1] = (pTime->tm_year % 10) + '0';
+
+    dt_string->month[0] = (pTime->tm_mon / 10) + '0';
+    dt_string->month[1] = (pTime->tm_mon % 10) + '0';
+
+    dt_string->date[0] = (pTime->tm_mday / 10) + '0';
+    dt_string->date[1] = (pTime->tm_mday % 10) + '0';
+
+    dt_string->hour[0] = (pTime->tm_hour / 10) + '0';
+    dt_string->hour[1] = (pTime->tm_hour % 10) + '0';
+
+    dt_string->minute[0] = (pTime->tm_min / 10) + '0';
+    dt_string->minute[1] = (pTime->tm_min % 10) + '0';
+
+    dt_string->second[0] = (pTime->tm_sec / 10) + '0';
+    dt_string->second[1] = (pTime->tm_sec % 10) + '0';
+
+    return true;
+}
+
+/*
+ * chars_to_weekday
+ *
+ * Takes a three-letter day string in three_char_day and returns 0-6 for the day
+ * of the week, where SUN = 0;
+ */
+bool chars_to_weekday(int * pResult, char * three_char_day)
+{
+    // Sets pResult to 0 for SUN, 1 for MON etc. Returns false if not a day string.
+    if (!pResult) { return false; }
+
+    if (simple_cmp(3, three_char_day, "SUN")) { *pResult = 0; return true; }
+    if (simple_cmp(3, three_char_day, "MON")) { *pResult = 1; return true; }
+    if (simple_cmp(3, three_char_day, "TUE")) { *pResult = 2; return true; }
+    if (simple_cmp(3, three_char_day, "WED")) { *pResult = 3; return true; }
+    if (simple_cmp(3, three_char_day, "THU")) { *pResult = 4; return true; }
+    if (simple_cmp(3, three_char_day, "FRI")) { *pResult = 5; return true; }
+    if (simple_cmp(3, three_char_day, "SAT")) { *pResult = 6; return true; }
+
+    return false;
+}
+
+/*
+ * weekday_to_chars
+ *
+ * Takes an int for the weekday (0-6, SUN  0) and fills str with
+ * three-letter day string for that day.
+ */
+void weekday_to_chars(int wday, char * str)
+{
+    // Set str to SUN for 0, MON for 1 etc...
+    switch(wday)
+    {
+    case 0:
+        str[0] = 'S'; str[1] = 'U'; str[2] = 'N';
+        break;
+    case 1:
+        str[0] = 'M'; str[1] = 'O'; str[2] = 'N';
+        break;
+    case 2:
+        str[0] = 'T'; str[1] = 'U'; str[2] = 'E';
+        break;
+    case 3:
+        str[0] = 'W'; str[1] = 'E'; str[2] = 'D';
+        break;
+    case 4:
+        str[0] = 'T'; str[1] = 'H'; str[2] = 'U';
+        break;
+    case 5:
+        str[0] = 'F'; str[1] = 'R'; str[2] = 'I';
+        break;
+    case 6:
+        str[0] = 'S'; str[1] = 'A'; str[2] = 'T';
+        break;
+ 	default:
+ 		break;
+    }
 }

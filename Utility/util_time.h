@@ -78,19 +78,45 @@ enum month_enum
 #define DAYS_HRS_MINS_SECS_TO_SECS(d, h, m, s) (d * S_PER_DAY) + HRS_MINS_SECS_TO_SECS(h, m, s)
 
 /* This struct taken from C library time.h */
-struct tm
-{
-	int tm_sec;    /* seconds after the minute (0 to 61) */
-	int tm_min;    /* minutes after the hour (0 to 59) */
-	int tm_hour;   /* hours since midnight (0 to 23) */
-	int tm_mday;   /* day of the month (1 to 31) */
-	int tm_mon;    /* months since January (0 to 11) */
-	int tm_year;   /* years since 1900 */
-	int tm_wday;   /* days since Sunday (0 to 6 Sunday=0) */
-	int tm_yday;   /* days since January 1 (0 to 365) */
-	int tm_isdst;  /* Daylight Savings Time */
-};
+
+#ifdef TEST
+	#include <time.h>
+#else
+	#ifndef _TIME_H
+	#pragma message("Using local struct tm")
+	struct tm
+	{
+		int tm_sec;    /* seconds after the minute (0 to 61) */
+		int tm_min;    /* minutes after the hour (0 to 59) */
+		int tm_hour;   /* hours since midnight (0 to 23) */
+		int tm_mday;   /* day of the month (1 to 31) */
+		int tm_mon;    /* months since January (0 to 11) */
+		int tm_year;   /* years since 1900 */
+		int tm_wday;   /* days since Sunday (0 to 6 Sunday=0) */
+		int tm_yday;   /* days since January 1 (0 to 365) */
+		int tm_isdst;  /* Daylight Savings Time */
+	};
+	#endif
+#endif
 typedef struct tm TM;
+
+struct dt_format_string
+{
+    char day[3];
+    char space1;
+    char year[2];
+    char hyphen1;
+    char month[2];
+    char hyphen2;
+    char date[2];
+    char space2;
+    char hour[2];
+    char colon1;
+    char minute[2];
+    char colon2;
+    char second[2];
+};
+typedef struct dt_format_string DT_FORMAT_STRING;
 
 typedef UNIX_TIME_TYPE UNIX_TIMESTAMP;
 typedef int C_STRUCT_YEAR;
@@ -102,6 +128,9 @@ typedef int GREGORIAN_YEAR;
 
 bool is_leap_year(GREGORIAN_YEAR year);
 uint16_t days_in_month(uint8_t month, bool is_leap_year);
+
+bool days_in_month_valid(int days, uint8_t month, int year);
+
 uint16_t calculate_days_into_year(const TM * tm);
 
 void unix_seconds_to_time(UNIX_TIMESTAMP sec, TM * tm);
@@ -109,4 +138,9 @@ UNIX_TIMESTAMP time_to_unix_seconds(TM const * const tm);
 
 void time_increment_seconds(TM * tm);
 
+void time_cpy(TM* dst, TM* src);
+
+bool time_to_datetime_string(TM* pTime, DT_FORMAT_STRING * dt_string);
+bool chars_to_weekday(int * pResult, char * three_char_day);
+void weekday_to_chars(int wday, char * str);
 #endif
