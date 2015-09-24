@@ -83,7 +83,6 @@ enum month_enum
 	#include <time.h>
 #else
 	#ifndef _TIME_H
-	#pragma message("Using local struct tm")
 	struct tm
 	{
 		int tm_sec;    /* seconds after the minute (0 to 61) */
@@ -138,9 +137,11 @@ UNIX_TIMESTAMP time_to_unix_seconds(TM const * const tm);
 
 void time_increment_seconds(TM * tm);
 
-void time_cpy(TM* dst, TM* src);
+void time_cpy(TM* dst, TM const * const src);
 
-bool time_to_datetime_string(TM* pTime, DT_FORMAT_STRING * dt_string);
-bool chars_to_weekday(int * pResult, char * three_char_day);
+bool time_to_datetime_string(TM const * const pTime, DT_FORMAT_STRING * dt_string);
+bool chars_to_weekday(int * pResult, char const * const three_char_day);
 void weekday_to_chars(int wday, char * str);
+
+bool times_equal(TM const * const t1, TM const * const t2);
 #endif

@@ -44,7 +44,7 @@
     return valid;
 }*/
 
-bool parse_chars_to_int(int * pResult, char * number, int count, int * range)
+bool parse_chars_to_int(int * pResult, char const * const number, int count, int * range)
 {
     // Convert ASCII chars to actual value
 
@@ -57,8 +57,7 @@ bool parse_chars_to_int(int * pResult, char * number, int count, int * range)
     for (c = 0; c < count; c++)
     {
         result *= 10;
-        number[c] -= '0';
-        result += number[c];
+        result += number[c] - '0';
         max *= 10; // Max goes 10, 100, 1000...
     }
 

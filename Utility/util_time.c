@@ -170,7 +170,7 @@ void time_increment_seconds(TM * tm)
 	}	
 }
 
-void time_cpy(TM* dst, TM* src)
+void time_cpy(TM* dst, TM const * const src)
 {
 	if (dst && src)
 	{
@@ -181,6 +181,7 @@ void time_cpy(TM* dst, TM* src)
 		dst->tm_min = src->tm_min;
 		dst->tm_sec = src->tm_sec;
 		dst->tm_wday = src->tm_wday;
+		dst->tm_yday = src->tm_yday;
 	}
 }
 
@@ -199,7 +200,7 @@ bool days_in_month_valid(int days, uint8_t month, int year)
  * time string in the format YY-MM-DD DDD HH:MM:SS
  */
 
-bool time_to_datetime_string(TM* pTime, DT_FORMAT_STRING * dt_string)
+bool time_to_datetime_string(TM const * const pTime, DT_FORMAT_STRING * dt_string)
 {
     if (!pTime) { return false; }
     if (!dt_string) { return false; }
@@ -213,11 +214,13 @@ bool time_to_datetime_string(TM* pTime, DT_FORMAT_STRING * dt_string)
 
     weekday_to_chars(pTime->tm_wday, dt_string->day);
 
-    dt_string->year[0] = (pTime->tm_year / 10) + '0';
-    dt_string->year[1] = (pTime->tm_year % 10) + '0';
+    int year = TWO_DIGIT_YEAR(C_TO_GREGORIAN_YEAR(pTime->tm_year));
 
-    dt_string->month[0] = (pTime->tm_mon / 10) + '0';
-    dt_string->month[1] = (pTime->tm_mon % 10) + '0';
+    dt_string->year[0] = (year / 10) + '0';
+    dt_string->year[1] = (year % 10) + '0';
+
+    dt_string->month[0] = ((pTime->tm_mon+1) / 10) + '0';
+    dt_string->month[1] = ((pTime->tm_mon+1) % 10) + '0';
 
     dt_string->date[0] = (pTime->tm_mday / 10) + '0';
     dt_string->date[1] = (pTime->tm_mday % 10) + '0';
@@ -240,7 +243,7 @@ bool time_to_datetime_string(TM* pTime, DT_FORMAT_STRING * dt_string)
  * Takes a three-letter day string in three_char_day and returns 0-6 for the day
  * of the week, where SUN = 0;
  */
-bool chars_to_weekday(int * pResult, char * three_char_day)
+bool chars_to_weekday(int * pResult, char const * const three_char_day)
 {
     // Sets pResult to 0 for SUN, 1 for MON etc. Returns false if not a day string.
     if (!pResult) { return false; }
@@ -291,4 +294,18 @@ void weekday_to_chars(int wday, char * str)
  	default:
  		break;
     }
+}
+
+bool times_equal(TM const * const t1, TM const * const t2)
+{
+	bool equal = true;
+	equal &= (t1->tm_sec == t2->tm_sec);
+	equal &= (t1->tm_min == t2->tm_min);
+	equal &= (t1->tm_hour == t2->tm_hour);
+	equal &= (t1->tm_mday == t2->tm_mday);
+	equal &= (t1->tm_mon == t2->tm_mon);
+	equal &= (t1->tm_year == t2->tm_year);
+	equal &= (t1->tm_wday == t2->tm_wday);
+	equal &= (t1->tm_yday == t2->tm_yday);
+	return equal;
 }
