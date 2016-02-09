@@ -70,18 +70,18 @@ static void sendAddress(void)
 {
 	uint8_t address = (pTransfer->address << 1);
 	address |= 0x01; // For reading
-	setData(address);
+	setData(&address);
 	send();
 }
 
 static void sendFirstAck(void)
 {
-	if (!I2C_RxBufferFull()) { ack() } else { nack(); }
+	if (!I2C_RxBufferFull()) { ack(); } else { nack(); }
 }
 
 static void getNextByte(void)
 {
-	readData(pTransfer->buffer[pTransfer->bytesTransferred]);
+	readData(&(pTransfer->buffer[pTransfer->bytesTransferred]));
 	
 	(pTransfer->bytesTransferred)++;
 	// More bytes to receive

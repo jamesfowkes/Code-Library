@@ -9,6 +9,10 @@
 
 #include <stdint.h>
 
+#include <cppunit/extensions/TestFactoryRegistry.h>
+#include <cppunit/ui/text/TestRunner.h>
+#include <cppunit/extensions/HelperMacros.h>
+
 /*
  * Common and Generic Includes
  */
@@ -25,21 +29,21 @@ static void errorCondition(void);
 
 static const I2C_STATEMACHINEENTRY sm_entries[] =
 {
-	{I2CS_IDLE,		I2CE_START,		sendAddress,	I2CS_ADDRESSING		},
-	{I2CS_IDLE,		I2CE_REP_START,		sendAddress,	I2CS_ADDRESSING		},
-	{I2CS_IDLE,		I2CE_BUS_ERROR,		errorCondition,	I2CS_IDLE		},
+	{I2CS_IDLE,		I2C_START,		sendAddress,	I2CS_ADDRESSING		},
+	{I2CS_IDLE,		I2C_REP_START,		sendAddress,	I2CS_ADDRESSING		},
+	{I2CS_IDLE,		I2C_BUS_ERROR,		errorCondition,	I2CS_IDLE		},
 	
-	{I2CS_ADDRESSING,	I2CE_MR_SLA_ACK,	sendFirstAck,	I2CS_TRANSFERRING	},
-	{I2CS_ADDRESSING,	I2CE_MR_SLA_NACK,	errorCondition,	I2CS_IDLE		},
+	{I2CS_ADDRESSING,	I2C_MR_SLA_ACK,	sendFirstAck,	I2CS_TRANSFERRING	},
+	{I2CS_ADDRESSING,	I2C_MR_SLA_NACK,	errorCondition,	I2CS_IDLE		},
 	
-	{I2CS_ADDRESSING,	I2CE_BUS_ERROR,		errorCondition,	I2CS_IDLE		},
+	{I2CS_ADDRESSING,	I2C_BUS_ERROR,		errorCondition,	I2CS_IDLE		},
 	
-	{I2CS_TRANSFERRING,	I2CE_MR_DATA_ACK,	getNextByte,	I2CS_TRANSFERRING	},
-	{I2CS_TRANSFERRING,	I2CE_MR_DATA_NACK,	done,		I2CS_IDLE		},
-	{I2CS_TRANSFERRING, 	I2CE_REP_START, 	finish,		I2CS_IDLE		},
-	{I2CS_TRANSFERRING,	I2CE_MR_ARB_LOST,	errorCondition,	I2CS_IDLE		},
+	{I2CS_TRANSFERRING,	I2C_MR_DATA_ACK,	getNextByte,	I2CS_TRANSFERRING	},
+	{I2CS_TRANSFERRING,	I2C_MR_DATA_NACK,	done,		I2CS_IDLE		},
+	{I2CS_TRANSFERRING, 	I2C_REP_START, 	finish,		I2CS_IDLE		},
+	{I2CS_TRANSFERRING,	I2C_MR_ARB_LOST,	errorCondition,	I2CS_IDLE		},
 	
-	{I2CS_TRANSFERRING,	I2CE_BUS_ERROR,		errorCondition,	I2CS_IDLE		},
+	{I2CS_TRANSFERRING,	I2C_BUS_ERROR,		errorCondition,	I2CS_IDLE		},
 };
 
 static I2C_STATEMACHINE sm = {false, 0, I2CS_IDLE, sm_entries};

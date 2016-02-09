@@ -1,0 +1,12 @@
+Import('cpppath', 'cppdefines', 'cppflags', 'library_path')
+
+cppdefines += ["I2C_MT", "I2C_MR"]
+
+objects = [
+	Object('i2c.test.cpp', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags),
+	Object('../../lib_i2c.c', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags, CC='g++'),
+	Object('../../lib_i2c_mr.c', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags, CC='g++'),
+	Object('../../lib_i2c_mt.c', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags, CC='g++'),
+	Object('../../../AVR/Harness/lib_io_harness.c', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags, CC='g++'),
+]
+Return('objects')

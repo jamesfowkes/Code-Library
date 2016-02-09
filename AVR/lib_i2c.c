@@ -15,7 +15,8 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <util/twi.h>
+
+#include "util/twi.h"
 
 /*
  * Common and Generic Includes

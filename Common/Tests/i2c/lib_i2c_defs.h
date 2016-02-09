@@ -8,8 +8,8 @@ void nack(void);
 void stop(void);
 void release(void);
 
-void I2C_PLATFORM_SET_ADDR(uint8_t address);
-void I2C_PLATFORM_GET_DATA(uint8_t data);
-void I2C_PLATFORM_SET_DATA(uint8_t data);
+void setThisSlaveAddress(uint8_t address);
+void readData(uint8_t * data);
+void setData(uint8_t * data);
 
 #endif

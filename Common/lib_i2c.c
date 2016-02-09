@@ -17,7 +17,7 @@
 #include "lib_i2c_private.h"
 #include "lib_i2c_defs.h"
 
-#include "util_macros.h"
+#include "Utility/util_macros.h"
 
 static I2C_STATEMACHINE * state_machines[4] =
 { NULL, NULL, NULL, NULL };
@@ -55,10 +55,10 @@ bool I2C_IsActive(void)
 	return (active_sm != NULL);
 }
 
-void I2C_SetSlaveAddress(uint8_t slaveAddress)
+void I2C_SetThisDeviceSlaveAddress(uint8_t slaveAddress)
 {
 	s_ThisSlaveAddress = slaveAddress;
-	setAddress(slaveAddress);
+	setThisSlaveAddress(slaveAddress);
 }
 
 bool I2C_StartMaster(I2C_TRANSFER_DATA * newTransferData, bool read, bool repeatStart)
@@ -180,7 +180,10 @@ void I2C_New_Event(I2C_EVENT event)
 		{
 			active_sm->currentEvent = event;
 			search->handler();
-			active_sm->currentState = search->nextState;
+			if (active_sm) // Might have been cleared by I2C_Done()
+			{
+				active_sm->currentState = search->nextState;
+			}
 		}
 
 		if (active_sm) // Might have been cleared by I2C_Done()

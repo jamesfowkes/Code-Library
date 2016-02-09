@@ -30,6 +30,12 @@ uint8_t USRBR;
 uint8_t USISR;
 uint8_t USICR;
 
+/* TWI Registers */
+uint8_t TWAR;
+uint8_t TWCR;
+uint8_t TWDR;
+
 /* MCU Registers */
 uint8_t MCUSR;
 uint8_t GIMSK;
+

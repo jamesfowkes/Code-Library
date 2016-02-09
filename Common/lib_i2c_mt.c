@@ -66,7 +66,7 @@ void I2C_MT_SetRepeatStart(bool repeatStart)
 static void sendAddress(void)
 {
 	uint8_t address = (pTransfer->address << 1);
-	setData(address);
+	setData(&address);
 	send();
 }
 
@@ -92,7 +92,7 @@ static void txNextByte(void)
 {
 	if (!I2C_TxBufferUsed())
 	{
-		setData(pTransfer->buffer[pTransfer->bytesTransferred]); // More data to send
+		setData(&(pTransfer->buffer[pTransfer->bytesTransferred])); // More data to send
 		(pTransfer->bytesTransferred)++;
 		send();
 	}
