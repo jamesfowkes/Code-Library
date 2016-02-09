@@ -5,7 +5,7 @@
  * Public Datatype Definitions
  */
 
-#define sws_var_dump(v, fmt) { void * p = &v; SWS_Transmit(#v "=" fmt, 0, &p, 1); }
+#define sws_var_dump(v, fmt) { void * p = &v; SWS_Transmit(#v "=" fmt "\r\n", 0, &p, 1); }
 
 enum lib_sws_baudrate
 {

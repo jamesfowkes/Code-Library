@@ -36,13 +36,13 @@
  * Format Library Includes
  */
 
-#include "format.h"
+#include "Format/format.h"
 
 /*
  * Utility Library Includes
  */
 
-#include "util_macros.h"
+#include "Utility/util_macros.h"
 
 /*
  * Private Defines and Typedefs
@@ -158,7 +158,7 @@ void SWS_Transmit(char const * const buffer, uint8_t size, void * args[], uint8_
 {
 	if (nargs > 0 && args)
 	{
-		TranslateBuffer(buffer, txBuffer, size, args, nargs);
+		TranslateBuffer(buffer, txBuffer, size, args, nargs, true);
 	}
 	else
 	{

@@ -12,7 +12,7 @@
  * Format Library Includes
  */
 
-#include "integertypeenum.h"
+#include "Generics/integertypeenum.h"
 #include "format.h"
 
 /*

@@ -1,0 +1,10 @@
+Import('cpppath', 'cppdefines', 'cppflags')
+objects = [
+	Object('swserial.test.cpp', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags),
+	Object('../../lib_swserial.c', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags, CC='g++'),
+	Object('../../lib_fuses.c', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags, CC='g++'),
+	Object('../../lib_io.c', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags, CC='g++'),
+	Object('../../Harness/lib_io_harness.c', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags, CC='g++'),
+	Object('../../../Format/format.c', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags, CC='g++')
+]
+Return('objects')
