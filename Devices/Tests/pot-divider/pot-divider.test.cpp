@@ -36,7 +36,7 @@ class PotDividerTest : public CppUnit::TestFixture  {
 	void test_FixedPulldown(void)
 	{
 
-		float expectedR = POTDIVIDER_GetInfiniteResitance();
+		float expectedR = POTDIVIDER_GetInfiniteResistance();
 		uint32_t res = POTDIVIDER_GetResistanceFromADC(&pdDivider, 0);
 
 		CPPUNIT_ASSERT_DOUBLES_EQUAL(expectedR, res, 1);

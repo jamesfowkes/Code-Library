@@ -38,7 +38,7 @@ static uint32_t getOtherResistanceWithFixedPulldown(POT_DIVIDER * pDivider, uint
 
 	if (adcReading == 0)
 	{
-		resistance = POTDIVIDER_GetInfiniteResitance();
+		resistance = POTDIVIDER_GetInfiniteResistance();
 	}
 	else
 	{
@@ -118,7 +118,7 @@ uint16_t POTDIVIDER_GetADCFromResistance(POT_DIVIDER * pDivider, uint32_t resist
 	return (uint16_t)adc;
 }
 
-uint32_t POTDIVIDER_GetInfiniteResitance()
+uint32_t POTDIVIDER_GetInfiniteResistance()
 {
 	return (uint32_t)INFINITY;
 }

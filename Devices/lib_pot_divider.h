@@ -27,6 +27,6 @@ typedef struct pot_divider POT_DIVIDER;
 bool POTDIVIDER_Init(POT_DIVIDER * pDivider, uint16_t maxAdcReading, uint32_t rDivider, DIVIDER_TYPE eDividerType);
 uint32_t POTDIVIDER_GetResistanceFromADC(POT_DIVIDER * pDivider, uint16_t adcReading);
 uint16_t POTDIVIDER_GetADCFromResistance(POT_DIVIDER * pDivider, uint32_t resistance);
-uint32_t POTDIVIDER_GetInfiniteResitance();
+uint32_t POTDIVIDER_GetInfiniteResistance();
 
 #endif
