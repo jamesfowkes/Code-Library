@@ -25,7 +25,6 @@
 
 class FormatTest : public CppUnit::TestFixture  {
 
-
 	CPPUNIT_TEST_SUITE(FormatTest);
 	CPPUNIT_TEST(test_U8Format);
 	CPPUNIT_TEST(test_S8Format);

@@ -31,7 +31,7 @@ uint8_t const * MEMPOOL_GetBytes(size_t bytes)
 		}
 		else
 		{
-			#ifdef UNITY_TEST
+			#ifdef TEST_HARNESS
 			printf("MEMPOOL allocation failed requesting %zd bytes (%d remaining in pool)\n", bytes, (poolEnd - poolStart));
 			#endif
 			while(true) {};
@@ -51,7 +51,7 @@ uint16_t MEMPOOL_GetUsed(void)
 	return (uint16_t)(poolStart - pool);
 }
 
-#ifdef UNITY_TEST
+#ifdef TEST_HARNESS
 void MEMPOOL_Reset(void)
 {
 	// NEVER call except when under test rig!

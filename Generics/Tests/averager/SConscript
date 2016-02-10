@@ -1,0 +1,10 @@
+Import('cpppath', 'cppdefines', 'cppflags')
+
+cppdefines += ["MEMORY_POOL_BYTES=1024", "INCLUDE_32BIT_AVERAGER"]
+
+objects = [
+	Object('averager.test.cpp', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags),
+	Object('../../averager.c', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags, CC='g++'),
+	Object('../../memorypool.c', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags, CC='g++')
+]
+Return('objects')

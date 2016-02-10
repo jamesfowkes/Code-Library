@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 
 cpppath = [".", "#../", library_path]
 cppdefines = ["TEST_HARNESS"]
-cppflags = ["-Wall", "-Wextra", "-g"]
+cppflags = ["-Wall", "-Wextra"]
 
 for target in COMMAND_LINE_TARGETS:
 	conscript = target+"/SConscript"
