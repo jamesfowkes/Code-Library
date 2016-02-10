@@ -12,7 +12,7 @@
  * Utility Library Includes
  */
 
-#include "util_macros.h"
+#include "Utility/util_macros.h"
 
 /*
  * Device Library Includes
@@ -29,8 +29,34 @@
  */
 
 /*
- * Private Function Prototypes
+ * Private Functions
  */
+
+static uint32_t getOtherResistanceWithFixedPulldown(POT_DIVIDER * pDivider, uint16_t adcReading)
+{
+	uint32_t resistance = 0UL;
+
+	if (adcReading == 0)
+	{
+		resistance = POTDIVIDER_GetInfiniteResitance();
+	}
+	else
+	{
+		// D = U(M/A - 1) = UM/A - U -> avoid precision loss
+		resistance = pDivider->rDivider * pDivider->maxAdcReading;
+		resistance = div_round(resistance, adcReading);
+		resistance -= pDivider->rDivider;
+	}
+	return resistance;
+}
+
+static uint32_t getOtherResistanceWithFixedPullup(POT_DIVIDER * pDivider, uint16_t adcReading)
+{
+	uint32_t resistance = pDivider->rDivider * adcReading;
+	resistance = div_round(resistance, (pDivider->maxAdcReading - adcReading));
+	return resistance;
+}
+
 
 /*
  * Public Functions
@@ -55,20 +81,15 @@ uint32_t POTDIVIDER_GetResistanceFromADC(POT_DIVIDER * pDivider, uint16_t adcRea
 	
 	if (pDivider)
 	{
-		if ((adcReading > 0) && (adcReading < pDivider->maxAdcReading))
-		{		
-			switch(pDivider->eDividerType)
-			{
-			case PULLDOWN:
-				resistance = pDivider->rDivider * pDivider->maxAdcReading;
-				resistance = div_round(resistance, adcReading);
-				resistance -= pDivider->rDivider;
-				break;
-			case PULLUP:
-				resistance = pDivider->rDivider * adcReading;
-				resistance = div_round(resistance, (1023 - adcReading));
-				break;
-			}
+
+		switch(pDivider->eDividerType)
+		{
+		case FIXED_PULLDOWN:
+			resistance = getOtherResistanceWithFixedPulldown(pDivider, adcReading);
+			break;
+		case FIXED_PULLUP:
+			resistance = getOtherResistanceWithFixedPullup(pDivider, adcReading);
+			break;
 		}
 	}
 	
@@ -77,22 +98,27 @@ uint32_t POTDIVIDER_GetResistanceFromADC(POT_DIVIDER * pDivider, uint16_t adcRea
 
 uint16_t POTDIVIDER_GetADCFromResistance(POT_DIVIDER * pDivider, uint32_t resistance)
 {
-	uint32_t adc = 0UL;
+	uint64_t adc = 0UL;
 	
 	if (pDivider)
 	{
 		switch(pDivider->eDividerType)
 		{
-		case PULLDOWN:
+		case FIXED_PULLDOWN:
 			adc = pDivider->maxAdcReading * pDivider->rDivider;
 			adc = div_round(adc, pDivider->rDivider + resistance);
 			break;
-		case PULLUP:
-			adc = pDivider->maxAdcReading * resistance;
+		case FIXED_PULLUP:
+			adc = pDivider->maxAdcReading * (uint64_t)resistance;
 			adc = div_round(adc, pDivider->rDivider + resistance);
 			break;
 		}
 	}
 	
 	return (uint16_t)adc;
+}
+
+uint32_t POTDIVIDER_GetInfiniteResitance()
+{
+	return (uint32_t)INFINITY;
 }

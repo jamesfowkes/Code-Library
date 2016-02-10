@@ -30,8 +30,8 @@ char messageBuffer[256];
 
 void setUp(void)
 {
-	POTDIVIDER_Init(&pdDivider, 1023, RESISTANCE_AT_25C, PULLDOWN);
-	POTDIVIDER_Init(&puDivider, 1023, RESISTANCE_AT_25C, PULLUP);
+	POTDIVIDER_Init(&pdDivider, 1023, RESISTANCE_AT_25C, FIXED_PULLDOWN);
+	POTDIVIDER_Init(&puDivider, 1023, RESISTANCE_AT_25C, FIXED_PULLUP);
 	
 	rHiTemp = THERMISTOR_GetResistanceFromTemperature(&t, fp_from_int(50));
 	rLoTemp = THERMISTOR_GetResistanceFromTemperature(&t, fp_from_int(-30));

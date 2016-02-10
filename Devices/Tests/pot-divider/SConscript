@@ -1,0 +1,7 @@
+Import('cpppath', 'cppdefines', 'cppflags')
+
+objects = [
+	Object('pot-divider.test.cpp', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags),
+	Object('../../lib_pot_divider.c', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags, CC='g++')
+]
+Return('objects')

@@ -1,4 +1,4 @@
-Import('cpppath', 'cppdefines', 'cppflags', 'library_path')
+Import('cpppath', 'cppdefines', 'cppflags')
 
 cppdefines += ["I2C_MT", "I2C_MR"]
 

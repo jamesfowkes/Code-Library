@@ -7,13 +7,15 @@ def get_logger():
 env = Environment(ENV=os.environ)
 
 library_path = os.path.expanduser(env['ENV']['CODE_LIBRARY_PATH'])
+
 logging.basicConfig(level=logging.INFO)
 
-cpppath = ["#../", "#./i2c", library_path]
+cpppath = ["#../", library_path]
 cppdefines = ["TEST_HARNESS"]
-cppflags = ["-Wall", "-Wextra", "-g"]
+cppflags = ["-Wall", "-Wextra"]
 
 for target in COMMAND_LINE_TARGETS:
+
 	conscript = target+"/SConscript"
 	test_objects = SConscript(conscript, exports='cpppath cppdefines cppflags')
 
