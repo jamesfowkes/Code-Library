@@ -1,0 +1,10 @@
+Import('cpppath', 'cppdefines', 'cppflags')
+
+cpppath += ["#../../Generics"]
+cppdefines += ["FORMAT_32_BIT_INTS"]
+
+objects = [
+	Object('format.test.cpp', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags),
+	Object('#../format.c', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags, CC="g++")
+]
+Return('objects')

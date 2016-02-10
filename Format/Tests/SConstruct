@@ -1,6 +1,5 @@
 import os
 import logging
-from generate_test_io import generate_test_io
 
 def get_logger():
 	return logging.getLogger(__name__)
@@ -8,19 +7,13 @@ def get_logger():
 env = Environment(ENV=os.environ)
 
 library_path = os.path.expanduser(env['ENV']['CODE_LIBRARY_PATH'])
-avr_path = "/usr/lib/avr/include"
-avr_harness_path = library_path + "/AVR/Harness"
-
 logging.basicConfig(level=logging.INFO)
 
-cpppath = [".", "#../", library_path, avr_harness_path]
-cppdefines = ["TX_BUFFER_SIZE=32", "TEST_HARNESS"]
-cppflags = ["-Wall", "-Wextra"]
+cpppath = [".", "#../", library_path]
+cppdefines = ["TEST_HARNESS"]
+cppflags = ["-Wall", "-Wextra", "-g"]
 
 for target in COMMAND_LINE_TARGETS:
-
-	generate_test_io(["iom328p", avr_path+"/avr", avr_harness_path+"/avr"])
-
 	conscript = target+"/SConscript"
 	test_objects = SConscript(conscript, exports='cpppath cppdefines cppflags')
 

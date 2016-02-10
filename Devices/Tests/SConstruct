@@ -10,7 +10,7 @@ library_path = os.path.expanduser(env['ENV']['CODE_LIBRARY_PATH'])
 
 logging.basicConfig(level=logging.INFO)
 
-cpppath = ["#../", library_path]
+cpppath = [".", "#../", library_path]
 cppdefines = ["TEST_HARNESS"]
 cppflags = ["-Wall", "-Wextra"]
 
