@@ -1,0 +1,6 @@
+Import('cpppath')
+objects = [
+	Object('linkedlist.test.cpp', CPPPATH=cpppath),
+	Object('../../linkedlist.c', CPPPATH=cpppath, CC='g++'),
+]
+Return('objects')

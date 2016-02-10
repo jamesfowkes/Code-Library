@@ -6,8 +6,8 @@
  */
 struct link_node
 {
-	void * prev;
-	void * next;
+	struct link_node * prev;
+	struct link_node * next;
 };
 typedef struct link_node LINK_NODE;
 
