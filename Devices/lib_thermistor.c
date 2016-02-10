@@ -12,7 +12,7 @@
  * Utility Library Includes
  */
 
-#include "util_fixedpoint.h"
+#include "Utility/util_fixedpoint.h"
 
 /*
  * Device Library Includes
@@ -31,7 +31,7 @@
 
 static FIXED_POINT_TYPE T25CinKelvin;
 static FIXED_POINT_TYPE T0CinKelvin;
-static FIXED_POINT_TYPE log2;
+static FIXED_POINT_TYPE log_of_2;
 
 /*
  * Private Function Prototypes
@@ -45,7 +45,7 @@ void THERMISTOR_Init(void)
 {
 	T25CinKelvin = fp_div(fp_from_int(29815), fp_from_int(100));
 	T0CinKelvin = fp_div(fp_from_int(27315), fp_from_int(100));
-	log2 = fp_log(fp_from_int(2));
+	log_of_2 = fp_log(fp_from_int(2));
 }
 
 bool THERMISTOR_InitDevice(THERMISTOR * pTherm, uint16_t B, uint32_t R25)
@@ -101,7 +101,7 @@ FIXED_POINT_TYPE THERMISTOR_TemperatureFromResistance(THERMISTOR * pTherm, uint3
 	// Undo any divisions
 	while (divCount--)
 	{
-		t = fp_add(t, log2);
+		t = fp_add(t, log_of_2);
 	}
 	
 	#else

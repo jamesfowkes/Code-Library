@@ -1,0 +1,8 @@
+Import('cpppath', 'cppdefines', 'cppflags')
+
+objects = [
+	Object('thermistor.test.cpp', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags),
+	Object('../../lib_thermistor.c', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags, CC='g++'),
+	Object('../../lib_pot_divider.c', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags, CC='g++')
+]
+Return('objects')

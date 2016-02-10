@@ -1,0 +1,14 @@
+Import('cpppath', 'cppdefines', 'cppflags')
+
+cppdefines += ["UNIX_TIME_TYPE=uint64_t"]
+cpppath += ["#../../Common"]
+
+objects = [
+	Object('ds3231.test.cpp', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags),
+	Object('../../lib_ds3231.c', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags, CC='g++'),
+	Object('../../../Utility/util_time.c', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags, CC='g++'),
+	Object('../../../Utility/util_bcd.c', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags, CC='g++'),
+	Object('../../../Utility/util_simple_compare.c', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags, CC='g++')
+]
+Return('objects')
+

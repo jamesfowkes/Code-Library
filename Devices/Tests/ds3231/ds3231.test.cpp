@@ -2,8 +2,10 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "util_time.h"
-#include "util_bcd.h"
+#include <iostream>
+
+#include "Utility/util_time.h"
+#include "Utility/util_bcd.h"
 
 #include "lib_ds3231.h"
 
@@ -40,33 +42,19 @@ void tearDown(void) {};
 
 void test_All(void)
 {
-	//testMinutesAndSeconds();
-	//test12Hours();
-	//test24Hours();
-	//testDayDate();
-	//testMonths();
-	//testYears();
+	testMinutesAndSeconds();
+	test12Hours();
+	test24Hours();
+	testDayDate();
+	testMonths();
+	testYears();
 	testDS3231();
-	//testWR();
-
-	/*TM tm;
-	tm.tm_sec = 1;
-	tm.tm_min = 45;
-	tm.tm_hour = 22;
-	tm.tm_mday = 23;
-	tm.tm_mon = 9;
-	tm.tm_year = 113;
-	tm.tm_wday = 3;
-	tm.tm_yday = 295;
-	tm.tm_isdst = 0;
-	*/
-	
-	//printf("%u\n", time_to_unix_seconds(&tm));
+	testWR();
 }
 
 void testMinutesAndSeconds(void)
 {
-	printf("Testing minutes/seconds registers\n");
+	std::cout << "Testing minutes/seconds registers" << std::endl;
 	uint8_t value;
 	uint8_t bcd;
 
@@ -85,7 +73,7 @@ void testMinutesAndSeconds(void)
 
 void test12Hours(void)
 {
-	printf("Testing hours register (12 hour mode)\n");
+	std::cout << "Testing hours register (12 hour mode)" << std::endl;
 	uint8_t hour = 0;
 	uint8_t bcd;
 	bool am = true;
@@ -111,7 +99,7 @@ void test12Hours(void)
 
 void test24Hours(void)
 {
-	printf("Testing hours register (24 hour mode)\n");
+	std::cout << "Testing hours register (24 hour mode)" << std::endl;
 	uint8_t hour = 0;
 	uint8_t bcd;
 	
@@ -124,7 +112,7 @@ void test24Hours(void)
 
 void testDayDate(void)
 {
-	printf("Testing day and date registers\n");
+	std::cout << "Testing day and date registers" << std::endl;
 	uint8_t day;
 	uint8_t date;
 	uint8_t bcd;
@@ -144,7 +132,7 @@ void testDayDate(void)
 
 void testMonths(void)
 {
-	printf("Testing months register\n");
+	std::cout << "Testing months register" << std::endl;
 	uint8_t month;
 	uint8_t bcd;
 
@@ -157,7 +145,7 @@ void testMonths(void)
 
 void testYears(void)
 {
-	printf("Testing years register\n");
+	std::cout << "Testing years register" << std::endl;
 	uint8_t year;
 	uint8_t bcd;
 
@@ -172,7 +160,7 @@ void testDS3231(void)
 {
 	TM tm;
 	
-	printf("Testing DS3231\n");
+	std::cout << "Testing DS3231" << std::endl;
 	
 	int year = 0;
 	
@@ -194,13 +182,12 @@ void testDS3231(void)
 		parseMonthRegister(DS3231_GetRegisterValue(5), tm.tm_mon + 1, (tm.tm_year / 100) % 2); // Months 0-11 map to 1-12
 		if ( !parseYearsRegister(DS3231_GetRegisterValue(6), tm.tm_year % 100) )
 		{
-			printf("%lu\n", s);
+			std::cout << s << std::endl;
 		}
 		
 		if (year != tm.tm_year)
 		{
 			year = tm.tm_year;
-			printf("Year = %d\n", 1900+tm.tm_year);
 		}
 	}
 }
@@ -209,7 +196,7 @@ void testWR(void)
 {
 	TM tm_in;
 	TM tm_out;
-	printf("Testing write then read\n");
+	std::cout << "Testing write then read" << std::endl;
 	uint32_t in = 1382554522;
 	uint32_t out = 0;
 	unix_seconds_to_time(in, &tm_in);
@@ -218,7 +205,7 @@ void testWR(void)
 
 	DS3231_SetDeviceDateTime(&tm_in, false, NULL);
 
-	printf("Hours: %u\n", DS3231_GetRegisterValue(2));
+	std::cout << "Hours: " << (int)DS3231_GetRegisterValue(2);
 
 	DS3231_GetDateTime(&tm_out);
 
@@ -226,7 +213,7 @@ void testWR(void)
 
 	out = time_to_unix_seconds(&tm_out);
 
-	printf("In = %u, out = %u\n", in, out);
+	std::cout << "In = " << in << " out = " << out << std::endl;
 }
 
 void printTM(TM * tm)
@@ -236,19 +223,20 @@ void printTM(TM * tm)
 	uint32_t i = 0;
 	for (i = 0; i < 8; ++i)
 	{
-		printf("%d, ", pTM[i]);
+		std::cout << pTM[i];
+		if (i < 7) {std::cout << ", ";}
 	}
-	printf("\n");
+	std::cout << std::endl;
 }
 
 void parseSecondsRegister(uint8_t reg, uint8_t expected)
 {
 	uint8_t seconds = (reg & 0x0F);
 	seconds += (((reg & 0xF0) >> 4) * 10);
-	if (reg & 0x80) { printf("Non-zero leading bit"); }
+	if (reg & 0x80) { std::cout << "Non-zero leading bit"; }
 	if (seconds != expected)
 	{
-		printf("0x%02x = %ds, expected %d\n", reg, seconds, expected);
+		std::cout << std::hex << reg << " = " << seconds << "s, expected " << expected << std::endl;
 	}
 }
 
@@ -256,10 +244,10 @@ void parseMinutesRegister(uint8_t reg, uint8_t expected)
 {
 	uint8_t minutes = (reg & 0x0F);
 	minutes += (((reg & 0xF0) >> 4) * 10);
-	if (reg & 0x80) { printf("Non-zero leading bit"); }
+	if (reg & 0x80) { std::cout << "Non-zero leading bit"; }
 	if (minutes != expected)
 	{
-		printf("0x%02x = %dm\n", reg, minutes);
+		std::cout << "0x" << std::hex << reg << " = " << minutes << std::endl;
 	}
 }
 
@@ -281,28 +269,28 @@ void parseHoursRegister(uint8_t reg, uint8_t expected, bool expectedHoursBit, bo
 	bool hour_mode = (reg & (1 << HRS_MODE_BIT));
 	if (hours != expected)
 	{
-		printf("0x%02x = %dh, expected %d\n", reg, hours, expected);
+		std::cout << "0x" << std::hex << reg << " = " << hours << std::endl;
 	}
 	
 	if (am != expectedAM)
 	{
-		printf("Unexpected AMPM bit in 0x%02x\n", reg);
+		std::cout << "Unexpected AMPM bit in 0x" << std::hex << reg << std::endl;
 	}
 	
 	if (hour_mode != expectedHoursBit)
 	{
-		printf("Unexpected hours bit in 0x%02x\n", reg);
+		std::cout << "Unexpected hours bit in 0x" << std::hex << reg << std::endl;
 	}
 }
 
 void parseDayRegister(uint8_t reg, uint8_t expected)
 {
-	char * days[] = {"???", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+	char const * days[] = {"???", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 	uint8_t day = (reg & 0x07);
-	if (reg & 0xF8) { printf("Non-zero leading bits"); }
+	if (reg & 0xF8) { std::cout << "Non-zero leading bits"; }
 	if (day != expected)
 	{
-		printf("0x%02x = %s, expected %s (%u)\n", reg, days[day], days[expected], s);
+		std::cout << "0x" << std::hex << reg << " = " << days[day] << ", expected " << days[expected] << " (" << s << ")" << std::endl;
 	}
 }
 
@@ -310,27 +298,27 @@ void parseDateRegister(uint8_t reg, uint8_t expected)
 {
 	uint8_t date = (reg & 0x0F);
 	date += (((reg & 0xF0) >> 4) * 10);
-	if (reg & 0xC0) { printf("Non-zero leading bits"); }
+	if (reg & 0xC0) { std::cout << "Non-zero leading bits"; }
 	if (date != expected)
 	{
-		printf("Date: 0x%02x = %d, expected %d\n", reg, date, expected);
+		std::cout << "Date: 0x" << std::hex << " = " << date << ", expected " << expected << std::endl;
 	}
 }
 
 void parseMonthRegister(uint8_t reg, uint8_t expected, bool centuryBit)
 {
-	char * months[] = {"???", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+	char const * months[] = {"???", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 	uint8_t month = (reg & 0x0F);
 	month += (((reg & 0x10) >> 4) * 10);
-	if (reg & 0x60) { printf("Non-zero leading bits"); }
+	if (reg & 0x60) { std::cout << "Non-zero leading bits"; }
 	if (month != expected)
 	{
-		printf("0x%02x = %s expected %s (%u)\n", reg, months[month], months[expected], s);
+		std::cout << "0x" << std::hex << " = " << months[month] << " expected " << months[expected] << " (" << s << ")" << std::endl;
 	}
 	
 	if ((bool)(reg & 0x80) ^ (centuryBit))
 	{
-		printf("Incorrect century bit. Expected %s, was %s\n", centuryBit ? "on" : "off", (reg & 0x80) ? "on" : "off");
+		std::cout << "Incorrect century bit. Expected " << (centuryBit ? "on" : "off") << " was " << ((reg & 0x80) ? "on" : "off") << std::endl;
 	}
 }
 
@@ -340,7 +328,13 @@ bool parseYearsRegister(uint8_t reg, uint8_t expected)
 	year += (((reg & 0xF0) >> 4) * 10);
 	if (year != expected)
 	{
-		printf("Year 0x%02x = %d, expected %d \n", reg, year, expected);
+		std::cout << "Year 0x" << std::hex << reg << " = " << year << ", expected " << expected << std::endl;
 	}
 	return (year == expected);
+}
+
+int main()
+{
+	test_All();
+	return 0;
 }

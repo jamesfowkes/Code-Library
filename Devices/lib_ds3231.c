@@ -11,9 +11,9 @@
  * Utility Library Includes
  */
 
-#include "util_macros.h"
-#include "util_time.h"
-#include "util_bcd.h"
+#include "Utility/util_macros.h"
+#include "Utility/util_time.h"
+#include "Utility/util_bcd.h"
 
 /*
  * Device Library Includes
@@ -25,9 +25,7 @@
  * Generic Library Includes
  */
 
-#ifndef UNITY_TEST
 #include "lib_i2c_common.h"
-#endif
 
 /*
  * Private defines and typedefs
@@ -167,7 +165,9 @@ static uint8_t s_status;
 
 static bool s_busy = false;
 
+#ifndef TEST_HARNESS
 static DS3231_ONIDLE_FN s_onidle_cb;
+#endif
 
 static volatile DATETIME_REGISTERS s_dt = {
 	.time = {
@@ -185,7 +185,7 @@ static volatile DATETIME_REGISTERS s_dt = {
 
 static uint8_t s_temperature[2];
 
-#ifndef UNITY_TEST
+#ifndef TEST_HARNESS
 static I2C_TRANSFER_DATA s_i2c_data;
 static I2C_TRANSFER_DATA s_i2c_setup;
 
@@ -199,7 +199,7 @@ static uint8_t s_WriteArray[19];
 static void write(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb);
 static void read(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb);
 
-#ifndef UNITY_TEST
+#ifndef TEST_HARNESS
 static void rd_callback(I2C_TRANSFER_DATA * transfer);
 static void wr_callback(I2C_TRANSFER_DATA * transfer);
 #endif
@@ -216,7 +216,7 @@ static bool SetAlarm2Mask(ALARM_REGISTERS * alarm, DS3231_ALARM_RPT_ENUM repeat)
 
 bool DS3231_Init(void)
 {
-	#ifdef UNITY_TEST
+	#ifdef TEST_HARNESS
 	return true;
 	#else
 	return I2C_Init(NULL);
@@ -773,7 +773,7 @@ static bool SetAlarm2Mask(ALARM_REGISTERS * alarm, DS3231_ALARM_RPT_ENUM repeat)
 
 static void write(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb)
 {
-	#ifndef UNITY_TEST
+	#ifndef TEST_HARNESS
 	s_busy = true;
 	s_WriteArray[0] = reg;
 	memcpy(&s_WriteArray[1], array, n);
@@ -795,7 +795,7 @@ static void write(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb)
 
 static void read(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb)
 {
-	#ifndef UNITY_TEST
+	#ifndef TEST_HARNESS
 	s_busy = true;
 
 	// Save the read transfer data into s_i2c_data for later.
@@ -822,7 +822,7 @@ static void read(uint8_t reg, uint8_t* array, uint8_t n, DS3231_ONIDLE_FN cb)
 	#endif
 }
 
-#ifndef UNITY_TEST
+#ifndef TEST_HARNESS
 static void rd_callback(I2C_TRANSFER_DATA * transfer)
 {
 	if (transfer == &s_i2c_setup)
