@@ -140,6 +140,8 @@ uint8_t *ringbuf_get_element(RING_BUFFER *b, uint8_t n)
 *****************************************************************************/
 bool ringbuf_get_elements(RING_BUFFER *b, uint8_t startIndex, uint8_t count, RINGBUF_DATA copyBuffer)
 {
+	uint8_t i;
+	uint8_t byteIndex;
 	bool success = true;
 	success &= ((b != NULL) & (copyBuffer != NULL));
 	success &= (count > 0);
@@ -155,9 +157,9 @@ bool ringbuf_get_elements(RING_BUFFER *b, uint8_t startIndex, uint8_t count, RIN
 			startIndex = get_element_n_index(b, startIndex);
 			readElementIndex = startIndex;
 			
-			for (uint8_t i = 0; i < count; ++i)
+			for (i = 0; i < count; ++i)
 			{
-				for (uint8_t byteIndex = 0; byteIndex < b->element_size; byteIndex++)
+				for (byteIndex = 0; byteIndex < b->element_size; byteIndex++)
 				{
 					copyBuffer[copyElementIndex + byteIndex] = b->data[readElementIndex + byteIndex];
 				}
