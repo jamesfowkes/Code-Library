@@ -58,28 +58,28 @@ typedef struct ring_buffer_t RING_BUFFER;
 extern "C" {
 #endif /* __cplusplus */
 
-	bool Ringbuf_Full(RING_BUFFER const *b);
-	bool Ringbuf_Empty(RING_BUFFER const *b);
+	bool ringbuf_full(RING_BUFFER const *b);
+	bool ringbuf_empty(RING_BUFFER const *b);
 	
-	unsigned Ringbuf_Count(RING_BUFFER const *b);
+	unsigned ringbuf_count(RING_BUFFER const *b);
 	
-	RINGBUF_DATA Ringbuf_Get_Oldest(RING_BUFFER const *b);
-	RINGBUF_DATA Ringbuf_Get_Newest(RING_BUFFER const *b);
+	RINGBUF_DATA ringbuf_get_oldest(RING_BUFFER const *b);
+	RINGBUF_DATA ringbuf_get_newest(RING_BUFFER const *b);
 	
-	RINGBUF_DATA Ringbuf_Pop_Front(RING_BUFFER * b);
+	RINGBUF_DATA ringbuf_pop_front(RING_BUFFER * b);
 	
-	bool Ringbuf_Put(
+	bool ringbuf_put(
 		RING_BUFFER * b,        /* ring buffer structure */
 		RINGBUF_DATA data_element);  /* one element to add to the ring */
 	
-	void Ringbuf_AllowOverwrite(RING_BUFFER *b,	bool allow);
+	void ringbuf_allow_overwrite(RING_BUFFER *b,	bool allow);
 	
-	RINGBUF_DATA Ringbuf_Get_Element(RING_BUFFER *b, uint8_t n);
-	bool Ringbuf_Get_Elements(RING_BUFFER *b, uint8_t startIndex, uint8_t count, RINGBUF_DATA copyBuffer);
+	RINGBUF_DATA ringbuf_get_element(RING_BUFFER *b, uint8_t n);
+	bool ringbuf_get_elements(RING_BUFFER *b, uint8_t startIndex, uint8_t count, RINGBUF_DATA copyBuffer);
 		
 	/* Note: element_count should be a power of two,
 	or it will only use the next lower power of two */
-	void Ringbuf_Init(
+	void ringbuf_init(
 	RING_BUFFER * b,        /* ring buffer structure */
 	RINGBUF_DATA data,     /* data block or array of data */
 	unsigned element_size,  /* size of one element in the data block */

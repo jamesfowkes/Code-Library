@@ -1,0 +1,9 @@
+Import('cpppath', 'cppdefines', 'cppflags')
+
+cpppath += ["../../../Utility"]
+
+objects = [
+	Object('ringbuf.test.cpp', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags),
+	Object('../../ringbuf.c', CPPPATH=cpppath, CPPDEFINES=cppdefines, CPPFLAGS=cppflags, CC='g++')
+]
+Return('objects')

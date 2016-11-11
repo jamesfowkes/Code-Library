@@ -43,8 +43,8 @@ embedded system. See the unit tests for usage examples. */
 #include "ringbuf.h"
 #include "util_macros.h"
 
-static uint8_t * getElementN(RING_BUFFER *b, uint8_t n);
-static uint8_t getElementNIndex(RING_BUFFER *b, uint8_t n);
+static uint8_t * get_element_n(RING_BUFFER *b, uint8_t n);
+static uint8_t get_element_n_index(RING_BUFFER *b, uint8_t n);
 static unsigned valid_power_of_two(unsigned k);
 
 /****************************************************************************
@@ -53,7 +53,7 @@ static unsigned valid_power_of_two(unsigned k);
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-unsigned Ringbuf_Count (
+unsigned ringbuf_count (
 RING_BUFFER const *b)
 {
 	return (b ? min((b->head - b->tail), b->element_count) : 0);
@@ -65,7 +65,7 @@ RING_BUFFER const *b)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-bool Ringbuf_Full (
+bool ringbuf_full (
 RING_BUFFER const *b)
 {
 	return (b ? ((b->head - b->tail) >= b->element_count) : true);
@@ -77,10 +77,10 @@ RING_BUFFER const *b)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-bool Ringbuf_Empty(
+bool ringbuf_empty(
 RING_BUFFER const *b)
 {
-	return (b ? (Ringbuf_Count(b) == 0) : true);
+	return (b ? (ringbuf_count(b) == 0) : true);
 }
 
 /****************************************************************************
@@ -89,11 +89,11 @@ RING_BUFFER const *b)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-uint8_t *Ringbuf_Get_Oldest(
+uint8_t *ringbuf_get_oldest(
 RING_BUFFER const *b)
 {
 	if (b) {
-		return (!Ringbuf_Empty(b) ? &(b->data[(b->tail % b->element_count) * b->element_size]) : NULL);
+		return (!ringbuf_empty(b) ? &(b->data[(b->tail % b->element_count) * b->element_size]) : NULL);
 	}
 	return NULL;
 }
@@ -104,11 +104,11 @@ RING_BUFFER const *b)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-uint8_t *Ringbuf_Get_Newest(
+uint8_t *ringbuf_get_newest(
 RING_BUFFER const *b)
 {
 	if (b) {
-		return (!Ringbuf_Empty(b) ? &(b->data[((b->head-1) % b->element_count) * b->element_size]) : NULL);
+		return (!ringbuf_empty(b) ? &(b->data[((b->head-1) % b->element_count) * b->element_size]) : NULL);
 	}
 	return NULL;
 }
@@ -119,13 +119,13 @@ RING_BUFFER const *b)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-uint8_t *Ringbuf_Get_Element(RING_BUFFER *b, uint8_t n)
+uint8_t *ringbuf_get_element(RING_BUFFER *b, uint8_t n)
 {
 	if (b)
 	{
-		if (Ringbuf_Count(b) > n)
+		if (ringbuf_count(b) > n)
 		{
-			return getElementN(b, n);
+			return get_element_n(b, n);
 		}
 	}
 	
@@ -138,7 +138,7 @@ uint8_t *Ringbuf_Get_Element(RING_BUFFER *b, uint8_t n)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-bool Ringbuf_Get_Elements(RING_BUFFER *b, uint8_t startIndex, uint8_t count, RINGBUF_DATA copyBuffer)
+bool ringbuf_get_elements(RING_BUFFER *b, uint8_t startIndex, uint8_t count, RINGBUF_DATA copyBuffer)
 {
 	bool success = true;
 	success &= ((b != NULL) & (copyBuffer != NULL));
@@ -149,10 +149,10 @@ bool Ringbuf_Get_Elements(RING_BUFFER *b, uint8_t startIndex, uint8_t count, RIN
 	
 	if (success)
 	{
-		success &= (Ringbuf_Count(b) >= count);
+		success &= (ringbuf_count(b) >= count);
 		if (success)
 		{
-			startIndex = getElementNIndex(b, startIndex);
+			startIndex = get_element_n_index(b, startIndex);
 			readElementIndex = startIndex;
 			
 			for (uint8_t i = 0; i < count; ++i)
@@ -178,13 +178,13 @@ bool Ringbuf_Get_Elements(RING_BUFFER *b, uint8_t startIndex, uint8_t count, RIN
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-uint8_t *Ringbuf_Pop_Front(
+uint8_t *ringbuf_pop_front(
 RING_BUFFER * b)
 {
 	uint8_t *data = NULL;  /* return value */
 
-	if (!Ringbuf_Empty(b)) {
-		data = getElementN(b, 0);
+	if (!ringbuf_empty(b)) {
+		data = get_element_n(b, 0);
 		b->tail++;
 	}
 
@@ -197,7 +197,7 @@ RING_BUFFER * b)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-bool Ringbuf_Put(
+bool ringbuf_put(
 RING_BUFFER * b,    /* ring buffer structure */
 uint8_t *data_element) /* one element to add to the ring */
 {
@@ -209,12 +209,12 @@ uint8_t *data_element) /* one element to add to the ring */
 		/* limit the amount of elements that we accept */
 		if (b && data_element) {
 			/* limit the amount of elements that we accept */
-			if (b->allowOverwrite && Ringbuf_Full(b))
+			if (b->allowOverwrite && ringbuf_full(b))
 			{
-				(void)Ringbuf_Pop_Front(b); // Throw away oldest element
+				(void)ringbuf_pop_front(b); // Throw away oldest element
 			}
 			
-			if (!Ringbuf_Full(b) || b->allowOverwrite) {
+			if (!ringbuf_full(b) || b->allowOverwrite) {
 				ring_data = b->data + ((b->head % b->element_count) * b->element_size);
 				for (i = 0; i < b->element_size; i++) {
 					ring_data[i] = data_element[i];
@@ -234,7 +234,7 @@ uint8_t *data_element) /* one element to add to the ring */
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-void Ringbuf_AllowOverwrite(
+void ringbuf_allow_overwrite(
 RING_BUFFER *b,
 bool allow)
 {
@@ -269,14 +269,14 @@ static unsigned valid_power_of_two(unsigned k)
 * NOTES:       none
 *****************************************************************************/
 
-static uint8_t getElementNIndex(RING_BUFFER *b, uint8_t n)
+static uint8_t get_element_n_index(RING_BUFFER *b, uint8_t n)
 {
 	return ((b->tail + n) % b->element_count) * b->element_size;
 }
 
-static uint8_t * getElementN(RING_BUFFER *b, uint8_t n)
+static uint8_t * get_element_n(RING_BUFFER *b, uint8_t n)
 {
-	return &(b->data[ getElementNIndex(b, n) ]);
+	return &(b->data[ get_element_n_index(b, n) ]);
 }
 
 /****************************************************************************
@@ -287,7 +287,7 @@ static uint8_t * getElementN(RING_BUFFER *b, uint8_t n)
 *   element_count should be a power of two,
 *   or it will only use the next lower power of two
 *****************************************************************************/
-void Ringbuf_Init(
+void ringbuf_init(
 RING_BUFFER * b,    /* ring buffer structure */
 uint8_t *data, /* data block or array of data */
 unsigned element_size,      /* size of one element in the data block */
