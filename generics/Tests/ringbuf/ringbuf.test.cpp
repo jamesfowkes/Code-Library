@@ -10,14 +10,14 @@
 #include "ringbuf.h"
 #include "util_macros.h"
 
-static RING_BUFFER buffer;
 static uint16_t data[16];
+static RingBuffer<uint16_t> * buffer;
 
 static uint16_t scratchpad;
 
-class RingBufTest : public CppUnit::TestFixture  {
+class RingBufferTest : public CppUnit::TestFixture  {
 
-	CPPUNIT_TEST_SUITE(RingBufTest);
+	CPPUNIT_TEST_SUITE(RingBufferTest);
 
 	CPPUNIT_TEST(test_ringbufinit);
 	CPPUNIT_TEST(test_addoneitem);
@@ -27,43 +27,38 @@ class RingBufTest : public CppUnit::TestFixture  {
 	CPPUNIT_TEST(test_getitems);
 	CPPUNIT_TEST(test_popitems);
 	CPPUNIT_TEST(test_getmultipleitems);
+	CPPUNIT_TEST(test_pop_with_no_elements);
 
 	CPPUNIT_TEST_SUITE_END();
 
 	void test_ringbufinit(void)
 	{
-		CPPUNIT_ASSERT_EQUAL(0U, buffer.head);
-		CPPUNIT_ASSERT_EQUAL(0U, buffer.tail);
-		CPPUNIT_ASSERT_EQUAL((uint16_t*)data, (uint16_t*)buffer.data);
-		CPPUNIT_ASSERT_EQUAL(sizeof(data[0]), (size_t)buffer.element_size);
-		CPPUNIT_ASSERT_EQUAL(16U, buffer.element_count);
-		CPPUNIT_ASSERT_EQUAL(true, buffer.allowOverwrite);
-		CPPUNIT_ASSERT_EQUAL(0U, ringbuf_count(&buffer));
-		CPPUNIT_ASSERT_EQUAL(true, ringbuf_empty(&buffer));
-		CPPUNIT_ASSERT_EQUAL(false, ringbuf_full(&buffer));
+		CPPUNIT_ASSERT_EQUAL((uint8_t)0, buffer->count());
+		CPPUNIT_ASSERT_EQUAL(true, buffer->is_empty());
+		CPPUNIT_ASSERT_EQUAL(false, buffer->is_full());
 	}
 
 	void test_addoneitem(void)
 	{
 		scratchpad = 123;
-		ringbuf_put(&buffer, (RINGBUF_DATA)&scratchpad);
+		CPPUNIT_ASSERT(buffer->push_back(scratchpad));
 		CPPUNIT_ASSERT_EQUAL((uint16_t)123, data[0]);
-		CPPUNIT_ASSERT_EQUAL(1U, ringbuf_count(&buffer));
-		CPPUNIT_ASSERT_EQUAL(false, ringbuf_empty(&buffer));
-		CPPUNIT_ASSERT_EQUAL(false, ringbuf_full(&buffer));
+		CPPUNIT_ASSERT_EQUAL((uint8_t)1, buffer->count());
+		CPPUNIT_ASSERT_EQUAL(false, buffer->is_empty());
+		CPPUNIT_ASSERT_EQUAL(false, buffer->is_full());
 	}
 
 	void test_multipleitems(void)
 	{
-		uint16_t i;
+		uint8_t i;
 		for (i = 0; i < 5; i++)
 		{
-			scratchpad = i;
-			ringbuf_put(&buffer, (RINGBUF_DATA)&scratchpad);
-			CPPUNIT_ASSERT_EQUAL(i, data[i]);
-			CPPUNIT_ASSERT_EQUAL(i + 1U, ringbuf_count(&buffer));
-			CPPUNIT_ASSERT_EQUAL(false, ringbuf_empty(&buffer));
-			CPPUNIT_ASSERT_EQUAL(false, ringbuf_full(&buffer));
+			scratchpad = (uint16_t)i;
+			CPPUNIT_ASSERT(buffer->push_back(scratchpad));
+			CPPUNIT_ASSERT_EQUAL((uint16_t)i, data[i]);
+			CPPUNIT_ASSERT_EQUAL((uint8_t)(i + 1U), buffer->count());
+			CPPUNIT_ASSERT_EQUAL(false, buffer->is_empty());
+			CPPUNIT_ASSERT_EQUAL(false, buffer->is_full());
 		}
 	}
 
@@ -73,11 +68,11 @@ class RingBufTest : public CppUnit::TestFixture  {
 		for (i = 0; i < 16; i++)
 		{
 			scratchpad = i;
-			ringbuf_put(&buffer, (RINGBUF_DATA)&scratchpad);
+			CPPUNIT_ASSERT(buffer->push_back(scratchpad));
 			CPPUNIT_ASSERT_EQUAL(i, data[i]);
-			CPPUNIT_ASSERT_EQUAL(i + 1U, ringbuf_count(&buffer));
-			CPPUNIT_ASSERT_EQUAL(false, ringbuf_empty(&buffer));
-			CPPUNIT_ASSERT_EQUAL(i == 15, ringbuf_full(&buffer));
+			CPPUNIT_ASSERT_EQUAL((uint8_t)(i + 1U), buffer->count());
+			CPPUNIT_ASSERT_EQUAL(false, buffer->is_empty());
+			CPPUNIT_ASSERT_EQUAL(i == 15, buffer->is_full());
 		}
 	}
 
@@ -89,14 +84,14 @@ class RingBufTest : public CppUnit::TestFixture  {
 		for (i = 0; i < 24; i++)
 		{
 			scratchpad = i;
-			ringbuf_put(&buffer, (RINGBUF_DATA)&scratchpad);
+			CPPUNIT_ASSERT(buffer->push_back(scratchpad));
 			CPPUNIT_ASSERT_EQUAL(i, data[dataIndex]);
 			
 			incrementwithrollover(dataIndex, 15);
 			
-			CPPUNIT_ASSERT_EQUAL(ringbuf_count(&buffer), min(i+1U, 16U));
-			CPPUNIT_ASSERT_EQUAL(false, ringbuf_empty(&buffer));
-			CPPUNIT_ASSERT_EQUAL(i >= 15, ringbuf_full(&buffer));
+			CPPUNIT_ASSERT_EQUAL((uint8_t)min(i+1U, 16U), buffer->count());
+			CPPUNIT_ASSERT_EQUAL(false, buffer->is_empty());
+			CPPUNIT_ASSERT_EQUAL(i >= 15, buffer->is_full());
 			
 		}
 	}
@@ -104,33 +99,42 @@ class RingBufTest : public CppUnit::TestFixture  {
 	void test_getitems(void)
 	{
 		uint8_t i;
+		uint16_t result;
 		for (i = 0; i < 24; i++)
 		{
 			scratchpad = i;
-			ringbuf_put(&buffer, (RINGBUF_DATA)&scratchpad);
+			CPPUNIT_ASSERT(buffer->push_back(scratchpad));
 		}
 		
-		CPPUNIT_ASSERT_EQUAL((uint16_t)8, *(uint16_t*)ringbuf_get_oldest(&buffer));
-		CPPUNIT_ASSERT_EQUAL((uint16_t)23, *(uint16_t*)ringbuf_get_newest(&buffer));
+		CPPUNIT_ASSERT_EQUAL((uint8_t)16, buffer->count());
+
+		CPPUNIT_ASSERT(buffer->get_oldest(result));
+		CPPUNIT_ASSERT_EQUAL((uint16_t)8, result);
+
+		CPPUNIT_ASSERT(buffer->get_newest(result));
+		CPPUNIT_ASSERT_EQUAL((uint16_t)23, result);
 		
-		CPPUNIT_ASSERT_EQUAL((uint16_t)12, *(uint16_t*)ringbuf_get_element(&buffer, 4));
+		CPPUNIT_ASSERT(buffer->get_element(result, 4));
+		CPPUNIT_ASSERT_EQUAL((uint16_t)12, result);
 		
-		CPPUNIT_ASSERT(NULL == (uint16_t*)ringbuf_get_element(&buffer, 17));
+		CPPUNIT_ASSERT(!buffer->get_element(result, 17));
 	}
 
 	void test_popitems(void)
 	{
-		uint16_t i;
+		uint8_t i;
+		uint16_t result;
 		for (i = 0; i < 16; i++)
 		{
-			scratchpad = i;
-			ringbuf_put(&buffer, (RINGBUF_DATA)&scratchpad);
+			scratchpad = (uint16_t)i;
+			CPPUNIT_ASSERT(buffer->push_back(scratchpad));
 		}
 		
 		for (i = 0; i < 16; i++)
 		{
-			CPPUNIT_ASSERT_EQUAL(16U-i, ringbuf_count(&buffer));
-			CPPUNIT_ASSERT_EQUAL(i, *(uint16_t*)ringbuf_pop_front(&buffer));
+			CPPUNIT_ASSERT_EQUAL((uint8_t)(16-i), buffer->count());
+			CPPUNIT_ASSERT(buffer->pop_front(result));
+			CPPUNIT_ASSERT_EQUAL((uint16_t)i, result);
 		}
 	}
 
@@ -140,12 +144,12 @@ class RingBufTest : public CppUnit::TestFixture  {
 		for (i = 0; i < 24; i++)
 		{
 			scratchpad = i;
-			ringbuf_put(&buffer, (RINGBUF_DATA)&scratchpad);
+			CPPUNIT_ASSERT(buffer->push_back(scratchpad));
 		}
 
 		uint16_t copyBuf[5] = {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
 		
-		ringbuf_get_elements(&buffer, 2, 4, (RINGBUF_DATA)copyBuf);
+		CPPUNIT_ASSERT_EQUAL(4, buffer->get_elements(2, 4, copyBuf));
 		
 		CPPUNIT_ASSERT_EQUAL((uint16_t)10, copyBuf[0]);
 		CPPUNIT_ASSERT_EQUAL((uint16_t)11, copyBuf[1]);
@@ -153,34 +157,55 @@ class RingBufTest : public CppUnit::TestFixture  {
 		CPPUNIT_ASSERT_EQUAL((uint16_t)13, copyBuf[3]);
 		CPPUNIT_ASSERT_EQUAL((uint16_t)0xFFFF, copyBuf[4]);
 		
-		ringbuf_get_elements(&buffer, 14, 4, (RINGBUF_DATA)copyBuf);
+		CPPUNIT_ASSERT_EQUAL(4, buffer->get_elements(14, 4, copyBuf));
 		
 		CPPUNIT_ASSERT_EQUAL((uint16_t)22, copyBuf[0]);
 		CPPUNIT_ASSERT_EQUAL((uint16_t)23, copyBuf[1]);
 		CPPUNIT_ASSERT_EQUAL((uint16_t)8, copyBuf[2]);
 		CPPUNIT_ASSERT_EQUAL((uint16_t)9, copyBuf[3]);
 		CPPUNIT_ASSERT_EQUAL((uint16_t)0xFFFF, copyBuf[4]);
-		
-		
 	}
+
+	void test_pop_with_no_elements(void)
+	{
+		scratchpad = 123;
+		CPPUNIT_ASSERT(buffer->push_back(scratchpad++));
+		CPPUNIT_ASSERT(buffer->push_back(scratchpad++));
+		CPPUNIT_ASSERT(buffer->push_back(scratchpad++));
+
+		CPPUNIT_ASSERT(buffer->pop_front(scratchpad));
+		CPPUNIT_ASSERT_EQUAL((uint16_t)123, scratchpad);
+	
+		CPPUNIT_ASSERT(buffer->pop_front(scratchpad));
+		CPPUNIT_ASSERT_EQUAL((uint16_t)124, scratchpad);
+	
+		CPPUNIT_ASSERT(buffer->pop_front(scratchpad));
+		CPPUNIT_ASSERT_EQUAL((uint16_t)125, scratchpad);
+
+		CPPUNIT_ASSERT(!buffer->pop_front(scratchpad));
+		CPPUNIT_ASSERT_EQUAL((uint16_t)125, scratchpad);
+	}
+	
 
 public:
-	void setUp(void)
+	
+	void setUp()
 	{
-		ringbuf_init(&buffer, (RINGBUF_DATA)data, sizeof(data[0]), 16, true);
+		buffer = new RingBuffer<uint16_t>(data, 16, true);
 	}
 
-	void tearDown(void)
+	void tearDown()
 	{
-
+		delete buffer;
 	}
+
 };
 
 int main()
 {
    CppUnit::TextUi::TestRunner runner;
    
-   CPPUNIT_TEST_SUITE_REGISTRATION( RingBufTest );
+   CPPUNIT_TEST_SUITE_REGISTRATION( RingBufferTest );
 
    CppUnit::TestFactoryRegistry &registry = CppUnit::TestFactoryRegistry::getRegistry();
 
