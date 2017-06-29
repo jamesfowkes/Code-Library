@@ -151,6 +151,21 @@ void I2C_New_Event(I2C_EVENT event)
 			active_sm = state_machines[I2CM_SR];
 			activeTransfer = getSlaveTransferData(true);
 			break;
+		case I2C_START:
+		case I2C_REP_START:
+		case I2C_BUS_ERROR:
+		case I2C_SLA_ACK:
+		case I2C_SLA_NACK:
+		case I2C_ARB_LOST_SLA_ACK:
+		case I2C_ARB_LOST_SLA_NACK:
+		case I2C_DATA_ACK:
+		case I2C_DATA_NACK:
+		case I2C_GCALL_ACK:
+		case I2C_ARB_LOST_GCALL_ACK:
+		case I2C_GCALL_DATA_ACK:
+		case I2C_GCALL_DATA_NACK:
+		case I2C_ARB_LOST:
+		case I2C_STOP:
 		default:
 			break;
 		}
