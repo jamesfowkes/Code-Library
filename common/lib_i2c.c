@@ -128,7 +128,10 @@ void I2C_Done(bool success)
 
 	active_sm = NULL;
 	activeTransfer->success = success;
-	activeTransfer->callback(activeTransfer);
+	if(activeTransfer->callback)
+	{
+		activeTransfer->callback(activeTransfer);
+	}
 }
 
 void I2C_New_Event(I2C_EVENT event)
