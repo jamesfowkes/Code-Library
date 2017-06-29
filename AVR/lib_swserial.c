@@ -42,7 +42,7 @@
  * Utility Library Includes
  */
 
-#include "Utility/util_macros.h"
+#include "utility/util_macros.h"
 
 /*
  * Private Defines and Typedefs

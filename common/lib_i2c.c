@@ -17,7 +17,7 @@
 #include "lib_i2c_private.h"
 #include "lib_i2c_defs.h"
 
-#include "Utility/util_macros.h"
+#include "utility/util_macros.h"
 
 static I2C_STATEMACHINE * state_machines[4] =
 { NULL, NULL, NULL, NULL };
