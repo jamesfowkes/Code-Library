@@ -13,7 +13,7 @@ enum i2c_state_enum
 	I2CS_IDLE,
 	I2CS_STARTING,
 	I2CS_ADDRESSING,
-	I2CS_TRANSFERRING,
+	I2CS_TRANSFERRING
 };
 typedef enum i2c_state_enum I2C_STATE_ENUM;
 
