@@ -217,7 +217,7 @@ template <typename T>
 bool RingBuffer<T>::pop_front(T& data)
 {
 	if (m_count == 0) { return false; }
-	memcpy(data, m_data[m_tail], sizeof(T));
+	memcpy(&data, &m_data[m_tail], sizeof(T));
 	m_tail = next_read_index();
 	m_count--;
 	
@@ -243,7 +243,7 @@ bool RingBuffer<T>::push_back(T data)
 	}
 	
 	if (!is_full() || m_allow_overwrite) {
-		memcpy(m_data[m_tail], data, sizeof(T));
+		memcpy(&m_data[m_head], &data, sizeof(T));
 		m_head = next_write_index();
 		m_count++;
 
