@@ -46,6 +46,12 @@ embedded system. See the unit tests for usage examples. */
 
 uint8_t valid_power_of_two(uint8_t k);
 
+template<typename T>
+T * ptr(T & obj) { return &obj; }
+
+template<typename T>
+T * ptr(T * obj) { return obj; }
+
 template <typename T>
 class RingBuffer
 {
@@ -142,7 +148,7 @@ bool RingBuffer<T>::get_oldest(T& data)
 {
 	if (is_empty()) return false;
 
-	data = m_data[m_tail];
+	memcpy(&data, &m_data[m_tail], sizeof(T));
 	
 	return true;
 }
@@ -158,7 +164,7 @@ bool RingBuffer<T>::get_newest(T& data)
 {
 	if (is_empty()) return false;
 
-	data = m_data[m_head-1];
+	memcpy(&data, &m_data[m_head-1], sizeof(T));
 	
 	return true;
 }
@@ -174,7 +180,7 @@ bool RingBuffer<T>::get_element(T& data, uint8_t n)
 {
 	if (n > m_count) { return false; }
 	if (n > m_tail) { n -= m_tail; }
-	data = m_data[m_tail+n];
+	memcpy(&data, &m_data[m_tail+n], sizeof(T));
 	return true;
 }
 
@@ -198,7 +204,7 @@ int RingBuffer<T>::get_elements(uint8_t startIndex, uint8_t count, T * copyBuffe
 	{
 		for (i = 0; i < count; ++i)
 		{
-			copyBuffer[i] = m_data[index];
+			memcpy(&copyBuffer[i], &m_data[index], sizeof(T));
 			copy_count++;
 			incrementwithrollover(index, m_max_elements-1);
 		}
@@ -243,7 +249,7 @@ bool RingBuffer<T>::push_back(T data)
 	}
 	
 	if (!is_full() || m_allow_overwrite) {
-		memcpy(&m_data[m_head], &data, sizeof(T));
+		memcpy(&m_data[m_head], ptr(data), sizeof(T));
 		m_head = next_write_index();
 		m_count++;
 
