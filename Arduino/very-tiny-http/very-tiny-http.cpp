@@ -19,7 +19,7 @@ static void get_url(char * url, char const * req)
 	*url = '\0';
 }
 
-static http_get_handler * match_handler_url(char const * const url, http_get_handler * handlers)
+http_get_handler * http_server_match_handler_url(char const * const url, http_get_handler * handlers)
 {
 	uint8_t i = 0;
 	while (handlers[i].fn)
@@ -68,7 +68,7 @@ void http_server_handle_req(http_get_handler * handlers, char const * const recv
 	if ((recvd[0] == 'G') && (recvd[1] == 'E') && (recvd[2] == 'T'))
 	{
 		get_url(url, recvd);
-		if ((handler = match_handler_url(url, handlers)))
+		if ((handler = http_server_match_handler_url(url, handlers)))
 		{
 			handler->fn(url);
 		}

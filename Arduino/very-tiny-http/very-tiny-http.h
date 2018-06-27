@@ -14,6 +14,7 @@ void http_server_set_response_code(char const * const code);
 void http_server_set_header(char const * const field, char const * const value);
 void http_server_finish_headers();
 void http_server_add_body(char const * const body);
+http_get_handler * http_server_match_handler_url(char const * const url, http_get_handler * handlers);
 char * http_server_get_response();
 
 #ifndef max
