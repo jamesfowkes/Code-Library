@@ -22,9 +22,13 @@ static void get_url(char * url, char const * req)
 http_get_handler * http_server_match_handler_url(char const * const url, http_get_handler * handlers)
 {
 	uint8_t i = 0;
+	uint16_t handler_url_len;
+	const uint16_t url_len = strlen(url);
+
 	while (handlers[i].fn)
 	{
-		if (strncmp(url, handlers[i].url, min(strlen(url), strlen(handlers[i].url))) == 0)
+		handler_url_len = strlen(handlers[i].url);
+		if ((url_len >= handler_url_len) && (strncmp(url, handlers[i].url, handler_url_len) == 0))
 		{
 			return &handlers[i];
 		}
